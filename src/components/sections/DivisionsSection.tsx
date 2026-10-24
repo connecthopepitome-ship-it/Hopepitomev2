@@ -47,11 +47,11 @@ export function DivisionsSection() {
                 NEXORA
               </h3>
               <p className="font-mono text-xs text-cobalt-blue tracking-widest uppercase mb-8">
-                DIGITAL ENGINEERING & ENTERPRISE ARCHITECTURE
+                DIGITAL ENGINEERING & BUSINESS SYSTEMS
               </p>
 
               <p className="text-stone-light text-sm sm:text-base leading-relaxed mb-10 font-sans">
-                High-performance web applications, robust ERP installations, mission-critical business automation, and enterprise integration pipelines engineered for operational superiority.
+                Modern business websites, conversion-focused e-commerce, custom software development, and ERP/CRM implementation built for long-term operational clarity.
               </p>
 
               {/* Technical Services Breakdown */}
@@ -134,11 +134,11 @@ export function DivisionsSection() {
                 ELEVORA
               </h3>
               <p className="font-mono text-xs text-[#3b4049] tracking-widest uppercase mb-8">
-                CAREER STUDIO & EXECUTIVE IDENTITY ATELIER
+                CAREER BRANDING & PORTFOLIO STUDIO
               </p>
 
               <p className="text-[#33373e] text-sm sm:text-base leading-relaxed mb-10 font-sans">
-                Curating definitive career positioning for senior executives, technical leaders, and ambitious specialists. Transformative CV craftsmanship, bespoke portfolio design, and LinkedIn authority.
+                Professional resume and CV craftsmanship, tailored personal portfolio websites, LinkedIn profile optimization, and job-specific resume revisions for distinguished specialists and leaders.
               </p>
 
               {/* Career Studio Breakdown */}

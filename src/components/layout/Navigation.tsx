@@ -77,6 +77,12 @@ export function Navigation() {
           >
             PROCESS
           </a>
+          <a
+            href="#portal"
+            className="text-muted-stone hover:text-warm-white transition-colors"
+          >
+            PORTAL
+          </a>
         </nav>
 
         {/* Desktop CTA Action */}
@@ -130,7 +136,7 @@ export function Navigation() {
               className="flex items-center justify-between py-2 border-b border-white/[0.06] text-muted-stone hover:text-warm-white"
             >
               <span>SERVICE INDEX</span>
-              <span className="text-muted-stone text-xs">07 ITEMS</span>
+              <span className="text-muted-stone text-xs">09 SERVICES</span>
             </a>
             <a
               href="#work"
@@ -147,6 +153,14 @@ export function Navigation() {
             >
               <span>HOW WE WORK</span>
               <span className="text-muted-stone text-xs">05 STAGES</span>
+            </a>
+            <a
+              href="#portal"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 border-b border-white/[0.06] text-muted-stone hover:text-warm-white"
+            >
+              <span>CLIENT PORTAL</span>
+              <span className="text-cobalt-blue text-xs font-mono">ROADMAP</span>
             </a>
             <a
               href="#contact"

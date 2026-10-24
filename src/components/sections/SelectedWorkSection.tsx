@@ -15,40 +15,40 @@ const projects: Project[] = [
     id: 'PRJ_01',
     title: 'KINETIC ERP CORE',
     division: 'NEXORA',
-    category: 'ENTERPRISE SYSTEM',
+    category: 'CONCEPT SYSTEM STUDY',
     year: '2026',
     brief:
-      'A modular ERP system interface featuring real-time telemetry, automated supplier procurement engines, and ledger reconciliations.',
+      'An exploratory ERP interface study exploring real-time telemetry, automated supplier procurement flows, and multi-currency ledger schemas.',
     tags: ['Frappe Core', 'React', 'MariaDB', 'REST Webhooks'],
   },
   {
     id: 'PRJ_02',
     title: 'AURA ATELIER',
     division: 'ELEVORA',
-    category: 'EXECUTIVE MONOGRAPH',
+    category: 'EXECUTIVE MONOGRAPH STUDY',
     year: '2026',
     brief:
-      'Digital career archive and bespoke interactive monograph engineered for a global industrial design director.',
+      'Digital career archive and bespoke interactive monograph prototype designed for an industrial design leadership profile.',
     tags: ['Next.js App', 'WebGL Monolith', 'Curatorial Typography', 'ATS Portfolio'],
   },
   {
     id: 'PRJ_03',
     title: 'HYPERION COMMERCE',
     division: 'NEXORA',
-    category: 'HEADLESS COMMERCE',
+    category: 'HEADLESS COMMERCE PROTOTYPE',
     year: '2026',
     brief:
-      'High-throughput headless commerce storefront with sub-50ms edge rendering and dynamic inventory state synchronization.',
+      'A decoupled commerce prototype demonstrating sub-50ms edge rendering and resilient inventory state synchronization.',
     tags: ['TypeScript', 'Edge Runtime', 'Tailwind', 'Stripe Connect'],
   },
   {
     id: 'PRJ_04',
     title: 'MONOLITH RESUME ARCHIVE',
     division: 'ELEVORA',
-    category: 'CAREER ARCHITECTURE',
+    category: 'CAREER ARCHITECTURE STUDY',
     year: '2026',
     brief:
-      'Comprehensive executive CV rewrite and confidential leadership profile strategy for a Principal Systems Architect.',
+      'Executive resume architecture and strategic narrative blueprint engineered for senior technology leadership candidates.',
     tags: ['Executive Strategy', 'ATS Parsing Benchmark', 'LinkedIn Authority'],
   },
 ];
@@ -128,11 +128,11 @@ export function SelectedWorkSection() {
         </div>
 
         {/* Note on Authenticity */}
-        <div className="mt-12 p-4 border border-white/[0.06] bg-white/[0.01] text-xs font-mono text-muted-stone tracking-wide flex items-center justify-between">
+        <div className="mt-12 p-4 border border-white/[0.06] bg-white/[0.01] text-xs font-mono text-muted-stone tracking-wide flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <span>
-            [ ETHICAL NOTICE: All shown work represents studio lab prototypes and architected concept models. ]
+            [ ETHICAL DISCLOSURE: All featured projects represent concept architecture studies, technical prototypes, and laboratory research benchmarks developed by Hopepitome. ]
           </span>
-          <span className="hidden sm:inline text-warm-white">STUDIO ARCHIVE // 2026</span>
+          <span className="text-warm-white shrink-0">STUDIO ARCHIVE // 2026</span>
         </div>
       </div>
     </section>

@@ -12,29 +12,29 @@ const portalFeatures: PortalFeature[] = [
     code: '01',
     title: 'REQUIREMENTS & SPECIFICATIONS INTAKE',
     description:
-      'A secure environment to upload design assets, schema diagrams, technical briefs, and resume source files with full version history.',
-    status: 'BETA TESTING',
+      'A structured environment to upload technical briefs, architecture diagrams, brand guidelines, and resume drafts with full version history.',
+    status: 'IN ARCHITECTURE',
   },
   {
     code: '02',
     title: 'MILESTONE & SPRINT TELEMETRY',
     description:
-      'Transparent tracking of project progression through real-time phase gates, staging deployments, and executive review links.',
-    status: 'IN DEVELOPMENT',
+      'Clear visibility into project progression, phase milestones, private staging preview URLs, and review schedules.',
+    status: 'ROADMAP // PLANNED',
   },
   {
     code: '03',
     title: 'STRUCTURED REVISION DISPATCH',
     description:
-      'Submit pinpoint change requests directly against prototypes or CV drafts with threaded developer and editor commentary.',
-    status: 'ARCHITECTURE SPECIFIED',
+      'Centralized tracking for feedback, change requests, and scope adjustments with threaded responses from the engineering lead.',
+    status: 'IN ARCHITECTURE',
   },
   {
     code: '04',
     title: 'COMMERCIALS & INVOICE LEDGER',
     description:
-      'Transparent access to itemized quotations, phase sign-off milestones, and tax-compliant digital invoices in one central vault.',
-    status: 'INTEGRATING GATEWAY',
+      'Direct access to itemized project quotations, agreed deliverables, milestone sign-offs, and numbered payment records.',
+    status: 'ROADMAP // PLANNED',
   },
 ];
 
@@ -64,15 +64,15 @@ export function ClientPortalSection() {
               PROJECT PORTAL
             </h3>
             <p className="text-stone-light text-base leading-relaxed mb-6 font-sans">
-              We are engineering a proprietary client dashboard to give every partner full transparency over their digital deliverables—from initial discovery through post-launch evolution.
+              We are architecting a centralized client portal to provide clients with structured visibility over their deliverables, technical milestones, and revision histories. This portal is currently in active development.
             </p>
-            <div className="p-4 border border-cobalt-blue/30 bg-cobalt-blue/[0.04] text-xs font-mono text-muted-stone">
-              <span className="text-cobalt-blue font-bold block mb-1">
-                TRANSPARENCY COMMITMENT:
+            <div className="p-4 border border-cobalt-blue/30 bg-cobalt-blue/[0.04] text-xs font-mono text-muted-stone space-y-2">
+              <span className="text-cobalt-blue font-bold block uppercase tracking-wider">
+                CURRENT CLIENT COLLABORATION MODEL:
               </span>
-              <span>
-                During active onboarding, clients receive private staging links and direct access to their assigned technical director or lead consultant.
-              </span>
+              <p className="text-stone-light text-xs font-sans leading-relaxed">
+                During active engagements, partners receive private staging URLs, direct access to the technical lead or portfolio strategist, and scheduled walkthrough sessions. Portal accounts will be provisioned directly upon module launch.
+              </p>
             </div>
           </div>
 

@@ -16,11 +16,11 @@ export function HeroSection() {
         <div className="flex items-center justify-between text-[11px] font-mono tracking-widest uppercase text-muted-stone pt-4">
           <div className="flex items-center space-x-3">
             <span className="w-1.5 h-1.5 bg-cobalt-blue inline-block" />
-            <span>STUDIO / COORD [ 19.0760° N, 72.8777° E ]</span>
+            <span>STUDIO // INDEPENDENT DIGITAL PRACTICE</span>
           </div>
           <div className="hidden sm:flex items-center space-x-6">
-            <span>INDEX // 2026.V2</span>
-            <span>SPEC: HYBRID ARCHITECTURE</span>
+            <span>INDEX // 2026</span>
+            <span>DUAL-DISCIPLINE ATELIER</span>
           </div>
         </div>
 

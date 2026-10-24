@@ -29,12 +29,12 @@ export function StatementSection() {
             <div className="space-y-4">
               <span className="tech-label">[ THE THESIS ]</span>
               <p className="text-stone-light text-base leading-relaxed">
-                Most digital agencies treat software as an isolated utility and personal
-                branding as an afterthought. Hopepitome rejects this division.
+                Most agencies treat digital software as an isolated utility and personal
+                branding as an afterthought. Hopepitome unifies both disciplines.
               </p>
               <p className="text-muted-stone text-sm leading-relaxed">
-                We engineer scalable digital infrastructure for modern enterprises through
-                <strong className="text-warm-white font-medium"> Nexora</strong>, and sculpt distinctive, high-impact career narratives for industry leaders through
+                We engineer reliable, scalable web systems and business workflows through
+                <strong className="text-warm-white font-medium"> Nexora</strong>, and sculpt distinctive, professional career identities and portfolios through
                 <strong className="text-warm-white font-medium"> Elevora</strong>.
               </p>
             </div>
@@ -45,8 +45,8 @@ export function StatementSection() {
                 <span className="text-warm-white font-bold">DUAL-DISCIPLINE</span>
               </div>
               <div>
-                <span className="text-muted-stone block text-[10px]">STANDARDS</span>
-                <span className="text-warm-white font-bold">ENTERPRISE-GRADE</span>
+                <span className="text-muted-stone block text-[10px]">EXECUTION</span>
+                <span className="text-warm-white font-bold">TAILORED CRAFT</span>
               </div>
             </div>
           </div>
