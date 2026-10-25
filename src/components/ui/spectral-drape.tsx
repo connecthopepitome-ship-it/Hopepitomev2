@@ -32,6 +32,7 @@ export interface SpectralDrapeProps {
   seed?: number;
   paused?: boolean;
   dpr?: number;
+  globalPointer?: boolean;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
@@ -222,7 +223,7 @@ const toLab = (target: THREE.Vector3, color: THREE.Color) => {
 
 interface DrapeSceneProps {
   settings: Required<
-    Omit<SpectralDrapeProps, 'className' | 'style' | 'children' | 'dpr'>
+    Omit<SpectralDrapeProps, 'className' | 'style' | 'children' | 'dpr' | 'globalPointer'>
   > & {
     reduced: boolean;
   };
@@ -604,6 +605,7 @@ export function SpectralDrape({
   seed = 0,
   paused = false,
   dpr = 2,
+  globalPointer = false,
   className,
   style,
   children,
@@ -649,10 +651,15 @@ export function SpectralDrape({
     if (!el) return;
 
     const updateCoords = (e: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
       const p = pointerRef.current;
-      p.x = (e.clientX - rect.left) / Math.max(rect.width, 1);
-      p.y = 1 - (e.clientY - rect.top) / Math.max(rect.height, 1);
+      if (globalPointer && typeof window !== 'undefined') {
+        p.x = e.clientX / Math.max(window.innerWidth, 1);
+        p.y = 1 - e.clientY / Math.max(window.innerHeight, 1);
+      } else {
+        const rect = el.getBoundingClientRect();
+        p.x = (e.clientX - rect.left) / Math.max(rect.width, 1);
+        p.y = 1 - (e.clientY - rect.top) / Math.max(rect.height, 1);
+      }
       p.inside = true;
     };
 
@@ -675,18 +682,29 @@ export function SpectralDrape({
       wakeRef.current?.();
     };
 
-    el.addEventListener('pointermove', handlePointerMove, { passive: true });
-    el.addEventListener('pointerdown', handlePointerDown, { passive: true });
-    el.addEventListener('pointerleave', handlePointerLeave, { passive: true });
-    el.addEventListener('pointercancel', handlePointerLeave, { passive: true });
+    if (globalPointer && typeof window !== 'undefined') {
+      window.addEventListener('pointermove', handlePointerMove, { passive: true });
+      window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+      document.addEventListener('mouseleave', handlePointerLeave, { passive: true });
+      return () => {
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('pointerdown', handlePointerDown);
+        document.removeEventListener('mouseleave', handlePointerLeave);
+      };
+    } else {
+      el.addEventListener('pointermove', handlePointerMove, { passive: true });
+      el.addEventListener('pointerdown', handlePointerDown, { passive: true });
+      el.addEventListener('pointerleave', handlePointerLeave, { passive: true });
+      el.addEventListener('pointercancel', handlePointerLeave, { passive: true });
 
-    return () => {
-      el.removeEventListener('pointermove', handlePointerMove);
-      el.removeEventListener('pointerdown', handlePointerDown);
-      el.removeEventListener('pointerleave', handlePointerLeave);
-      el.removeEventListener('pointercancel', handlePointerLeave);
-    };
-  }, []);
+      return () => {
+        el.removeEventListener('pointermove', handlePointerMove);
+        el.removeEventListener('pointerdown', handlePointerDown);
+        el.removeEventListener('pointerleave', handlePointerLeave);
+        el.removeEventListener('pointercancel', handlePointerLeave);
+      };
+    }
+  }, [globalPointer]);
 
   const shouldLoop = isIntersecting && !paused && !isReducedMotion;
 

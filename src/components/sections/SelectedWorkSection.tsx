@@ -98,11 +98,11 @@ export function SelectedWorkSection() {
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase">
-            <span className="text-cobalt-blue font-bold">05 //</span>
+            <span className="text-[#8B6CFF] font-bold">05 //</span>
             <span>OUR WORK & PROTOTYPES</span>
           </div>
           <div className="text-xs font-mono tracking-wider uppercase text-muted-stone flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-cobalt-blue inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B6CFF] inline-block shadow-[0_0_8px_#8B6CFF]" />
             <span>DESIGN & TECHNICAL DEMONSTRATIONS</span>
           </div>
         </div>
@@ -122,7 +122,7 @@ export function SelectedWorkSection() {
           {projects.map((proj) => (
             <article
               key={proj.id}
-              className="group relative bg-graphite-900 border border-editorial p-6 sm:p-8 flex flex-col justify-between hover:border-white/20 transition-all duration-300"
+              className="group relative bg-[#101116]/60 backdrop-blur-md border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between hover:border-[#8B6CFF]/40 transition-all duration-300"
             >
               <div>
                 {/* Meta Bar */}
@@ -131,8 +131,8 @@ export function SelectedWorkSection() {
                   <span
                     className={`px-2 py-0.5 border text-[10px] ${
                       proj.division === 'NEXORA'
-                        ? 'border-cobalt-blue/40 text-cobalt-blue'
-                        : 'border-white/20 text-stone-light'
+                        ? 'border-[#8B6CFF]/40 text-[#8B6CFF]'
+                        : 'border-[#E4DBFF]/30 text-[#E4DBFF]'
                     }`}
                   >
                     {proj.division === 'NEXORA' ? 'BUSINESS SOLUTION' : 'CAREER STUDIO'}
@@ -180,7 +180,7 @@ export function SelectedWorkSection() {
                 <button
                   type="button"
                   onClick={() => setSelectedStudy(proj)}
-                  className="text-xs font-mono text-cobalt-blue hover:text-warm-white transition-colors flex items-center space-x-1"
+                  className="text-xs font-mono text-[#8B6CFF] hover:text-[#E4DBFF] transition-colors flex items-center space-x-1"
                 >
                   <span>Explore study details</span>
                   <span>→</span>
@@ -191,7 +191,7 @@ export function SelectedWorkSection() {
         </div>
 
         {/* Clear Notice on Demonstrations */}
-        <div className="mt-10 p-4 border border-white/[0.08] bg-white/[0.02] text-xs font-mono text-muted-stone tracking-wide flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="mt-10 p-4 border border-white/[0.08] bg-[#101116]/40 backdrop-blur-sm text-xs font-mono text-muted-stone tracking-wide flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <span>
             [ NOTE: All featured projects represent concept architecture studies and demonstrations created by Hopepitome to showcase practical workflows. ]
           </span>
@@ -202,15 +202,15 @@ export function SelectedWorkSection() {
       {/* Interactive Study Details Modal / Drawer */}
       {selectedStudy && (
         <div
-          className="fixed inset-0 z-50 bg-graphite-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-50 bg-[#07080B]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-graphite-900 border border-white/20 p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-6 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#101116]/95 border border-white/20 p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-6 animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-editorial pb-4">
               <div>
-                <div className="flex items-center space-x-2 text-xs font-mono text-cobalt-blue mb-1">
+                <div className="flex items-center space-x-2 text-xs font-mono text-[#8B6CFF] mb-1">
                   <span>{selectedStudy.id}</span>
                   <span>//</span>
                   <span>{selectedStudy.division}</span>
@@ -233,7 +233,7 @@ export function SelectedWorkSection() {
 
             {/* Problem */}
             <div>
-              <span className="text-xs font-mono tracking-wider uppercase text-cobalt-blue block mb-1">
+              <span className="text-xs font-mono tracking-wider uppercase text-[#8B6CFF] block mb-1">
                 01 / THE PROBLEM BEING EXPLORED
               </span>
               <p className="text-stone-light text-sm font-sans leading-relaxed">
@@ -243,7 +243,7 @@ export function SelectedWorkSection() {
 
             {/* Proposed Solution */}
             <div>
-              <span className="text-xs font-mono tracking-wider uppercase text-cobalt-blue block mb-1">
+              <span className="text-xs font-mono tracking-wider uppercase text-[#8B6CFF] block mb-1">
                 02 / PROPOSED WORKFLOW & SOLUTION
               </span>
               <p className="text-stone-light text-sm font-sans leading-relaxed">
@@ -259,7 +259,7 @@ export function SelectedWorkSection() {
               <ul className="space-y-1.5 text-xs font-sans text-stone-light">
                 {selectedStudy.workflowDesign.map((step, idx) => (
                   <li key={idx} className="flex items-start space-x-2">
-                    <span className="text-cobalt-blue font-mono">›</span>
+                    <span className="text-[#8B6CFF] font-mono">›</span>
                     <span>{step}</span>
                   </li>
                 ))}
@@ -296,7 +296,7 @@ export function SelectedWorkSection() {
               <a
                 href="#contact"
                 onClick={() => setSelectedStudy(null)}
-                className="px-4 py-2 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors text-xs font-mono uppercase font-bold"
+                className="px-4 py-2 bg-[#8B6CFF] text-[#07080B] hover:bg-white hover:text-[#07080B] transition-colors text-xs font-mono uppercase font-bold"
               >
                 Discuss a similar project →
               </a>

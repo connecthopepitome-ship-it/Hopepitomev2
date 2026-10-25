@@ -58,11 +58,12 @@ export function ProcessSection() {
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase">
-            <span className="text-cobalt-blue font-bold">06 //</span>
+            <span className="text-[#8B6CFF] font-bold">06 //</span>
             <span>HOW WE WORK</span>
           </div>
-          <div className="text-xs font-mono tracking-wider uppercase text-muted-stone">
-            A SIMPLE, 5-STAGE COLLABORATION PROCESS
+          <div className="text-xs font-mono tracking-wider uppercase text-muted-stone flex items-center space-x-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B6CFF] inline-block shadow-[0_0_8px_#8B6CFF]" />
+            <span>A SIMPLE, 5-STAGE COLLABORATION PROCESS</span>
           </div>
         </div>
 
@@ -81,12 +82,12 @@ export function ProcessSection() {
           {stages.map((step, index) => (
             <div
               key={step.num}
-              className="relative p-5 bg-graphite-900 border border-editorial flex flex-col justify-between group hover:border-white/20 transition-all duration-300"
+              className="relative p-5 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08] flex flex-col justify-between group hover:border-[#8B6CFF]/40 transition-all duration-300"
             >
               <div>
                 {/* Step Number with Connector */}
                 <div className="flex items-center justify-between mb-4">
-                  <span className="font-mono text-2xl font-bold text-cobalt-blue">
+                  <span className="font-mono text-2xl font-bold text-[#8B6CFF]">
                     {step.num}
                   </span>
                   {index < stages.length - 1 && (

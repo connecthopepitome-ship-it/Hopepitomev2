@@ -2,32 +2,32 @@
 
 export function DivisionsSection() {
   return (
-    <section id="divisions" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <section id="divisions" className="relative py-28 md:py-36 border-b border-white/[0.08] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-white/[0.08] gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase">
-            <span className="text-cobalt-blue font-bold">03 //</span>
-            <span>OUR DIVISIONS</span>
+            <span className="text-[#8B6CFF] font-bold">03 //</span>
+            <span className="text-warm-white">TWO DEDICATED DIVISIONS</span>
           </div>
           <div className="text-xs font-mono tracking-wider uppercase text-muted-stone">
-            BUSINESS SOLUTIONS & CAREER BRANDING
+            BUSINESS SYSTEMS &amp; CAREER BRANDING
           </div>
         </div>
 
-        {/* Division 01 & Division 02 Showcase */}
+        {/* Division 01 & Division 02 Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 pt-14">
-          {/* DIVISION 01: NEXORA (Dark Composition) */}
+          {/* DIVISION 01: NEXORA (Digital Engineering) */}
           <div
             id="nexora"
-            className="lg:col-span-6 relative bg-graphite-900 border border-white/10 p-8 sm:p-12 flex flex-col justify-between group overflow-hidden"
+            className="lg:col-span-6 relative bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/40 p-8 sm:p-12 flex flex-col justify-between group overflow-hidden backdrop-blur-md transition-all duration-300"
           >
-            {/* Subtle Graphic Accent */}
+            {/* Subtle Architectural Grid Accent */}
             <div className="absolute top-0 right-0 p-6 pointer-events-none opacity-20">
               <svg width="110" height="110" viewBox="0 0 100 100" fill="none">
-                <circle cx="50" cy="50" r="46" stroke="#1f51ff" strokeWidth="1" strokeDasharray="3 3" />
-                <rect x="25" y="25" width="50" height="50" stroke="#c8cbd0" strokeWidth="1" />
-                <line x1="0" y1="50" x2="100" y2="50" stroke="#1f51ff" strokeWidth="0.75" />
+                <circle cx="50" cy="50" r="46" stroke="#8B6CFF" strokeWidth="1" strokeDasharray="3 3" />
+                <rect x="25" y="25" width="50" height="50" stroke="#E4DBFF" strokeWidth="1" />
+                <line x1="0" y1="50" x2="100" y2="50" stroke="#8B6CFF" strokeWidth="0.75" />
               </svg>
             </div>
 
@@ -35,53 +35,65 @@ export function DivisionsSection() {
               {/* Division Header */}
               <div className="flex items-center justify-between text-xs font-mono tracking-wider uppercase text-muted-stone mb-6">
                 <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-cobalt-blue inline-block" />
+                  <span className="w-2 h-2 bg-[#8B6CFF] inline-block" />
                   <span className="text-warm-white font-bold">DIVISION 01</span>
                 </div>
-                <span className="text-cobalt-blue">FOR BUSINESSES</span>
+                <span className="text-[#8B6CFF] font-semibold">FOR BUSINESSES</span>
               </div>
 
-              {/* Title */}
-              <h3 className="font-display font-extrabold text-3xl sm:text-4xl text-warm-white tracking-tight uppercase mb-3">
+              {/* Title & Prompt Subtitle */}
+              <h3 className="font-display font-extrabold text-3xl sm:text-4xl text-warm-white tracking-tight uppercase mb-2">
                 NEXORA
               </h3>
-              <p className="font-mono text-xs text-cobalt-blue tracking-wider uppercase mb-6 font-semibold">
-                Digital Solutions for Business
+              <p className="font-mono text-xs text-[#E4DBFF] tracking-wider uppercase mb-5 font-semibold">
+                Nexora — Digital Engineering
               </p>
 
-              <p className="text-stone-light text-sm sm:text-base leading-relaxed mb-8 font-sans">
-                From your first business website to a custom system that supports daily operations, we help you choose, build and improve the digital tools your business needs.
-              </p>
+              <blockquote className="text-stone-light text-sm sm:text-base leading-relaxed mb-8 font-sans border-l-2 border-[#8B6CFF]/40 pl-4 italic">
+                “Websites, online stores and business software built around the way you work.”
+              </blockquote>
 
-              {/* Plain Language Services Breakdown */}
+              {/* 6 Required Core Services */}
               <div className="space-y-3 pt-6 border-t border-white/[0.08] mb-8">
-                <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-2 font-bold">
-                  WHAT WE BUILD & SUPPORT:
+                <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-3 font-bold">
+                  CORE SERVICES:
                 </span>
-                <ul className="space-y-2.5 text-xs font-mono tracking-wide text-stone-light pt-1">
+                <ul className="space-y-3 text-xs font-mono tracking-wide text-stone-light">
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-cobalt-blue mt-0.5">›</span>
-                    <span><strong>Business Websites:</strong> Clear, responsive websites built to introduce your company and services.</span>
+                    <span className="text-[#8B6CFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Business websites:</strong> Fast, accessible web presence designed to communicate your value and convert enquiries.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-cobalt-blue mt-0.5">›</span>
-                    <span><strong>Online Stores:</strong> E-commerce shops with product catalogs, shopping carts, and payments.</span>
+                    <span className="text-[#8B6CFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Ecommerce websites:</strong> Complete online shopping systems with inventory, checkout, and payments.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-cobalt-blue mt-0.5">›</span>
-                    <span><strong>Custom Business Software:</strong> Dedicated tools designed around your unique day-to-day operations.</span>
+                    <span className="text-[#8B6CFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Custom software:</strong> Tailored web platforms and applications addressing specific business bottlenecks.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-cobalt-blue mt-0.5">›</span>
-                    <span><strong>ERP Systems:</strong> Software to manage purchasing, inventory, sales, and operational records.</span>
+                    <span className="text-[#8B6CFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">ERP and CRM systems:</strong> Operations management, inventory, sales pipelines, and customer relationship software.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-cobalt-blue mt-0.5">›</span>
-                    <span><strong>Customer Systems & Automation:</strong> CRMs and automated follow-ups that save your team time.</span>
+                    <span className="text-[#8B6CFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Workflow automation:</strong> Reducing manual admin and repetitive tasks with seamless background workflows.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-cobalt-blue mt-0.5">›</span>
-                    <span><strong>Connecting Business Systems:</strong> Linking software and creating clear operational dashboards.</span>
+                    <span className="text-[#8B6CFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">System integrations:</strong> Connecting your APIs, payment gateways, accounting systems, and external tools.
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -89,99 +101,105 @@ export function DivisionsSection() {
 
             {/* Division Link */}
             <div className="pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <span className="text-[11px] font-mono text-muted-stone uppercase">
-                AUDIENCE: SMALL BUSINESSES TO GROWING COMPANIES
+              <span className="text-[10px] font-mono text-muted-stone uppercase">
+                TARGET: GROWING COMPANIES &amp; OPERATORS
               </span>
               <a
                 href="#contact"
-                className="inline-flex items-center space-x-2 text-xs font-mono tracking-wider uppercase text-warm-white hover:text-cobalt-blue transition-colors font-bold"
+                className="inline-flex items-center space-x-2 text-xs font-mono tracking-wider uppercase text-warm-white hover:text-[#8B6CFF] transition-colors font-bold"
               >
-                <span>Discuss a business project</span>
+                <span>Discuss a business system</span>
                 <span>→</span>
               </a>
             </div>
           </div>
 
-          {/* DIVISION 02: ELEVORA (Clean Paper Editorial Composition) */}
+          {/* DIVISION 02: ELEVORA (Career Branding) */}
           <div
             id="elevora"
-            className="lg:col-span-6 relative bg-[#f4f3ef] text-[#121417] p-8 sm:p-12 flex flex-col justify-between group overflow-hidden border border-[#d8d6cf]"
+            className="lg:col-span-6 relative bg-[#101116]/60 border border-white/[0.08] hover:border-[#E4DBFF]/40 p-8 sm:p-12 flex flex-col justify-between group overflow-hidden backdrop-blur-md transition-all duration-300"
           >
-            {/* Subtle Graphic Accent */}
+            {/* Subtle Architectural Grid Accent */}
             <div className="absolute top-0 right-0 p-6 pointer-events-none opacity-20">
-              <svg width="100" height="100" viewBox="0 0 80 80" fill="none">
-                <rect x="10" y="10" width="60" height="60" stroke="#121417" strokeWidth="0.75" />
-                <line x1="10" y1="30" x2="70" y2="30" stroke="#121417" strokeWidth="0.5" />
-                <line x1="10" y1="50" x2="70" y2="50" stroke="#121417" strokeWidth="0.5" />
+              <svg width="110" height="110" viewBox="0 0 100 100" fill="none">
+                <rect x="20" y="20" width="60" height="60" stroke="#E4DBFF" strokeWidth="1" />
+                <line x1="20" y1="40" x2="80" y2="40" stroke="#8B6CFF" strokeWidth="0.75" />
+                <line x1="20" y1="60" x2="80" y2="60" stroke="#8B6CFF" strokeWidth="0.75" />
               </svg>
             </div>
 
             <div>
               {/* Division Header */}
-              <div className="flex items-center justify-between text-xs font-mono tracking-wider uppercase text-[#60656e] mb-6">
+              <div className="flex items-center justify-between text-xs font-mono tracking-wider uppercase text-muted-stone mb-6">
                 <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-[#121417] inline-block" />
-                  <span className="text-[#121417] font-bold">DIVISION 02</span>
+                  <span className="w-2 h-2 bg-[#E4DBFF] inline-block" />
+                  <span className="text-warm-white font-bold">DIVISION 02</span>
                 </div>
-                <span className="text-[#121417] font-mono font-semibold">FOR INDIVIDUALS</span>
+                <span className="text-[#E4DBFF] font-semibold">FOR INDIVIDUALS</span>
               </div>
 
-              {/* Title */}
-              <h3 className="font-display font-extrabold text-3xl sm:text-4xl text-[#121417] tracking-tight uppercase mb-3">
+              {/* Title & Prompt Subtitle */}
+              <h3 className="font-display font-extrabold text-3xl sm:text-4xl text-warm-white tracking-tight uppercase mb-2">
                 ELEVORA
               </h3>
-              <p className="font-mono text-xs text-[#353942] tracking-wider uppercase mb-6 font-semibold">
-                Career Branding & Portfolio Studio
+              <p className="font-mono text-xs text-[#8B6CFF] tracking-wider uppercase mb-5 font-semibold">
+                Elevora — Career Branding
               </p>
 
-              <p className="text-[#363a42] text-sm sm:text-base leading-relaxed mb-8 font-sans">
-                We help you present your experience, skills and work clearly through professional career documents, personal websites and online profiles.
-              </p>
+              <blockquote className="text-stone-light text-sm sm:text-base leading-relaxed mb-8 font-sans border-l-2 border-[#E4DBFF]/40 pl-4 italic">
+                “Present your experience clearly, build your professional presence and prepare for your next opportunity.”
+              </blockquote>
 
-              {/* Plain Language Services Breakdown */}
-              <div className="space-y-3 pt-6 border-t border-[#d5d3cb] mb-8">
-                <span className="font-mono text-[10px] tracking-wider uppercase text-[#60656e] block mb-2 font-bold">
-                  HOW WE CAN HELP YOUR CAREER:
+              {/* 5 Required Core Services */}
+              <div className="space-y-3 pt-6 border-t border-white/[0.08] mb-8">
+                <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-3 font-bold">
+                  CORE SERVICES:
                 </span>
-                <ul className="space-y-2.5 text-xs font-mono tracking-wide text-[#2e3239] pt-1">
+                <ul className="space-y-3 text-xs font-mono tracking-wide text-stone-light">
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-[#121417] font-bold mt-0.5">›</span>
-                    <span><strong>Career Profile & Resume:</strong> Professional CVs formatted clearly for hiring managers and application systems.</span>
+                    <span className="text-[#E4DBFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Resume writing:</strong> Clear, high-impact CVs structured for hiring managers and modern applicant tracking systems.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-[#121417] font-bold mt-0.5">›</span>
-                    <span><strong>Personal Portfolio Websites:</strong> Showcase your past projects, case studies, and achievements on your own site.</span>
+                    <span className="text-[#E4DBFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">LinkedIn profile improvement:</strong> Headline, summary, experience, and recommendations optimized to stand out.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-[#121417] font-bold mt-0.5">›</span>
-                    <span><strong>LinkedIn Profile Improvement:</strong> Make your summary, headline, and experience clear, complete, and engaging.</span>
+                    <span className="text-[#E4DBFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Personal portfolio websites:</strong> Custom web domains and portfolios to display case studies, writing, or designs.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-[#121417] font-bold mt-0.5">›</span>
-                    <span><strong>Job Search Profile Setup:</strong> Organize your information and profiles across major career portals.</span>
+                    <span className="text-[#E4DBFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Job portal profile support:</strong> Consistent, polished presence across relevant talent platforms and industry job boards.
+                    </span>
                   </li>
                   <li className="flex items-start space-x-2.5">
-                    <span className="text-[#121417] font-bold mt-0.5">›</span>
-                    <span><strong>Tailored Job Applications:</strong> Adapt your materials to highlight genuine strengths for specific roles.</span>
-                  </li>
-                  <li className="flex items-start space-x-2.5">
-                    <span className="text-[#121417] font-bold mt-0.5">›</span>
-                    <span><strong>Document Updates:</strong> Refresh existing CVs and profiles when entering new roles or transitions.</span>
+                    <span className="text-[#E4DBFF] mt-0.5">›</span>
+                    <span>
+                      <strong className="text-warm-white">Tailored job applications:</strong> Targeted cover letters and position-specific application materials highlighting authentic capability.
+                    </span>
                   </li>
                 </ul>
               </div>
             </div>
 
             {/* Division Link */}
-            <div className="pt-6 border-t border-[#d5d3cb] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <span className="text-[11px] font-mono text-[#60656e] uppercase">
-                AUDIENCE: STUDENTS, PROFESSIONALS, CAREER CHANGERS & LEADERS
+            <div className="pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <span className="text-[10px] font-mono text-muted-stone uppercase">
+                TARGET: PROFESSIONALS, LEADERS &amp; CAREER CHANGERS
               </span>
               <a
                 href="#contact"
-                className="inline-flex items-center space-x-2 text-xs font-mono tracking-wider uppercase text-[#121417] hover:text-[#1f51ff] font-bold transition-colors"
+                className="inline-flex items-center space-x-2 text-xs font-mono tracking-wider uppercase text-warm-white hover:text-[#E4DBFF] transition-colors font-bold"
               >
-                <span>Discuss your career profile</span>
+                <span>Elevate your career profile</span>
                 <span>→</span>
               </a>
             </div>
@@ -191,3 +209,5 @@ export function DivisionsSection() {
     </section>
   );
 }
+
+export default DivisionsSection;

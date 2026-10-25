@@ -184,7 +184,7 @@ export function FinalCtaSection() {
       <div className="relative max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Marker */}
         <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase mb-10">
-          <span className="text-cobalt-blue font-bold">08 //</span>
+          <span className="text-[#8B6CFF] font-bold">08 //</span>
           <span>GET IN TOUCH</span>
         </div>
 
@@ -210,7 +210,7 @@ export function FinalCtaSection() {
               </span>
 
               <div className="space-y-3 text-xs text-stone-light font-sans">
-                <div className="p-3 bg-graphite-900 border border-editorial">
+                <div className="p-3 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08]">
                   <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
                     1. REVIEW WITHIN ONE BUSINESS DAY
                   </strong>
@@ -219,7 +219,7 @@ export function FinalCtaSection() {
                   </p>
                 </div>
 
-                <div className="p-3 bg-graphite-900 border border-editorial">
+                <div className="p-3 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08]">
                   <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
                     2. CONSULTATION & QUESTIONS
                   </strong>
@@ -228,7 +228,7 @@ export function FinalCtaSection() {
                   </p>
                 </div>
 
-                <div className="p-3 bg-graphite-900 border border-editorial">
+                <div className="p-3 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08]">
                   <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
                     3. CLEAR PLAN & QUOTE
                   </strong>
@@ -239,7 +239,7 @@ export function FinalCtaSection() {
               </div>
             </div>
 
-            <div className="p-5 border border-white/[0.08] bg-white/[0.01] space-y-2">
+            <div className="p-5 border border-white/[0.08] bg-[#101116]/40 backdrop-blur-sm space-y-2">
               <span className="text-[10px] font-mono tracking-wider uppercase text-warm-white block font-bold">
                 DIRECT CONTACT DETAILS
               </span>
@@ -247,7 +247,7 @@ export function FinalCtaSection() {
                 <span>General inquiries: </span>
                 <a
                   href="mailto:studio@hopepitome.com"
-                  className="text-warm-white hover:text-cobalt-blue transition-colors underline underline-offset-4"
+                  className="text-warm-white hover:text-[#8B6CFF] transition-colors underline underline-offset-4"
                 >
                   studio@hopepitome.com
                 </a>
@@ -256,7 +256,7 @@ export function FinalCtaSection() {
                 <span>Project support: </span>
                 <a
                   href="mailto:connect.hopepitome@gmail.com"
-                  className="text-warm-white hover:text-cobalt-blue transition-colors"
+                  className="text-warm-white hover:text-[#8B6CFF] transition-colors"
                 >
                   connect.hopepitome@gmail.com
                 </a>
@@ -265,15 +265,15 @@ export function FinalCtaSection() {
           </div>
 
           {/* Form Container */}
-          <div className="lg:col-span-7 bg-graphite-900 border border-editorial p-6 sm:p-8">
+          <div className="lg:col-span-7 bg-[#101116]/70 backdrop-blur-md border border-white/[0.08] p-6 sm:p-8">
             {submissionReceipt ? (
               <div className="py-8 text-center space-y-5 animate-in fade-in duration-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-cobalt-blue/50 bg-cobalt-blue/10 text-cobalt-blue font-mono font-bold text-lg">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#8B6CFF]/50 bg-[#8B6CFF]/10 text-[#8B6CFF] font-mono font-bold text-lg shadow-[0_0_15px_#8B6CFF]/30">
                   ✓
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-mono tracking-wider uppercase text-cobalt-blue block font-semibold">
+                  <span className="text-xs font-mono tracking-wider uppercase text-[#8B6CFF] block font-semibold">
                     ENQUIRY RECEIVED
                   </span>
                   <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-warm-white">
@@ -282,7 +282,7 @@ export function FinalCtaSection() {
                 </div>
 
                 {/* Receipt Details Box */}
-                <div className="p-5 bg-graphite-950 border border-white/10 text-left font-mono text-xs space-y-2 max-w-lg mx-auto">
+                <div className="p-5 bg-[#07080B]/80 border border-white/10 text-left font-mono text-xs space-y-2 max-w-lg mx-auto">
                   <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
                     <span>REFERENCE ID:</span>
                     <span className="text-warm-white font-bold">{submissionReceipt.referenceCode}</span>
@@ -293,7 +293,7 @@ export function FinalCtaSection() {
                   </div>
                   <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
                     <span>CATEGORY:</span>
-                    <span className="text-cobalt-blue">{submissionReceipt.division}</span>
+                    <span className="text-[#8B6CFF]">{submissionReceipt.division}</span>
                   </div>
                   <div className="flex justify-between text-muted-stone pt-1">
                     <span>SERVICE:</span>
@@ -310,7 +310,7 @@ export function FinalCtaSection() {
                 <button
                   type="button"
                   onClick={() => setSubmissionReceipt(null)}
-                  className="inline-block mt-2 text-xs font-mono tracking-wider uppercase text-cobalt-blue hover:text-warm-white transition-colors"
+                  className="inline-block mt-2 text-xs font-mono tracking-wider uppercase text-[#8B6CFF] hover:text-[#E4DBFF] transition-colors"
                 >
                   ← Send another enquiry
                 </button>
@@ -349,8 +349,8 @@ export function FinalCtaSection() {
                         onClick={() => handleDivisionChange(div)}
                         className={`py-2.5 px-2 text-xs font-mono tracking-wider uppercase border transition-all text-center ${
                           formData.division === div
-                            ? 'border-cobalt-blue bg-cobalt-blue/15 text-warm-white font-bold'
-                            : 'border-white/10 bg-transparent text-muted-stone hover:border-white/30'
+                            ? 'border-[#8B6CFF] bg-[#8B6CFF]/20 text-warm-white font-bold shadow-[0_0_12px_rgba(139,108,255,0.25)]'
+                            : 'border-white/10 bg-[#07080B]/40 text-muted-stone hover:border-white/30'
                         }`}
                       >
                         {div === 'NEXORA'
@@ -375,14 +375,14 @@ export function FinalCtaSection() {
                     id="service-select"
                     value={formData.serviceTitle}
                     onChange={(e) => handleInputChange('serviceTitle', e.target.value)}
-                    className="w-full bg-graphite-950 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs uppercase focus:outline-none focus:border-cobalt-blue"
+                    className="w-full bg-[#07080B]/80 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs uppercase focus:outline-none focus:border-[#8B6CFF]"
                   >
                     {availableServices.map((srv) => (
-                      <option key={srv.id} value={srv.title} className="bg-graphite-950 text-white">
+                      <option key={srv.id} value={srv.title} className="bg-[#07080B] text-white">
                         [{srv.division === 'NEXORA' ? 'BUSINESS' : 'CAREER'}] {srv.title}
                       </option>
                     ))}
-                    <option value="Custom Project or Consultation" className="bg-graphite-950 text-white">
+                    <option value="Custom Project or Consultation" className="bg-[#07080B] text-white">
                       [OTHER] Custom Project or General Consultation
                     </option>
                   </select>
@@ -404,8 +404,8 @@ export function FinalCtaSection() {
                       value={formData.fullName}
                       onChange={(e) => handleInputChange('fullName', e.target.value)}
                       placeholder="e.g. Alex Morgan"
-                      className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
-                        errors.fullName ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
+                      className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
+                        errors.fullName ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
                       }`}
                     />
                     {errors.fullName && (
@@ -427,8 +427,8 @@ export function FinalCtaSection() {
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="e.g. alex@example.com"
-                      className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
-                        errors.email ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
+                      className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
+                        errors.email ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
                       }`}
                     />
                     {errors.email && (
@@ -451,7 +451,7 @@ export function FinalCtaSection() {
                     value={formData.phoneWhatsapp}
                     onChange={(e) => handleInputChange('phoneWhatsapp', e.target.value)}
                     placeholder="e.g. +1 555-0123"
-                    className="w-full bg-graphite-950 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none focus:border-cobalt-blue"
+                    className="w-full bg-[#07080B]/80 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none focus:border-[#8B6CFF]"
                   />
                   {errors.phoneWhatsapp && (
                     <p className="text-red-400 text-[10px] font-mono mt-1">{errors.phoneWhatsapp}</p>
@@ -478,8 +478,8 @@ export function FinalCtaSection() {
                     value={formData.requirements}
                     onChange={(e) => handleInputChange('requirements', e.target.value)}
                     placeholder="Tell us about what you want to build, the problems you are facing, or what your target job or career transition looks like..."
-                    className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-sans text-xs sm:text-sm placeholder:text-muted-stone/40 focus:outline-none resize-none ${
-                      errors.requirements ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
+                    className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-sans text-xs sm:text-sm placeholder:text-muted-stone/40 focus:outline-none resize-none ${
+                      errors.requirements ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
                     }`}
                   />
                   {errors.requirements && (
@@ -500,21 +500,21 @@ export function FinalCtaSection() {
                       id="budget-range"
                       value={formData.budgetRange}
                       onChange={(e) => handleInputChange('budgetRange', e.target.value)}
-                      className="w-full bg-graphite-950 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-cobalt-blue"
+                      className="w-full bg-[#07080B]/80 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-[#8B6CFF]"
                     >
-                      <option className="bg-graphite-950" value="Under $1,500 (Focused project or document review)">
+                      <option className="bg-[#07080B]" value="Under $1,500 (Focused project or document review)">
                         Under $1,500 (Focused project or document review)
                       </option>
-                      <option className="bg-graphite-950" value="$1,500 – $4,000 (Complete website or career package)">
+                      <option className="bg-[#07080B]" value="$1,500 – $4,000 (Complete website or career package)">
                         $1,500 – $4,000 (Complete website or career package)
                       </option>
-                      <option className="bg-graphite-950" value="$4,000 – $10,000 (E-commerce store or custom tool)">
+                      <option className="bg-[#07080B]" value="$4,000 – $10,000 (E-commerce store or custom tool)">
                         $4,000 – $10,000 (E-commerce store or custom tool)
                       </option>
-                      <option className="bg-graphite-950" value="$10,000+ (Full ERP or multi-system software)">
+                      <option className="bg-[#07080B]" value="$10,000+ (Full ERP or multi-system software)">
                         $10,000+ (Full ERP or multi-system software)
                       </option>
-                      <option className="bg-graphite-950" value="Need guidance / Let's discuss">
+                      <option className="bg-[#07080B]" value="Need guidance / Let's discuss">
                         Need guidance / Let&apos;s discuss
                       </option>
                     </select>
@@ -531,18 +531,18 @@ export function FinalCtaSection() {
                       id="desired-timeline"
                       value={formData.desiredTimeline}
                       onChange={(e) => handleInputChange('desiredTimeline', e.target.value)}
-                      className="w-full bg-graphite-950 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-cobalt-blue"
+                      className="w-full bg-[#07080B]/80 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-[#8B6CFF]"
                     >
-                      <option className="bg-graphite-950" value="Within 2 weeks">
+                      <option className="bg-[#07080B]" value="Within 2 weeks">
                         Within 2 weeks
                       </option>
-                      <option className="bg-graphite-950" value="Within 1 month">
+                      <option className="bg-[#07080B]" value="Within 1 month">
                         Within 1 month
                       </option>
-                      <option className="bg-graphite-950" value="1–3 months">
+                      <option className="bg-[#07080B]" value="1–3 months">
                         1–3 months
                       </option>
-                      <option className="bg-graphite-950" value="Flexible / Planning ahead">
+                      <option className="bg-[#07080B]" value="Flexible / Planning ahead">
                         Flexible / Planning ahead
                       </option>
                     </select>
@@ -563,8 +563,8 @@ export function FinalCtaSection() {
                     value={formData.attachmentUrl}
                     onChange={(e) => handleInputChange('attachmentUrl', e.target.value)}
                     placeholder="https://drive.google.com/..., https://figma.com/..., or current website URL"
-                    className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
-                      errors.attachmentUrl ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
+                    className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
+                      errors.attachmentUrl ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
                     }`}
                   />
                   {errors.attachmentUrl && (
@@ -579,7 +579,7 @@ export function FinalCtaSection() {
                       type="checkbox"
                       checked={formData.consent}
                       onChange={(e) => handleInputChange('consent', e.target.checked)}
-                      className="mt-0.5 rounded-none border-white/20 bg-graphite-950 text-cobalt-blue focus:ring-0"
+                      className="mt-0.5 rounded-none border-white/20 bg-[#07080B] text-[#8B6CFF] focus:ring-0"
                     />
                     <span className="text-[11px] font-mono text-muted-stone group-hover:text-warm-white transition-colors leading-relaxed">
                       I agree to share these details with Hopepitome for project consultation and quotation purposes.
@@ -594,7 +594,7 @@ export function FinalCtaSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50"
+                  className="w-full py-3.5 bg-[#8B6CFF] text-[#07080B] hover:bg-white hover:text-[#07080B] transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50 shadow-[0_0_20px_rgba(139,108,255,0.25)]"
                 >
                   <span>{isSubmitting ? 'Sending your enquiry...' : 'Send my enquiry'}</span>
                   <span>→</span>

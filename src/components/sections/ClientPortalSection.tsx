@@ -52,11 +52,11 @@ export function ClientPortalSection() {
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase">
-            <span className="text-cobalt-blue font-bold">07 //</span>
+            <span className="text-[#8B6CFF] font-bold">07 //</span>
             <span>CLIENT PORTAL ROADMAP</span>
           </div>
           <div className="flex items-center space-x-2 text-xs font-mono tracking-wider uppercase text-muted-stone">
-            <span className="w-1.5 h-1.5 bg-cobalt-blue rounded-full inline-block animate-pulse" />
+            <span className="w-1.5 h-1.5 bg-[#8B6CFF] rounded-full inline-block animate-pulse shadow-[0_0_8px_#8B6CFF]" />
             <span>IN ACTIVE DEVELOPMENT</span>
           </div>
         </div>
@@ -76,8 +76,8 @@ export function ClientPortalSection() {
               We are developing a central place for clients to submit requirements, follow project updates, request changes and access their project documents.
             </p>
 
-            <div className="p-4 border border-cobalt-blue/30 bg-cobalt-blue/[0.04] text-xs font-mono text-muted-stone space-y-2">
-              <span className="text-cobalt-blue font-bold block uppercase tracking-wider">
+            <div className="p-4 border border-[#8B6CFF]/30 bg-[#8B6CFF]/[0.06] backdrop-blur-sm text-xs font-mono text-muted-stone space-y-2">
+              <span className="text-[#8B6CFF] font-bold block uppercase tracking-wider">
                 HOW WE CURRENTLY WORK WITH CLIENTS:
               </span>
               <p className="text-stone-light text-xs font-sans leading-relaxed">
@@ -91,15 +91,15 @@ export function ClientPortalSection() {
             {portalFeatures.map((feat) => (
               <div
                 key={feat.code}
-                className="p-5 bg-graphite-900 border border-editorial flex flex-col justify-between"
+                className="p-5 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08] flex flex-col justify-between hover:border-[#8B6CFF]/30 transition-all duration-300"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3 text-xs font-mono">
-                    <span className="text-cobalt-blue font-bold">{feat.code}</span>
+                    <span className="text-[#8B6CFF] font-bold">{feat.code}</span>
                     <span
                       className={`text-[10px] px-2 py-0.5 border uppercase ${
                         feat.status === 'In development'
-                          ? 'border-cobalt-blue/40 text-cobalt-blue bg-cobalt-blue/10'
+                          ? 'border-[#8B6CFF]/40 text-[#8B6CFF] bg-[#8B6CFF]/10'
                           : 'border-white/10 text-muted-stone'
                       }`}
                     >

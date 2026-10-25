@@ -2,7 +2,7 @@
 
 export function Footer() {
   return (
-    <footer className="relative bg-graphite-950 pt-20 pb-12 border-t border-editorial text-xs font-mono text-muted-stone">
+    <footer className="relative bg-[#07080B]/85 backdrop-blur-md pt-20 pb-12 border-t border-white/[0.08] text-xs font-mono text-muted-stone">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-14 border-b border-editorial">
           {/* Brand Column */}
@@ -119,7 +119,7 @@ export function Footer() {
               <li className="pt-2">
                 <a
                   href="#contact"
-                  className="text-cobalt-blue hover:text-warm-white transition-colors font-bold uppercase text-[11px]"
+                  className="text-[#8B6CFF] hover:text-[#E4DBFF] transition-colors font-bold uppercase text-[11px]"
                 >
                   Tell Us What You Need →
                 </a>
@@ -136,7 +136,7 @@ export function Footer() {
           <div className="flex items-center space-x-4">
             <span>TAILORED DIGITAL SOLUTIONS</span>
             <span>•</span>
-            <span className="text-cobalt-blue">CRAFTED FOR REAL IMPACT</span>
+            <span className="text-[#8B6CFF]">CRAFTED FOR REAL IMPACT</span>
           </div>
         </div>
       </div>

@@ -48,6 +48,8 @@ export const viewport = {
   maximumScale: 5,
 };
 
+import { SpectralBackground } from '@/components/background/SpectralBackground';
+
 export default function RootLayout({
   children,
 }: {
@@ -58,8 +60,14 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} dark`}
     >
-      <body className="bg-graphite-950 text-warm-white font-sans antialiased selection:bg-cobalt-blue selection:text-white overflow-x-hidden min-h-screen">
-        {children}
+      <body className="bg-[#07080B] text-warm-white font-sans antialiased selection:bg-[#8B6CFF] selection:text-white overflow-x-hidden min-h-screen relative">
+        {/* Persistent 3D Spectral Drape Living Background */}
+        <SpectralBackground />
+
+        {/* Content & Interaction Layer */}
+        <div className="relative z-10 flex flex-col min-h-screen">
+          {children}
+        </div>
       </body>
     </html>
   );

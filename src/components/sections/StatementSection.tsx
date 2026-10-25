@@ -6,8 +6,8 @@ export function StatementSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Index Marker */}
         <div className="flex items-center space-x-3 mb-10 text-xs font-mono tracking-widest text-muted-stone uppercase">
-          <span className="text-cobalt-blue font-bold">02 //</span>
-          <span>OUR APPROACH</span>
+          <span className="text-[#8B6CFF] font-bold">02 //</span>
+          <span className="text-warm-white">ABOUT OUR APPROACH</span>
         </div>
 
         {/* Large Editorial Statement */}
@@ -18,11 +18,13 @@ export function StatementSection() {
               <br />
               FOR BUSINESS.
               <br />
-              <span className="text-silver">DESIGN FOR PEOPLE.</span>
+              <span className="bg-gradient-to-r from-white via-[#E4DBFF] to-[#8B6CFF] bg-clip-text text-transparent">
+                DESIGN FOR PEOPLE.
+              </span>
             </h2>
           </div>
 
-          <div className="lg:col-span-5 flex flex-col justify-center space-y-6 lg:border-l lg:border-editorial lg:pl-10">
+          <div className="lg:col-span-5 flex flex-col justify-center space-y-6 lg:border-l lg:border-white/[0.08] lg:pl-10">
             <p className="text-warm-white text-base sm:text-lg leading-relaxed font-sans">
               Every business has its own way of working, and every person has a story worth presenting well.
             </p>
@@ -30,13 +32,13 @@ export function StatementSection() {
               Hopepitome helps businesses build the digital tools they need and helps individuals communicate their skills and experience with confidence.
             </p>
 
-            <div className="pt-4 border-t border-editorial grid grid-cols-2 gap-4 text-xs font-mono tracking-wider uppercase">
+            <div className="pt-4 border-t border-white/[0.08] grid grid-cols-2 gap-4 text-xs font-mono tracking-wider uppercase">
               <div>
-                <span className="text-cobalt-blue block text-[10px] font-bold">FOR BUSINESS</span>
+                <span className="text-[#8B6CFF] block text-[10px] font-bold">FOR BUSINESS</span>
                 <span className="text-warm-white font-semibold">Nexora Solutions</span>
               </div>
               <div>
-                <span className="text-stone-light block text-[10px] font-bold">FOR INDIVIDUALS</span>
+                <span className="text-[#E4DBFF] block text-[10px] font-bold">FOR INDIVIDUALS</span>
                 <span className="text-warm-white font-semibold">Elevora Studio</span>
               </div>
             </div>

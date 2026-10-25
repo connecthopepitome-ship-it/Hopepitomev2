@@ -379,14 +379,14 @@ export function ServiceIndexSection() {
   };
 
   return (
-    <section id="services" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <section id="services" className="relative py-28 md:py-36 border-b border-white/[0.08] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between pb-10 border-b border-editorial gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between pb-10 border-b border-white/[0.08] gap-6">
           <div>
             <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase mb-3">
-              <span className="text-cobalt-blue font-bold">04 //</span>
-              <span>SERVICES & WHAT WE OFFER</span>
+              <span className="text-[#8B6CFF] font-bold">04 //</span>
+              <span className="text-warm-white">SERVICES &amp; WHAT WE OFFER</span>
             </div>
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-warm-white uppercase">
               EXPLORE OUR SERVICES
@@ -402,7 +402,7 @@ export function ServiceIndexSection() {
                 onClick={() => setFilter(tab)}
                 className={`px-3.5 py-1.5 uppercase transition-all border ${
                   filter === tab
-                    ? 'border-cobalt-blue bg-cobalt-blue/15 text-warm-white font-bold'
+                    ? 'border-[#8B6CFF] bg-[#8B6CFF]/20 text-white font-bold'
                     : 'border-white/10 text-muted-stone hover:text-warm-white hover:border-white/25'
                 }`}
               >
@@ -419,8 +419,8 @@ export function ServiceIndexSection() {
             return (
               <div
                 key={item.id}
-                className={`group transition-colors duration-200 ${
-                  isOpen ? 'bg-white/[0.02]' : 'hover:bg-white/[0.01]'
+                className={`group transition-all duration-300 ${
+                  isOpen ? 'bg-[#101116]/60 backdrop-blur-md' : 'hover:bg-white/[0.01]'
                 }`}
               >
                 {/* Header Row */}
@@ -431,12 +431,12 @@ export function ServiceIndexSection() {
                   aria-expanded={isOpen}
                 >
                   <div className="flex items-baseline space-x-5 lg:space-x-8">
-                    <span className="font-mono text-sm md:text-base text-muted-stone group-hover:text-cobalt-blue transition-colors shrink-0">
+                    <span className="font-mono text-sm md:text-base text-muted-stone group-hover:text-[#8B6CFF] transition-colors shrink-0">
                       {item.number}
                     </span>
 
                     <div>
-                      <h3 className="font-display font-bold text-lg sm:text-2xl uppercase tracking-tight text-warm-white group-hover:text-silver transition-colors">
+                      <h3 className="font-display font-bold text-lg sm:text-2xl uppercase tracking-tight text-warm-white group-hover:text-[#E4DBFF] transition-colors">
                         {item.title}
                       </h3>
                       <p className="text-xs sm:text-sm text-stone-light font-sans normal-case mt-1 max-w-2xl">
@@ -449,7 +449,7 @@ export function ServiceIndexSection() {
                     <span
                       className={`text-[10px] font-mono tracking-widest uppercase px-2.5 py-1 border shrink-0 ${
                         item.division === 'NEXORA'
-                          ? 'border-cobalt-blue/40 text-cobalt-blue bg-cobalt-blue/10'
+                          ? 'border-[#8B6CFF]/40 text-[#E4DBFF] bg-[#8B6CFF]/10'
                           : 'border-white/20 text-stone-light bg-white/5'
                       }`}
                     >
@@ -493,9 +493,9 @@ export function ServiceIndexSection() {
                           {item.process.map((p) => (
                             <div
                               key={p.step}
-                              className="p-3 bg-graphite-900 border border-editorial text-xs"
+                              className="p-3 bg-[#101116]/80 border border-white/[0.08] text-xs"
                             >
-                              <div className="font-mono text-[10px] text-cobalt-blue mb-1 font-semibold">
+                              <div className="font-mono text-[10px] text-[#8B6CFF] mb-1 font-semibold">
                                 STEP {p.step} — {p.label}
                               </div>
                               <p className="text-muted-stone text-[11px] leading-snug font-sans">
@@ -516,7 +516,7 @@ export function ServiceIndexSection() {
                         <ul className="space-y-2 text-xs font-mono text-muted-stone">
                           {item.deliverables.map((deliv, i) => (
                             <li key={i} className="flex items-start space-x-2">
-                              <span className="text-cobalt-blue text-[10px] mt-0.5">■</span>
+                              <span className="text-[#8B6CFF] text-[10px] mt-0.5">■</span>
                               <span className="text-stone-light normal-case font-sans text-xs">
                                 {deliv}
                               </span>
@@ -527,7 +527,7 @@ export function ServiceIndexSection() {
 
                       <div className="p-4 bg-white/[0.02] border border-white/[0.08] space-y-1.5">
                         <span className="text-[10px] font-mono text-warm-white uppercase tracking-wider block font-bold">
-                          HOW QUOTATIONS & TIMELINES WORK
+                          HOW QUOTATIONS &amp; TIMELINES WORK
                         </span>
                         <p className="text-xs text-muted-stone font-sans leading-relaxed">
                           {item.quotationPath}
@@ -538,7 +538,7 @@ export function ServiceIndexSection() {
                         <button
                           type="button"
                           onClick={() => handleInquire(item)}
-                          className="w-full py-3 px-4 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2"
+                          className="w-full py-3.5 px-4 bg-white text-graphite-950 hover:bg-[#8B6CFF] hover:text-white transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2"
                         >
                           <span>Ask about {item.title}</span>
                           <span>→</span>

@@ -11,7 +11,7 @@ import { Footer } from '@/components/layout/Footer';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-graphite-950 text-warm-white flex flex-col">
+    <div className="min-h-screen bg-transparent text-warm-white flex flex-col">
       {/* Editorial Navigation Bar */}
       <Navigation />
 

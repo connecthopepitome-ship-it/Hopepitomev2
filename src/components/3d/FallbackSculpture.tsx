@@ -137,7 +137,7 @@ export function FallbackSculpture() {
           {/* Datum Nodes */}
           <circle cx="80" cy="220" r="3" fill="#1f51ff" />
           <circle cx="420" cy="220" r="3" fill="#c8cbd0" />
-          <circle cx="350" cy="140" r="3" fill="#1f51ff" />
+          <circle cx="350" cy="140" r="3" fill="#8B6CFF" />
 
           {/* Linear Gradients */}
           <defs>
@@ -147,8 +147,8 @@ export function FallbackSculpture() {
               <stop offset="100%" stopColor="#ffffff" />
             </linearGradient>
             <linearGradient id="cobaltGradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#1f51ff" />
-              <stop offset="100%" stopColor="#0a2599" />
+              <stop offset="0%" stopColor="#8B6CFF" />
+              <stop offset="100%" stopColor="#4828b8" />
             </linearGradient>
             <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#1b2029" stopOpacity="0.85" />
