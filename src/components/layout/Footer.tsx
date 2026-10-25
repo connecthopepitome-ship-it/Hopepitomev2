@@ -8,98 +8,99 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-baseline space-x-2 text-warm-white">
-              <span className="font-display font-bold text-xl tracking-tight uppercase">
+              <span className="font-display font-extrabold text-xl tracking-tight uppercase">
                 HOPEPITOME
               </span>
               <span className="text-white/30 text-xs font-mono">/</span>
               <span className="font-mono text-xs uppercase tracking-wider text-muted-stone">
-                DIGITAL STUDIO
+                DIGITAL SOLUTIONS STUDIO
               </span>
             </div>
             <p className="text-stone-light text-xs leading-relaxed max-w-sm font-sans">
-              We build practical websites and business software through <strong>Nexora</strong>, and help individuals present their skills and career achievements with confidence through <strong>Elevora</strong>.
+              Digital solutions for businesses ready to move forward. We build websites, online stores,
+              custom software, and connected systems that help businesses work smarter.
             </p>
             <div className="text-[11px] text-muted-stone/80 pt-1">
               <span>HOPEPITOME DIGITAL STUDIO</span>
             </div>
           </div>
 
-          {/* Division 01 Links */}
-          <div className="lg:col-span-2 space-y-3">
-            <span className="text-warm-white font-bold block uppercase tracking-wider text-[11px]">
-              01 // BUSINESS (NEXORA)
-            </span>
-            <ul className="space-y-2 text-[11px] tracking-wide">
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Business Websites
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Online Stores & Shops
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Custom Software
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  ERP & Operations
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Customer Management (CRM)
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Division 02 Links */}
-          <div className="lg:col-span-2 space-y-3">
-            <span className="text-warm-white font-bold block uppercase tracking-wider text-[11px]">
-              02 // CAREER (ELEVORA)
-            </span>
-            <ul className="space-y-2 text-[11px] tracking-wide">
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Career Profile & Resumes
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Portfolio Websites
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  LinkedIn Profile Updates
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Job Portal Profiles
-                </a>
-              </li>
-              <li>
-                <a href="#services" className="hover:text-warm-white transition-colors">
-                  Tailored Applications
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact Details */}
+          {/* Solutions Column */}
           <div className="lg:col-span-3 space-y-3">
             <span className="text-warm-white font-bold block uppercase tracking-wider text-[11px]">
-              GET IN TOUCH
+              WHAT WE BUILD
             </span>
             <ul className="space-y-2 text-[11px] tracking-wide">
               <li>
-                <span className="text-muted-stone block text-[10px]">EMAIL INQUIRIES:</span>
+                <a href="#services" className="hover:text-warm-white transition-colors">
+                  Websites &amp; Ecommerce
+                </a>
+              </li>
+              <li>
+                <a href="#services" className="hover:text-warm-white transition-colors">
+                  Custom Software &amp; Portals
+                </a>
+              </li>
+              <li>
+                <a href="#services" className="hover:text-warm-white transition-colors">
+                  Workflow Automation
+                </a>
+              </li>
+              <li>
+                <a href="#services" className="hover:text-warm-white transition-colors">
+                  ERP &amp; CRM Systems
+                </a>
+              </li>
+              <li>
+                <a href="#transformations" className="hover:text-warm-white transition-colors">
+                  System Integrations
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Studio Links Column */}
+          <div className="lg:col-span-2 space-y-3">
+            <span className="text-warm-white font-bold block uppercase tracking-wider text-[11px]">
+              THE STUDIO
+            </span>
+            <ul className="space-y-2 text-[11px] tracking-wide">
+              <li>
+                <a href="#hero" className="hover:text-warm-white transition-colors">
+                  Home
+                </a>
+              </li>
+              <li>
+                <a href="#about" className="hover:text-warm-white transition-colors">
+                  About Hopepitome
+                </a>
+              </li>
+              <li>
+                <a href="#process" className="hover:text-warm-white transition-colors">
+                  Our Approach
+                </a>
+              </li>
+              <li>
+                <a href="#pricing" className="hover:text-warm-white transition-colors">
+                  Commercial Scoping
+                </a>
+              </li>
+              <li>
+                <a href="#faq" className="hover:text-warm-white transition-colors">
+                  Frequently Asked Questions
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Details Column */}
+          <div className="lg:col-span-2 space-y-3">
+            <span className="text-warm-white font-bold block uppercase tracking-wider text-[11px]">
+              CONTACT
+            </span>
+            <ul className="space-y-2 text-[11px] tracking-wide">
+              <li>
+                <span className="text-muted-stone block text-[10px]">DIRECT EMAIL:</span>
                 <a
                   href="mailto:studio@hopepitome.com"
                   className="hover:text-warm-white text-warm-white transition-colors underline underline-offset-2"
@@ -108,7 +109,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <span className="text-muted-stone block text-[10px]">DIRECT INTAKE:</span>
+                <span className="text-muted-stone block text-[10px]">INTAKE:</span>
                 <a
                   href="mailto:connect.hopepitome@gmail.com"
                   className="hover:text-warm-white text-stone-light transition-colors"
@@ -121,7 +122,7 @@ export function Footer() {
                   href="#contact"
                   className="text-[#8B6CFF] hover:text-[#E4DBFF] transition-colors font-bold uppercase text-[11px]"
                 >
-                  Tell Us What You Need →
+                  Have a project in mind? Let&apos;s talk →
                 </a>
               </li>
             </ul>
@@ -134,12 +135,14 @@ export function Footer() {
             © {new Date().getFullYear()} HOPEPITOME. ALL RIGHTS RESERVED.
           </div>
           <div className="flex items-center space-x-4">
-            <span>TAILORED DIGITAL SOLUTIONS</span>
+            <span>BUSINESS TECHNOLOGY &amp; DIGITAL SYSTEMS</span>
             <span>•</span>
-            <span className="text-[#8B6CFF]">CRAFTED FOR REAL IMPACT</span>
+            <span className="text-[#8B6CFF]">BUILT FOR REAL UTILITY</span>
           </div>
         </div>
       </div>
     </footer>
   );
 }
+
+export default Footer;

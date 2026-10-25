@@ -24,22 +24,29 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'HOPEPITOME / Digital Solutions for Business & Career Branding',
+  title: 'Hopepitome | Websites, Custom Software & Business Automation',
   description:
-    'We build websites and business software through Nexora, and help people present their skills and career experience with confidence through Elevora.',
+    'Hopepitome builds business websites, online shopping stores, custom web applications, workflow automation and connected business systems to help businesses work smarter.',
   keywords: [
-    'Digital Studio',
-    'Nexora',
-    'Elevora',
+    'Hopepitome',
     'Business Websites',
+    'Ecommerce Websites',
     'Online Stores',
-    'Custom Software',
+    'Custom Web Applications',
+    'Workflow Automation',
     'ERP Systems',
-    'Career Profiles',
-    'Resumes',
-    'Portfolios',
-    'LinkedIn Improvement',
+    'CRM Systems',
+    'System Integrations',
+    'Business Technology Studio',
   ],
+  openGraph: {
+    title: 'Hopepitome | Websites, Custom Software & Business Automation',
+    description:
+      'We build the digital tools that move businesses forward — websites, ecommerce, custom software and workflow automation.',
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Hopepitome',
+  },
 };
 
 export const viewport = {

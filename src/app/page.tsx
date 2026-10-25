@@ -1,11 +1,13 @@
 import { Navigation } from '@/components/layout/Navigation';
 import { HeroSection } from '@/components/hero/HeroSection';
 import { StatementSection } from '@/components/sections/StatementSection';
-import { DivisionsSection } from '@/components/sections/DivisionsSection';
-import { ServiceIndexSection } from '@/components/sections/ServiceIndexSection';
-import { SelectedWorkSection } from '@/components/sections/SelectedWorkSection';
+import { MainServicesSection } from '@/components/sections/MainServicesSection';
+import { ConnectedBusinessSection } from '@/components/sections/ConnectedBusinessSection';
+import { CommercialModelSection } from '@/components/sections/CommercialModelSection';
+import { AudienceSection } from '@/components/sections/AudienceSection';
 import { ProcessSection } from '@/components/sections/ProcessSection';
-import { ClientPortalSection } from '@/components/sections/ClientPortalSection';
+import { AboutSection } from '@/components/sections/AboutSection';
+import { FaqSection } from '@/components/sections/FaqSection';
 import { FinalCtaSection } from '@/components/sections/FinalCtaSection';
 import { Footer } from '@/components/layout/Footer';
 
@@ -17,32 +19,38 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col">
-        {/* Section 01: Hero with Asymmetric Typography & Live 3D Sculpture */}
+        {/* Section 01: Hero with Bold Headline & Persistent 3D Mesh */}
         <HeroSection />
 
-        {/* Section 02: Studio Statement Manifesto */}
+        {/* Section 02: Core Principle & Business Manifesto */}
         <StatementSection />
 
-        {/* Section 03: Two Divisions (NEXORA & ELEVORA) */}
-        <DivisionsSection />
+        {/* Section 03: What We Build — Six Business Service Disciplines */}
+        <MainServicesSection />
 
-        {/* Section 04: Numbered Editorial Service Index */}
-        <ServiceIndexSection />
+        {/* Section 04: From Manual Work to Connected Operations */}
+        <ConnectedBusinessSection />
 
-        {/* Section 05: Selected Work & Concept Studies */}
-        <SelectedWorkSection />
+        {/* Section 05: Commercial Approach & Transparent Scoping */}
+        <CommercialModelSection />
 
-        {/* Section 06: How We Work (5-Stage Visual Sequence) */}
+        {/* Section 06: Who We Work With — Audiences */}
+        <AudienceSection />
+
+        {/* Section 07: How We Work — 4-Stage Process */}
         <ProcessSection />
 
-        {/* Section 07: Client Project Portal Communication */}
-        <ClientPortalSection />
+        {/* Section 08: About Hopepitome Studio */}
+        <AboutSection />
 
-        {/* Section 08: Final Editorial CTA & Project Intake */}
+        {/* Section 09: Frequently Asked Questions */}
+        <FaqSection />
+
+        {/* Section 10: Final Project Scoping & Contact Intake */}
         <FinalCtaSection />
       </main>
 
-      {/* Section 09: Studio Footer */}
+      {/* Studio Footer */}
       <Footer />
     </div>
   );

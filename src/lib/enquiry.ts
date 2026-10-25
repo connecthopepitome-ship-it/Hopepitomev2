@@ -96,10 +96,10 @@ export function validateEnquiry(input: unknown): ValidationResult {
     errors.phoneWhatsapp = 'Phone or WhatsApp number must be at least 7 digits.';
   }
 
-  // 5. Division
-  const division = data.division;
-  if (!division || !['NEXORA', 'ELEVORA', 'BOTH'].includes(division)) {
-    errors.division = 'Select a valid division (Nexora, Elevora, or Combined).';
+  // 5. Division (defaults to business solutions)
+  const division = data.division || 'NEXORA';
+  if (!['NEXORA', 'ELEVORA', 'BOTH'].includes(division)) {
+    errors.division = 'Select a valid division.';
   }
 
   // 6. Service Selection

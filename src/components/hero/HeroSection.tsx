@@ -4,7 +4,7 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen w-full flex items-center pt-28 pb-16 lg:py-0 overflow-hidden border-b border-white/[0.08]"
+      className="relative min-h-screen w-full flex items-center pt-28 sm:pt-32 pb-16 lg:py-0 overflow-hidden border-b border-white/[0.08]"
     >
       {/* Subtle Hairline Background Grid Overlay */}
       <div className="absolute inset-0 editorial-grid pointer-events-none opacity-20" />
@@ -12,7 +12,7 @@ export function HeroSection() {
       {/* Vertical Axis Reference Hairline */}
       <div className="hidden lg:block absolute left-[56%] top-0 bottom-0 w-px bg-white/[0.05] pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 w-full min-h-[calc(100vh-6rem)] flex flex-col justify-center py-12 z-10">
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 w-full min-h-[calc(100vh-6rem)] flex flex-col justify-center py-10 z-10">
         {/* Main Editorial Hero Composition */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center my-auto py-4">
           {/* Left Column: Bold Typography & Narrative */}
@@ -21,80 +21,106 @@ export function HeroSection() {
             <div className="inline-flex items-center space-x-2.5 text-xs font-mono tracking-widest uppercase text-muted-stone mb-6">
               <span className="w-1.5 h-1.5 bg-[#8B6CFF]" />
               <span className="text-[#E4DBFF]/90 font-medium">
-                DIGITAL STUDIO · BUSINESS &amp; CAREER
+                BUSINESS TECHNOLOGY · WEB · SOFTWARE · AUTOMATION
               </span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-[5.4rem] tracking-tight leading-[0.95] text-warm-white uppercase mb-8">
-              MAKE YOUR
-              <br />
-              NEXT MOVE
-              <br />
-              <span className="bg-gradient-to-r from-white via-[#E4DBFF] to-[#8B6CFF] bg-clip-text text-transparent">
-                MATTER.
+            <h1 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.6rem] tracking-tight leading-[1.02] text-warm-white uppercase mb-8">
+              Your business has a next level.{' '}
+              <span className="bg-gradient-to-r from-white via-[#E4DBFF] to-[#8B6CFF] bg-clip-text text-transparent block mt-1">
+                Let&apos;s build the systems to get there.
               </span>
             </h1>
 
             {/* Supporting Copy */}
-            <p className="max-w-2xl text-stone-light text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-10 font-sans">
-              We build websites and business systems for growing businesses, and help people present
-              their skills and experience with confidence.
+            <p className="max-w-2xl text-stone-light text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 font-sans">
+              From your first professional website to a complete online store or a custom business
+              application, Hopepitome turns your ideas and everyday challenges into digital
+              solutions built around the way you work.
             </p>
 
             {/* Primary & Secondary Call to Actions */}
-            <div className="flex flex-wrap items-center gap-4 mb-12">
+            <div className="flex flex-wrap items-center gap-4 mb-5">
               <a
-                href="#services"
-                className="px-7 py-3.5 bg-white text-graphite-950 hover:bg-[#8B6CFF] hover:text-white transition-all duration-300 font-mono text-xs tracking-wider uppercase font-bold flex items-center space-x-2 shadow-lg shadow-white/5"
+                href="#contact"
+                className="px-7 py-3.5 bg-white text-graphite-950 hover:bg-[#8B6CFF] hover:text-[#07080B] transition-all duration-300 font-mono text-xs tracking-wider uppercase font-bold flex items-center space-x-2 shadow-lg shadow-white/5"
               >
-                <span>Explore our services</span>
+                <span>Tell Us What You Need</span>
                 <span>→</span>
               </a>
 
               <a
-                href="#contact"
+                href="#services"
                 className="px-6 py-3.5 border border-white/20 text-warm-white hover:border-[#8B6CFF]/60 hover:bg-[#8B6CFF]/[0.08] transition-all duration-300 font-mono text-xs tracking-wider uppercase flex items-center space-x-2 backdrop-blur-sm"
               >
-                <span>Talk to our team</span>
-                <span className="text-muted-stone">↓</span>
+                <span>Explore Our Solutions</span>
+                <span className="text-[#8B6CFF]">↓</span>
               </a>
             </div>
 
-            {/* Two Division Access Panels */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-white/[0.08]">
-              {/* Division 01: Nexora */}
+            {/* Supporting Micro-Statement */}
+            <p className="text-xs font-mono tracking-wide text-muted-stone mb-10">
+              [ Clear scope. Practical solutions. Transparent project pricing. ]
+            </p>
+
+            {/* Three Commercial Pillar Highlight Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-6 border-t border-white/[0.08]">
+              {/* Pillar 01 */}
               <a
-                href="#nexora"
-                className="p-5 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group"
+                href="#services"
+                className="p-4 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between text-[10px] font-mono text-muted-stone mb-2">
-                  <span className="text-[#8B6CFF] font-semibold">01 // DIGITAL ENGINEERING</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform text-white">→</span>
+                <div>
+                  <span className="text-[10px] font-mono text-[#8B6CFF] block mb-1">01 // WEB & COMMERCE</span>
+                  <h3 className="text-sm font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
+                    Websites & Stores
+                  </h3>
+                  <p className="text-[11px] text-stone-light font-sans leading-relaxed">
+                    Fast corporate sites, catalogues and online stores designed to make selling easier.
+                  </p>
                 </div>
-                <h3 className="text-lg font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
-                  NEXORA
-                </h3>
-                <p className="text-xs text-stone-light font-sans leading-relaxed">
-                  Websites, online stores and custom business software built around how you operate.
-                </p>
+                <span className="text-[10px] font-mono text-muted-stone group-hover:text-white transition-colors pt-3">
+                  Explore websites →
+                </span>
               </a>
 
-              {/* Division 02: Elevora */}
+              {/* Pillar 02 */}
               <a
-                href="#elevora"
-                className="p-5 bg-[#101116]/60 border border-white/[0.08] hover:border-[#E4DBFF]/40 transition-all duration-300 backdrop-blur-md group"
+                href="#services"
+                className="p-4 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between text-[10px] font-mono text-muted-stone mb-2">
-                  <span className="text-[#E4DBFF] font-semibold">02 // CAREER BRANDING</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform text-white">→</span>
+                <div>
+                  <span className="text-[10px] font-mono text-[#8B6CFF] block mb-1">02 // SOFTWARE</span>
+                  <h3 className="text-sm font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
+                    Custom Web Apps
+                  </h3>
+                  <p className="text-[11px] text-stone-light font-sans leading-relaxed">
+                    Client portals, quotation calculators and dashboards tailored to your processes.
+                  </p>
                 </div>
-                <h3 className="text-lg font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
-                  ELEVORA
-                </h3>
-                <p className="text-xs text-stone-light font-sans leading-relaxed">
-                  Professional resumes, portfolio sites and positioning for your next opportunity.
-                </p>
+                <span className="text-[10px] font-mono text-muted-stone group-hover:text-white transition-colors pt-3">
+                  Explore software →
+                </span>
+              </a>
+
+              {/* Pillar 03 */}
+              <a
+                href="#services"
+                className="p-4 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group flex flex-col justify-between"
+              >
+                <div>
+                  <span className="text-[10px] font-mono text-[#8B6CFF] block mb-1">03 // AUTOMATION</span>
+                  <h3 className="text-sm font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
+                    Connected Systems
+                  </h3>
+                  <p className="text-[11px] text-stone-light font-sans leading-relaxed">
+                    Integrations, CRM setups and workflows that eliminate repetitive manual entries.
+                  </p>
+                </div>
+                <span className="text-[10px] font-mono text-muted-stone group-hover:text-white transition-colors pt-3">
+                  Explore automation →
+                </span>
               </a>
             </div>
           </div>
@@ -107,26 +133,26 @@ export function HeroSection() {
                 <span>3D SPECTRAL FIELD ACTIVE</span>
               </div>
               <p className="text-xs font-mono text-muted-stone tracking-wide max-w-[220px] leading-relaxed">
-                Move pointer anywhere to displace fluid mesh wakes · Click to propagate light ripples
+                Move pointer to displace live fluid wakes · Click anywhere to propagate light ripples
               </p>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar Indicator */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-white/[0.08] text-xs font-mono text-muted-stone tracking-wider uppercase gap-3">
-          <div className="flex items-center space-x-4">
-            <span className="text-warm-white font-medium">TWO COMPLEMENTARY DIVISIONS</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-6 border-t border-white/[0.08] text-xs font-mono text-muted-stone tracking-wider uppercase gap-3">
+          <div className="flex items-center space-x-3">
+            <span className="text-warm-white font-medium">HOPEPITOME STUDIO</span>
             <span>•</span>
-            <span>NEXORA (BUSINESS SYSTEMS) &amp; ELEVORA (CAREER BRANDING)</span>
+            <span>COMMERCIAL DIGITAL TOOLS &amp; BUSINESS SYSTEMS</span>
           </div>
 
           <a
-            href="#nexora"
+            href="#services"
             className="group flex items-center space-x-2 text-[11px] hover:text-warm-white transition-colors self-start sm:self-auto"
-            aria-label="Scroll to Nexora"
+            aria-label="Scroll to What We Build"
           >
-            <span>CONTINUE EXPLORING</span>
+            <span>DISCOVER WHAT WE BUILD</span>
             <span className="text-[#8B6CFF] group-hover:translate-y-0.5 transition-transform">
               ↓
             </span>
@@ -136,3 +162,5 @@ export function HeroSection() {
     </section>
   );
 }
+
+export default HeroSection;
