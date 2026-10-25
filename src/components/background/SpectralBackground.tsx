@@ -30,10 +30,17 @@ function checkWebGLSupport(): boolean {
 export function SpectralBackground() {
   const [mounted, setMounted] = useState(false);
   const [hasWebGL, setHasWebGL] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     setHasWebGL(checkWebGLSupport());
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile, { passive: true });
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   return (
@@ -46,34 +53,34 @@ export function SpectralBackground() {
 
       {/* Layer 2: 3D Living Spectral Drape Mesh */}
       {mounted && hasWebGL ? (
-        <div className="absolute inset-0 w-full h-full">
+        <div className="absolute inset-0 w-full h-full pointer-events-none">
           <SpectralDrape
-            className="w-full h-full"
+            className="w-full h-full pointer-events-none"
             colors={['#9D85FF', '#E8E2FF']}
             backgroundColor="transparent"
-            density={1.2}
-            dotSize={1.15}
-            strands={8}
-            amplitude={1.15}
+            density={isMobile ? 0.9 : 1.2}
+            dotSize={isMobile ? 1.0 : 1.15}
+            strands={isMobile ? 6 : 8}
+            amplitude={isMobile ? 0.95 : 1.15}
             frequency={0.75}
-            thickness={0.8}
+            thickness={isMobile ? 0.7 : 0.8}
             depth={1.5}
             softness={0.55}
-            intensity={1.3}
+            intensity={isMobile ? 1.15 : 1.3}
             colorShift={0.2}
             tilt={-36}
             turn={-42}
             roll={108}
-            zoom={1.1}
+            zoom={isMobile ? 1.0 : 1.1}
             flow={0.85}
-            speed={0.85}
-            interactive={true}
+            speed={isMobile ? 0.7 : 0.85}
+            interactive={!isMobile}
             brush={1.2}
             brushRadius={0.25}
-            parallax={0.8}
-            clickRipples={true}
-            globalPointer={true}
-            dpr={2}
+            parallax={isMobile ? 0.4 : 0.8}
+            clickRipples={!isMobile}
+            globalPointer={!isMobile}
+            dpr={isMobile ? 1.25 : 2}
           />
         </div>
       ) : (
@@ -85,8 +92,8 @@ export function SpectralBackground() {
       <div className="absolute top-1/4 right-10 w-[550px] h-[550px] bg-[#9D85FF]/[0.08] blur-[160px] rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 left-10 w-[450px] h-[450px] bg-[#9D85FF]/[0.06] blur-[180px] rounded-full pointer-events-none" />
 
-      {/* Layer 4: Global Optical Contrast Stabilizer (preserves 3D visibility while preventing text blinding) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#07080C]/20 via-transparent to-[#07080C]/35 pointer-events-none" />
+      {/* Layer 4: Global Optical Contrast Stabilizer (ensures text readability on all viewports) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#07080C]/40 via-[#07080C]/20 to-[#07080C]/50 pointer-events-none" />
     </div>
   );
 }

@@ -45,10 +45,10 @@ const stages: ProcessStage[] = [
 
 export function ProcessSection() {
   return (
-    <section id="process" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <section id="process" className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 sm:pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
             <span className="text-[#9D85FF] font-bold">07 //</span>
             <span className="text-[#F8F9FA] font-medium">HOW WE WORK</span>
@@ -60,30 +60,30 @@ export function ProcessSection() {
         </div>
 
         {/* Section Heading */}
-        <div className="pt-10 pb-8 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-3">
+        <div className="pt-8 sm:pt-10 pb-6 sm:pb-8 max-w-3xl">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-3">
             A CLEAR PROCESS{' '}
             <span className="text-dual-accent inline-block">
               FROM IDEA TO LAUNCH.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-base font-sans leading-relaxed">
+          <p className="text-[#D0D4DC] text-sm sm:text-base font-sans leading-relaxed">
             Every project follows a straightforward path with defined checkpoints, written agreements,
             and complete transparency from first conversation to deployment.
           </p>
         </div>
 
         {/* Process Sequence Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 pt-4 sm:pt-6">
           {stages.map((step, index) => (
             <div
               key={step.num}
-              className="relative p-6 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] flex flex-col justify-between group hover:border-[#9D85FF]/50 hover:bg-[#171B2B] transition-all duration-300 shadow-xl shadow-black/30"
+              className="relative p-5 sm:p-6 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] flex flex-col justify-between group hover:border-[#9D85FF]/50 hover:bg-[#171B2B] transition-all duration-300 shadow-xl shadow-black/30"
             >
               <div>
                 {/* Step Number with Connector */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-mono text-3xl font-bold text-[#9D85FF]">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <span className="font-mono text-2xl sm:text-3xl font-bold text-[#9D85FF]">
                     {step.num}
                   </span>
                   {index < stages.length - 1 && (
@@ -94,22 +94,22 @@ export function ProcessSection() {
                 </div>
 
                 {/* Phase Title */}
-                <h3 className="font-display font-bold text-lg text-[#F8F9FA] uppercase tracking-tight mb-1">
+                <h3 className="font-display font-bold text-base sm:text-lg text-[#F8F9FA] uppercase tracking-tight mb-1">
                   {step.stageName}
                 </h3>
 
-                <p className="font-mono text-[11px] text-[#9D85FF] tracking-wider uppercase mb-3 font-semibold">
+                <p className="font-mono text-[11px] text-[#9D85FF] tracking-wider uppercase mb-2.5 sm:mb-3 font-semibold">
                   {step.subtitle}
                 </p>
 
-                <p className="text-[#D0D4DC] text-xs leading-relaxed mb-6 font-sans">
+                <p className="text-[#D0D4DC] text-xs leading-relaxed mb-5 sm:mb-6 font-sans">
                   {step.description}
                 </p>
               </div>
 
               {/* Output Artifact */}
               <div className="pt-3 border-t border-white/[0.1] text-xs font-mono">
-                <span className="text-[#E8E2FF] block font-semibold mb-1">OUTPUT:</span>
+                <span className="text-[#E8E2FF] block font-semibold mb-1 text-[11px]">OUTPUT:</span>
                 <span className="text-[#D0D4DC] font-sans text-xs">{step.deliverable}</span>
               </div>
             </div>

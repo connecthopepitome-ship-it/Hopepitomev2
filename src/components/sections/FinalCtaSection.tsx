@@ -188,33 +188,33 @@ export function FinalCtaSection() {
   };
 
   return (
-    <section id="contact" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
+    <section id="contact" className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden">
       {/* Background Editorial Grid */}
       <div className="absolute inset-0 editorial-grid-fine opacity-20 pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Section Marker */}
-        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase mb-10">
+        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase mb-6 sm:mb-10">
           <span className="text-[#9D85FF] font-bold">10 //</span>
           <span className="text-[#F8F9FA] font-medium">START A PROJECT</span>
         </div>
 
         {/* Large Editorial Headline */}
-        <div className="mb-14 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1.02] text-[#F8F9FA] uppercase">
+        <div className="mb-8 sm:mb-14 max-w-3xl">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1.05] sm:leading-[1.02] text-[#F8F9FA] uppercase">
             TELL US WHAT YOU WANT{' '}
             <span className="text-motion-flow block sm:inline mt-1 sm:mt-0">
               YOUR BUSINESS TO DO BETTER.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-base sm:text-lg font-sans mt-4 leading-relaxed">
+          <p className="text-[#D0D4DC] text-sm sm:text-lg font-sans mt-3 sm:mt-4 leading-relaxed">
             You can come to us with a clear project brief or just a problem that needs solving.
             Share a few details and we will help you work out the next step.
           </p>
         </div>
 
         {/* Main Grid: Parameters Sidebar + Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-10 border-t border-editorial">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 pt-6 sm:pt-10 border-t border-editorial">
           {/* Sidebar */}
           <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
@@ -222,8 +222,8 @@ export function FinalCtaSection() {
                 WHAT HAPPENS NEXT?
               </span>
 
-              <div className="space-y-3.5 text-xs text-[#D0D4DC] font-sans">
-                <div className="p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
+              <div className="space-y-3 sm:space-y-3.5 text-xs text-[#D0D4DC] font-sans">
+                <div className="p-3.5 sm:p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
                   <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
                     1. REVIEW WITHIN ONE BUSINESS DAY
                   </strong>
@@ -232,7 +232,7 @@ export function FinalCtaSection() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
+                <div className="p-3.5 sm:p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
                   <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
                     2. CONSULTATION &amp; SCOPING
                   </strong>
@@ -241,7 +241,7 @@ export function FinalCtaSection() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
+                <div className="p-3.5 sm:p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
                   <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
                     3. WRITTEN PLAN &amp; QUOTE
                   </strong>
@@ -252,7 +252,7 @@ export function FinalCtaSection() {
               </div>
             </div>
 
-            <div className="p-5 border border-white/[0.14] bg-[#090B10] shadow-inner space-y-2.5">
+            <div className="p-4 sm:p-5 border border-white/[0.14] bg-[#090B10] shadow-inner space-y-2.5">
               <span className="text-xs font-mono tracking-wider uppercase text-[#F8F9FA] block font-bold">
                 DIRECT CONTACT DETAILS
               </span>
@@ -278,7 +278,7 @@ export function FinalCtaSection() {
           </div>
 
           {/* Form Container */}
-          <div className="lg:col-span-7 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] p-6 sm:p-8 shadow-2xl">
+          <div className="lg:col-span-7 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] p-4.5 sm:p-8 shadow-2xl">
             {submissionReceipt ? (
               <div className="py-8 text-center space-y-5 animate-in fade-in duration-300">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#34D399] bg-[#34D399]/15 text-[#34D399] font-mono font-bold text-xl shadow-[0_0_15px_rgba(52,211,153,0.3)]">

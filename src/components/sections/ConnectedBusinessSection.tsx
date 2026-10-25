@@ -35,11 +35,11 @@ export function ConnectedBusinessSection() {
   return (
     <section
       id="transformations"
-      className="relative py-24 md:py-32 border-b border-editorial overflow-hidden"
+      className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 sm:pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
             <span className="text-[#9D85FF] font-bold">04 //</span>
             <span className="text-[#F8F9FA] font-medium">PRACTICAL IMPACT</span>
@@ -51,26 +51,26 @@ export function ConnectedBusinessSection() {
         </div>
 
         {/* Section Headline */}
-        <div className="pt-10 pb-12 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
+        <div className="pt-8 sm:pt-10 pb-8 sm:pb-12 max-w-3xl">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
             YOUR BUSINESS DOESN&apos;T NEED MORE COMPLEXITY.
             <br />
             <span className="text-dual-accent mt-1 inline-block">
               IT NEEDS THE RIGHT CONNECTIONS.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
+          <p className="text-[#D0D4DC] text-sm sm:text-base leading-relaxed font-sans">
             Many business problems do not start with a lack of software. They start when websites,
             spreadsheets, messages, orders and internal processes operate separately.
           </p>
         </div>
 
         {/* Transformations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {transformations.map((t) => (
             <div
               key={t.step}
-              className="p-6 sm:p-8 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] hover:border-[#9D85FF]/50 transition-all duration-300 flex flex-col justify-between shadow-xl shadow-black/30"
+              className="p-4.5 sm:p-8 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] hover:border-[#9D85FF]/50 transition-all duration-300 flex flex-col justify-between shadow-xl shadow-black/30"
             >
               <div>
                 <div className="flex items-center justify-between mb-4 text-xs font-mono">
@@ -103,12 +103,12 @@ export function ConnectedBusinessSection() {
         </div>
 
         {/* Bottom Banner Callout with CTA */}
-        <div className="mt-12 p-8 bg-[#121520]/95 border border-white/[0.16] backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
+        <div className="mt-8 sm:mt-12 p-5 sm:p-8 bg-[#121520]/95 border border-white/[0.16] backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6 shadow-xl">
           <div className="space-y-2 max-w-xl">
             <span className="text-[11px] font-mono tracking-widest text-[#9D85FF] uppercase font-bold block">
               [ OUR PHILOSOPHY ]
             </span>
-            <h3 className="font-display font-extrabold text-xl sm:text-2xl uppercase tracking-tight text-[#F8F9FA]">
+            <h3 className="font-display font-extrabold text-lg sm:text-2xl uppercase tracking-tight text-[#F8F9FA]">
               We start with the problem, not with a software package.
             </h3>
             <p className="text-xs sm:text-sm font-sans text-[#D0D4DC] leading-relaxed">
@@ -119,7 +119,7 @@ export function ConnectedBusinessSection() {
 
           <a
             href="#contact"
-            className="px-6 py-3.5 bg-[#9D85FF] text-[#07080C] hover:bg-white hover:text-[#07080C] transition-colors duration-200 font-mono text-xs uppercase font-bold tracking-wider shrink-0 shadow-lg shadow-[#9D85FF]/25"
+            className="w-full md:w-auto text-center justify-center flex items-center px-6 py-3.5 bg-[#9D85FF] text-[#07080C] hover:bg-white hover:text-[#07080C] transition-colors duration-200 font-mono text-xs uppercase font-bold tracking-wider shrink-0 shadow-lg shadow-[#9D85FF]/25 min-h-[44px]"
           >
             <span>Tell Us What&apos;s Slowing You Down</span>
             <span className="ml-2">→</span>

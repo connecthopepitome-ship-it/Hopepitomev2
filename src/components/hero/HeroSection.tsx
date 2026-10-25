@@ -12,21 +12,21 @@ export function HeroSection() {
       {/* Vertical Axis Reference Hairline */}
       <div className="hidden lg:block absolute left-[56%] top-0 bottom-0 w-px bg-white/[0.05] pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 w-full min-h-[calc(100vh-6rem)] flex flex-col justify-center py-10 z-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 w-full min-h-[calc(100vh-6rem)] flex flex-col justify-center py-6 sm:py-10 z-10">
         {/* Main Editorial Hero Composition */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center my-auto py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center my-auto py-2 sm:py-4">
           {/* Left Column: Bold Typography & Narrative */}
           <div className="lg:col-span-8 flex flex-col justify-center">
             {/* Eyebrow Label */}
-            <div className="inline-flex items-center space-x-2.5 text-xs font-mono tracking-widest uppercase text-[#9DA3AE] mb-6">
-              <span className="w-2 h-2 bg-[#9D85FF] shadow-[0_0_8px_#9D85FF]" />
+            <div className="inline-flex items-center space-x-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase text-[#9DA3AE] mb-4 sm:mb-6">
+              <span className="w-2 h-2 bg-[#9D85FF] shadow-[0_0_8px_#9D85FF] shrink-0" />
               <span className="text-[#E8E2FF] font-semibold">
                 BUSINESS TECHNOLOGY · WEB · SOFTWARE · AUTOMATION
               </span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.6rem] tracking-tight leading-[1.02] text-[#F8F9FA] uppercase mb-8">
+            <h1 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-[4.6rem] tracking-tight leading-[1.08] sm:leading-[1.02] text-[#F8F9FA] uppercase mb-5 sm:mb-8">
               Your business has a next level.{' '}
               <span className="text-motion-flow block mt-1">
                 Let&apos;s build the systems to get there.
@@ -34,17 +34,17 @@ export function HeroSection() {
             </h1>
 
             {/* Supporting Copy */}
-            <p className="max-w-2xl text-[#D0D4DC] text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 font-sans">
+            <p className="max-w-2xl text-[#D0D4DC] text-sm sm:text-lg md:text-xl font-normal leading-relaxed mb-6 sm:mb-8 font-sans">
               From your first professional website to a complete online store or a custom business
               application, Hopepitome turns your ideas and everyday challenges into digital
               solutions built around the way you work.
             </p>
 
             {/* Primary & Secondary Call to Actions */}
-            <div className="flex flex-wrap items-center gap-4 mb-5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-5 w-full sm:w-auto">
               <a
                 href="#contact"
-                className="px-7 py-3.5 bg-white text-[#07080C] hover:bg-[#9D85FF] hover:text-[#07080C] transition-all duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center space-x-2 shadow-lg shadow-white/10"
+                className="w-full sm:w-auto justify-center px-7 py-3.5 bg-white text-[#07080C] hover:bg-[#9D85FF] hover:text-[#07080C] transition-all duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center space-x-2 shadow-lg shadow-white/10 min-h-[44px]"
               >
                 <span>Tell Us What You Need</span>
                 <span>→</span>
@@ -52,7 +52,7 @@ export function HeroSection() {
 
               <a
                 href="#services"
-                className="px-6 py-3.5 bg-[#121520]/80 border border-white/25 text-[#F8F9FA] hover:border-[#9D85FF]/80 hover:bg-[#9D85FF]/10 transition-all duration-200 font-mono text-xs tracking-wider uppercase flex items-center space-x-2 backdrop-blur-md"
+                className="w-full sm:w-auto justify-center px-6 py-3.5 bg-[#121520] border border-white/25 text-[#F8F9FA] hover:border-[#9D85FF]/80 hover:bg-[#9D85FF]/10 transition-all duration-200 font-mono text-xs tracking-wider uppercase flex items-center space-x-2 backdrop-blur-md min-h-[44px]"
               >
                 <span>Explore Our Solutions</span>
                 <span className="text-[#9D85FF]">↓</span>
@@ -60,12 +60,12 @@ export function HeroSection() {
             </div>
 
             {/* Supporting Micro-Statement */}
-            <p className="text-xs font-mono tracking-wide text-[#9DA3AE] mb-10">
+            <p className="text-[11px] sm:text-xs font-mono tracking-wide text-[#9DA3AE] mb-8 sm:mb-10">
               [ Clear scope. Practical solutions. Transparent project pricing. ]
             </p>
 
             {/* Three Commercial Pillar Highlight Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-white/[0.14]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 pt-6 border-t border-white/[0.14]">
               {/* Pillar 01 */}
               <a
                 href="#services"

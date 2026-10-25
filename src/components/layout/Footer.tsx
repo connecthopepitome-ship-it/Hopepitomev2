@@ -2,9 +2,9 @@
 
 export function Footer() {
   return (
-    <footer className="relative bg-[#07080C]/96 backdrop-blur-md pt-20 pb-12 border-t border-white/[0.14] text-xs font-mono text-[#9DA3AE]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-14 border-b border-editorial">
+    <footer className="relative bg-[#07080C] pt-12 sm:pt-20 pb-8 sm:pb-12 border-t border-white/[0.14] text-xs font-mono text-[#9DA3AE]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 sm:pb-14 border-b border-editorial">
           {/* Brand Column */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-baseline space-x-2 text-[#F8F9FA]">
@@ -30,29 +30,29 @@ export function Footer() {
             <span className="text-[#F8F9FA] font-bold block uppercase tracking-wider text-xs">
               WHAT WE BUILD
             </span>
-            <ul className="space-y-2 text-xs tracking-wide">
+            <ul className="space-y-1.5 sm:space-y-2 text-xs tracking-wide">
               <li>
-                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors">
+                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors py-1 inline-block">
                   Websites &amp; Ecommerce
                 </a>
               </li>
               <li>
-                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors">
+                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors py-1 inline-block">
                   Custom Software &amp; Portals
                 </a>
               </li>
               <li>
-                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors">
+                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors py-1 inline-block">
                   Workflow Automation
                 </a>
               </li>
               <li>
-                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors">
+                <a href="#services" className="text-[#D0D4DC] hover:text-white transition-colors py-1 inline-block">
                   ERP &amp; CRM Systems
                 </a>
               </li>
               <li>
-                <a href="#transformations" className="text-[#D0D4DC] hover:text-white transition-colors">
+                <a href="#transformations" className="text-[#D0D4DC] hover:text-white transition-colors py-1 inline-block">
                   System Integrations
                 </a>
               </li>

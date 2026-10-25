@@ -56,10 +56,10 @@ export function CommercialModelSection() {
   ];
 
   return (
-    <section id="pricing" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <section id="pricing" className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 sm:pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
             <span className="text-[#9D85FF] font-bold">05 //</span>
             <span className="text-[#F8F9FA] font-medium">COMMERCIAL APPROACH</span>
@@ -71,15 +71,15 @@ export function CommercialModelSection() {
         </div>
 
         {/* Section Headline */}
-        <div className="pt-10 pb-12 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4 leading-tight">
+        <div className="pt-8 sm:pt-10 pb-8 sm:pb-12 max-w-3xl">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4 leading-tight">
             PROFESSIONAL DIGITAL SOLUTIONS.
             <br />
             <span className="text-dual-accent mt-1 inline-block">
               WITHOUT UNNECESSARY COMMITMENTS.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
+          <p className="text-[#D0D4DC] text-sm sm:text-base leading-relaxed font-sans">
             We believe businesses should know what they are paying for before a project begins. We scope
             each project around its actual requirements, agree on deliverables, and provide a clear quotation
             before development starts.
@@ -87,17 +87,17 @@ export function CommercialModelSection() {
         </div>
 
         {/* Four Principles Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10 sm:mb-16">
           {principles.map((p, idx) => (
             <div
               key={idx}
-              className="p-6 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] hover:border-[#9D85FF]/50 transition-all duration-300 flex flex-col justify-between shadow-xl shadow-black/30"
+              className="p-5 sm:p-6 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] hover:border-[#9D85FF]/50 transition-all duration-300 flex flex-col justify-between shadow-xl shadow-black/30"
             >
               <div>
-                <span className="text-[11px] font-mono text-[#9D85FF] tracking-wider uppercase block mb-3 font-bold">
+                <span className="text-[11px] font-mono text-[#9D85FF] tracking-wider uppercase block mb-2.5 font-bold">
                   [ {p.badge} ]
                 </span>
-                <h3 className="font-display font-bold text-lg text-[#F8F9FA] uppercase mb-2">
+                <h3 className="font-display font-bold text-base sm:text-lg text-[#F8F9FA] uppercase mb-2">
                   {p.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-[#D0D4DC] font-sans leading-relaxed">
@@ -109,13 +109,13 @@ export function CommercialModelSection() {
         </div>
 
         {/* Transparent Cost Breakdown Table */}
-        <div className="p-8 sm:p-10 bg-[#121520]/95 border border-white/[0.16] backdrop-blur-md shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-white/[0.12] gap-4">
+        <div className="p-4.5 sm:p-8 lg:p-10 bg-[#121520]/95 border border-white/[0.16] backdrop-blur-md shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-white/[0.12] gap-3">
             <div>
               <span className="text-[11px] font-mono text-[#9D85FF] uppercase tracking-wider block font-bold">
                 CLARITY ON COSTS
               </span>
-              <h3 className="text-xl sm:text-2xl font-display font-bold text-[#F8F9FA] uppercase tracking-tight">
+              <h3 className="text-lg sm:text-2xl font-display font-bold text-[#F8F9FA] uppercase tracking-tight">
                 HOW COSTS ARE STRUCTURED
               </h3>
             </div>
@@ -124,9 +124,9 @@ export function CommercialModelSection() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-6 sm:pt-8">
             {costBreakdown.map((item, i) => (
-              <div key={i} className="p-5 bg-[#090B10] border border-white/[0.12] space-y-3 flex flex-col justify-between shadow-inner">
+              <div key={i} className="p-4.5 sm:p-5 bg-[#090B10] border border-white/[0.12] space-y-3 flex flex-col justify-between shadow-inner">
                 <div>
                   <span className="text-[11px] font-mono font-bold text-[#E8E2FF] uppercase block">
                     {item.type}
@@ -146,7 +146,7 @@ export function CommercialModelSection() {
           </div>
 
           {/* Mandatory Honesty Notice Banner */}
-          <div className="mt-8 p-6 bg-[#090B10] border border-[#9D85FF]/45 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-lg">
+          <div className="mt-6 sm:mt-8 p-4.5 sm:p-6 bg-[#090B10] border border-[#9D85FF]/45 flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6 shadow-lg">
             <p className="text-xs sm:text-sm font-sans text-[#D0D4DC] leading-relaxed max-w-2xl">
               <strong className="text-[#F8F9FA] font-mono uppercase block mb-1 font-bold">
                 OUR PROMISE TO BUSINESS OWNERS:
@@ -156,7 +156,7 @@ export function CommercialModelSection() {
             </p>
             <a
               href="#contact"
-              className="px-6 py-3.5 bg-[#9D85FF] text-[#07080C] hover:bg-white hover:text-[#07080C] transition-colors font-mono text-xs uppercase font-bold tracking-wider shrink-0 shadow-lg shadow-[#9D85FF]/20"
+              className="w-full sm:w-auto text-center justify-center flex items-center px-6 py-3.5 bg-[#9D85FF] text-[#07080C] hover:bg-white hover:text-[#07080C] transition-colors font-mono text-xs uppercase font-bold tracking-wider shrink-0 shadow-lg shadow-[#9D85FF]/20 min-h-[44px]"
             >
               Request a Project Quote →
             </a>

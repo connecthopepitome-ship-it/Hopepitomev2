@@ -64,10 +64,10 @@ export function FaqSection() {
   };
 
   return (
-    <section id="faq" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <section id="faq" className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 sm:pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
             <span className="text-[#9D85FF] font-bold">09 //</span>
             <span className="text-[#F8F9FA] font-medium">FREQUENTLY ASKED QUESTIONS</span>
@@ -79,21 +79,21 @@ export function FaqSection() {
         </div>
 
         {/* Section Headline */}
-        <div className="pt-10 pb-12 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
+        <div className="pt-8 sm:pt-10 pb-8 sm:pb-12 max-w-3xl">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
             QUESTIONS{' '}
             <span className="text-dual-accent inline-block">
               YOU MAY HAVE.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
+          <p className="text-[#D0D4DC] text-sm sm:text-base leading-relaxed font-sans">
             Clear information on our capabilities, pricing philosophy, and collaboration model so you can
             make informed decisions for your business.
           </p>
         </div>
 
         {/* FAQs Accordion */}
-        <div className="space-y-3.5 max-w-4xl">
+        <div className="space-y-3 sm:space-y-3.5 max-w-4xl">
           {faqs.map((faq) => {
             const isOpen = openItem === faq.id;
             return (
@@ -108,14 +108,14 @@ export function FaqSection() {
                 <button
                   type="button"
                   onClick={() => toggleItem(faq.id)}
-                  className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4"
+                  className="w-full p-4 sm:p-6 text-left flex items-center justify-between gap-3 min-h-[52px]"
                   aria-expanded={isOpen}
                 >
-                  <span className="font-display font-bold text-base sm:text-lg text-[#F8F9FA] uppercase tracking-tight">
+                  <span className="font-display font-bold text-sm sm:text-base md:text-lg text-[#F8F9FA] uppercase tracking-tight pr-2">
                     {faq.q}
                   </span>
                   <span
-                    className={`font-mono text-base font-bold text-[#9D85FF] shrink-0 transition-transform duration-200 ${
+                    className={`font-mono text-base sm:text-lg font-bold text-[#9D85FF] shrink-0 transition-transform duration-200 ${
                       isOpen ? 'rotate-45 text-[#E8E2FF]' : ''
                     }`}
                   >
@@ -124,7 +124,7 @@ export function FaqSection() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 sm:px-6 pb-6 pt-2 text-sm font-sans text-[#D0D4DC] leading-relaxed border-t border-white/[0.08]">
+                  <div className="px-4 sm:px-6 pb-5 sm:pb-6 pt-2 text-xs sm:text-sm font-sans text-[#D0D4DC] leading-relaxed border-t border-white/[0.08]">
                     <p>{faq.a}</p>
                   </div>
                 )}
@@ -134,11 +134,11 @@ export function FaqSection() {
         </div>
 
         {/* Bottom Help Text */}
-        <div className="mt-10 p-5 bg-[#090B10] border border-white/[0.14] max-w-4xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-[#D0D4DC] shadow-inner">
+        <div className="mt-8 sm:mt-10 p-4 sm:p-5 bg-[#090B10] border border-white/[0.14] max-w-4xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-[#D0D4DC] shadow-inner">
           <span>Have a question not listed here?</span>
           <a
             href="#contact"
-            className="text-[#9D85FF] hover:text-white transition-colors uppercase font-bold"
+            className="text-[#9D85FF] hover:text-white transition-colors uppercase font-bold py-1 min-h-[44px] flex items-center"
           >
             Ask us directly in the form below →
           </a>

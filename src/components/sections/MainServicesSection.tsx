@@ -197,10 +197,10 @@ export function MainServicesSection() {
   };
 
   return (
-    <section id="services" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+    <section id="services" className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 sm:pb-10 border-b border-editorial gap-4">
           <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
             <span className="text-[#9D85FF] font-bold">03 //</span>
             <span className="text-[#F8F9FA] font-medium">WHAT WE BUILD</span>
@@ -212,14 +212,14 @@ export function MainServicesSection() {
         </div>
 
         {/* Section Headline */}
-        <div className="pt-10 pb-12 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
+        <div className="pt-8 sm:pt-10 pb-8 sm:pb-12 max-w-3xl">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
             DIGITAL TOOLS AND SYSTEMS{' '}
             <span className="text-dual-accent inline-block">
               DESIGNED FOR BUSINESS.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
+          <p className="text-[#D0D4DC] text-sm sm:text-base leading-relaxed font-sans">
             From customer-facing websites to backend operations and automations, explore our primary
             areas of design, engineering, and systems implementation.
           </p>
@@ -251,16 +251,16 @@ export function MainServicesSection() {
         </div>
 
         {/* Detailed Service Cards Grid */}
-        <div className="space-y-12">
+        <div className="space-y-8 sm:space-y-12">
           {businessServices.map((service) => (
             <article
               key={service.id}
               id={service.id}
-              className="p-6 sm:p-10 lg:p-12 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] hover:border-[#9D85FF]/60 hover:bg-[#151928] transition-all duration-300 relative group scroll-mt-28 shadow-xl shadow-black/40"
+              className="p-4 sm:p-8 lg:p-12 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] hover:border-[#9D85FF]/60 hover:bg-[#151928] transition-all duration-300 relative group scroll-mt-24 shadow-xl shadow-black/40"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
                 {/* Left Overview Column */}
-                <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-6">
+                <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-5 sm:space-y-6">
                   <div>
                     <div className="flex items-center space-x-3 font-mono text-xs text-[#9D85FF] mb-3">
                       <span className="font-bold text-sm">{service.num}</span>
@@ -311,7 +311,7 @@ export function MainServicesSection() {
                     <a
                       href="#contact"
                       onClick={() => handleSelectService(service.title)}
-                      className="inline-flex items-center space-x-2 px-6 py-3.5 bg-white text-[#07080C] hover:bg-[#9D85FF] hover:text-[#07080C] transition-all duration-200 font-mono text-xs uppercase font-bold tracking-wider shadow-md"
+                      className="w-full sm:w-auto justify-center inline-flex items-center space-x-2 px-6 py-3.5 bg-white text-[#07080C] hover:bg-[#9D85FF] hover:text-[#07080C] transition-all duration-200 font-mono text-xs uppercase font-bold tracking-wider shadow-md min-h-[44px]"
                     >
                       <span>{service.ctaText}</span>
                       <span>→</span>
@@ -320,12 +320,12 @@ export function MainServicesSection() {
                 </div>
 
                 {/* Right Deliverables Column */}
-                <div className="lg:col-span-7 bg-[#090B10] p-6 sm:p-8 border border-white/[0.14] shadow-inner">
-                  <span className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] block mb-4 font-bold">
+                <div className="lg:col-span-7 bg-[#090B10] p-4 sm:p-6 lg:p-8 border border-white/[0.14] shadow-inner">
+                  <span className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] block mb-3 sm:mb-4 font-bold">
                     WHAT WE CAN BUILD &amp; DELIVER:
                   </span>
 
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     {service.deliverables.map((item, idx) => (
                       <li
                         key={idx}
@@ -337,12 +337,12 @@ export function MainServicesSection() {
                     ))}
                   </ul>
 
-                  <div className="mt-6 pt-4 border-t border-white/[0.1] flex items-center justify-between text-xs font-mono text-[#9DA3AE]">
+                  <div className="mt-5 sm:mt-6 pt-4 border-t border-white/[0.1] flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs font-mono text-[#9DA3AE] gap-2">
                     <span>STATUS // AVAILABLE FOR PROJECT SCOPING</span>
                     <a
                       href="#contact"
                       onClick={() => handleSelectService(service.title)}
-                      className="text-[#9D85FF] hover:text-white transition-colors font-semibold"
+                      className="text-[#9D85FF] hover:text-white transition-colors font-semibold py-1"
                     >
                       Inquire regarding this scope →
                     </a>
