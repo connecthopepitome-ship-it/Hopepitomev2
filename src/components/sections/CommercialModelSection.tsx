@@ -75,7 +75,7 @@ export function CommercialModelSection() {
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4 leading-tight">
             PROFESSIONAL DIGITAL SOLUTIONS.
             <br />
-            <span className="bg-gradient-to-r from-white via-[#E8E2FF] to-[#9D85FF] bg-clip-text text-transparent">
+            <span className="text-dual-accent mt-1 inline-block">
               WITHOUT UNNECESSARY COMMITMENTS.
             </span>
           </h2>

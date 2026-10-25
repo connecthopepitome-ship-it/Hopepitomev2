@@ -214,7 +214,10 @@ export function MainServicesSection() {
         {/* Section Headline */}
         <div className="pt-10 pb-12 max-w-3xl">
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
-            DIGITAL TOOLS AND SYSTEMS DESIGNED FOR BUSINESS.
+            DIGITAL TOOLS AND SYSTEMS{' '}
+            <span className="text-dual-accent inline-block">
+              DESIGNED FOR BUSINESS.
+            </span>
           </h2>
           <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
             From customer-facing websites to backend operations and automations, explore our primary

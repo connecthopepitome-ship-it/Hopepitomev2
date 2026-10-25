@@ -28,7 +28,7 @@ export function HeroSection() {
             {/* Main Headline */}
             <h1 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.6rem] tracking-tight leading-[1.02] text-[#F8F9FA] uppercase mb-8">
               Your business has a next level.{' '}
-              <span className="bg-gradient-to-r from-white via-[#E8E2FF] to-[#9D85FF] bg-clip-text text-transparent block mt-1">
+              <span className="text-motion-flow block mt-1">
                 Let&apos;s build the systems to get there.
               </span>
             </h1>

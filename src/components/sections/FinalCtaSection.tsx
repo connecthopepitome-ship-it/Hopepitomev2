@@ -201,8 +201,11 @@ export function FinalCtaSection() {
 
         {/* Large Editorial Headline */}
         <div className="mb-14 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1] text-[#F8F9FA] uppercase">
-            TELL US WHAT YOU WANT YOUR BUSINESS TO DO BETTER.
+          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1.02] text-[#F8F9FA] uppercase">
+            TELL US WHAT YOU WANT{' '}
+            <span className="text-motion-flow block sm:inline mt-1 sm:mt-0">
+              YOUR BUSINESS TO DO BETTER.
+            </span>
           </h2>
           <p className="text-[#D0D4DC] text-base sm:text-lg font-sans mt-4 leading-relaxed">
             You can come to us with a clear project brief or just a problem that needs solving.

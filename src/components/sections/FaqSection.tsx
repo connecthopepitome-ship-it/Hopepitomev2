@@ -81,7 +81,10 @@ export function FaqSection() {
         {/* Section Headline */}
         <div className="pt-10 pb-12 max-w-3xl">
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
-            QUESTIONS YOU MAY HAVE.
+            QUESTIONS{' '}
+            <span className="text-dual-accent inline-block">
+              YOU MAY HAVE.
+            </span>
           </h2>
           <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
             Clear information on our capabilities, pricing philosophy, and collaboration model so you can

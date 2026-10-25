@@ -64,7 +64,10 @@ export function AudienceSection() {
         {/* Section Headline */}
         <div className="pt-10 pb-12 max-w-3xl">
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
-            BUILT FOR THE PEOPLE BUILDING BUSINESSES.
+            BUILT FOR THE PEOPLE{' '}
+            <span className="text-dual-accent inline-block">
+              BUILDING BUSINESSES.
+            </span>
           </h2>
           <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
             You do not need to arrive with a technical specification. Tell us what your business does,

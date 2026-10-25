@@ -148,6 +148,82 @@ textarea:focus-visible {
   box-shadow: 0 0 0 4px rgba(157, 133, 255, 0.25) !important;
 }
 
+/* ==========================================================================
+   DUAL-COLOUR MOTION TYPOGRAPHY SYSTEM (HOPEPITOME)
+   Luminous motion identity for bold geometric display headings.
+   Combines pure snow white (#FFFFFF), pale lavender (#E8E2FF), and electric violet (#9D85FF).
+   ========================================================================== */
+
+@keyframes text-dual-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Treatment A — Animated Dual-Tone Flow (Continuous seamless traveling light) */
+.text-motion-flow {
+  color: var(--text-primary); /* High-contrast solid fallback */
+  background-image: linear-gradient(
+    115deg,
+    #FFFFFF 0%,
+    #F4F0FF 16%,
+    #E8E2FF 32%,
+    #C4B5FD 46%,
+    #9D85FF 58%,
+    #B4A2FF 72%,
+    #E8E2FF 86%,
+    #FFFFFF 100%
+  );
+  background-size: 220% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: text-dual-flow 9.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: background-position;
+  filter: drop-shadow(0 2px 14px rgba(7, 8, 12, 0.65));
+}
+
+/* Treatment B — Static Dual-Tone (Crisp white into soft lavender & electric violet) */
+.text-dual-accent {
+  color: #E8E2FF; /* High-contrast solid fallback */
+  background-image: linear-gradient(
+    120deg,
+    #FFFFFF 0%,
+    #E8E2FF 35%,
+    #B4A2FF 68%,
+    #9D85FF 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  filter: drop-shadow(0 2px 12px rgba(7, 8, 12, 0.55));
+}
+
+/* Subtle typography scrim wrapper where extra depth from Spectral Drape is beneficial */
+.heading-scrim {
+  position: relative;
+}
+.heading-scrim::before {
+  content: '';
+  position: absolute;
+  inset: -20px -30px;
+  background: radial-gradient(ellipse at center, rgba(7, 8, 12, 0.55) 0%, rgba(7, 8, 12, 0) 75%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(8px);
+}
+
 /* Reduced Motion Safety */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -157,5 +233,10 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .text-motion-flow {
+    animation: none !important;
+    background-position: 48% 50% !important;
   }
 }

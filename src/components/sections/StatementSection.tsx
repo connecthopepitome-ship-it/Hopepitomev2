@@ -39,7 +39,7 @@ export function StatementSection() {
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-[#F8F9FA] uppercase">
               NOT JUST A WEBSITE.
               <br />
-              <span className="bg-gradient-to-r from-white via-[#E8E2FF] to-[#9D85FF] bg-clip-text text-transparent">
+              <span className="text-motion-flow mt-1 inline-block">
                 A BETTER WAY TO DO BUSINESS.
               </span>
             </h2>

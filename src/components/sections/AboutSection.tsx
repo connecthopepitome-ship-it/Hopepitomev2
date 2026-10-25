@@ -44,7 +44,7 @@ export function AboutSection() {
           <div className="lg:col-span-6">
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-6 leading-tight">
               PRACTICAL TECHNOLOGY.{' '}
-              <span className="bg-gradient-to-r from-white via-[#E8E2FF] to-[#9D85FF] bg-clip-text text-transparent block mt-1">
+              <span className="text-dual-accent block mt-1">
                 THOUGHTFUL EXECUTION.
               </span>
             </h2>

@@ -62,7 +62,10 @@ export function ProcessSection() {
         {/* Section Heading */}
         <div className="pt-10 pb-8 max-w-3xl">
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-3">
-            A CLEAR PROCESS FROM IDEA TO LAUNCH.
+            A CLEAR PROCESS{' '}
+            <span className="text-dual-accent inline-block">
+              FROM IDEA TO LAUNCH.
+            </span>
           </h2>
           <p className="text-[#D0D4DC] text-base font-sans leading-relaxed">
             Every project follows a straightforward path with defined checkpoints, written agreements,
