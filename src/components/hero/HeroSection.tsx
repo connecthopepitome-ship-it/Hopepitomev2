@@ -12,24 +12,9 @@ export function HeroSection() {
       {/* Vertical Axis Reference Hairline */}
       <div className="hidden lg:block absolute left-[56%] top-0 bottom-0 w-px bg-white/[0.05] pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 w-full min-h-[calc(100vh-6rem)] flex flex-col justify-between py-10 z-10">
-        {/* Top Header Micro-Status */}
-        <div className="flex items-center justify-between text-[11px] font-mono tracking-widest uppercase text-muted-stone pt-2">
-          <div className="flex items-center space-x-3">
-            <span className="w-2 h-2 rounded-full bg-[#8B6CFF] animate-pulse inline-block" />
-            <span className="text-warm-white font-medium">HOPEPITOME // STUDIO</span>
-          </div>
-          <div className="hidden sm:flex items-center space-x-6">
-            <span className="text-white/40">SYSTEM STATUS:</span>
-            <span className="text-[#E4DBFF] flex items-center gap-1.5 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8B6CFF] inline-block" />
-              LIVE DIGITAL ENVIRONMENT
-            </span>
-          </div>
-        </div>
-
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 w-full min-h-[calc(100vh-6rem)] flex flex-col justify-center py-12 z-10">
         {/* Main Editorial Hero Composition */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center my-auto py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center my-auto py-4">
           {/* Left Column: Bold Typography & Narrative */}
           <div className="lg:col-span-8 flex flex-col justify-center">
             {/* Eyebrow Label */}

@@ -631,8 +631,12 @@ export function SpectralDrape({
   const effectiveDpr = Math.min(deviceDpr, Math.max(dpr, 0.5));
   const isTransparentBg = isTransparent(backgroundColor);
 
-  // Intersection observer for off-screen suspension
+  // Intersection observer for off-screen suspension (bypassed for persistent full-site background)
   useEffect(() => {
+    if (globalPointer) {
+      setIsIntersecting(true);
+      return;
+    }
     const el = containerRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
@@ -643,7 +647,7 @@ export function SpectralDrape({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [globalPointer]);
 
   // Pointer event listeners
   useEffect(() => {
@@ -706,7 +710,7 @@ export function SpectralDrape({
     }
   }, [globalPointer]);
 
-  const shouldLoop = isIntersecting && !paused && !isReducedMotion;
+  const shouldLoop = (globalPointer || isIntersecting) && !paused && !isReducedMotion;
 
   return (
     <div

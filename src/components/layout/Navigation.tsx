@@ -56,14 +56,11 @@ export function Navigation() {
               DIGITAL STUDIO
             </span>
           </Link>
-          <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[9px] font-mono tracking-widest uppercase border border-[#8B6CFF]/30 text-[#E4DBFF] bg-[#8B6CFF]/10 ml-2">
-            NEXORA &amp; ELEVORA
-          </span>
         </div>
 
         {/* Desktop Navigation Links */}
         <nav
-          className="hidden lg:flex items-center space-x-8 text-xs font-mono tracking-wider uppercase"
+          className="hidden lg:flex items-center space-x-6 xl:space-x-8 text-xs font-mono tracking-wider uppercase"
           aria-label="Main Navigation"
         >
           <a

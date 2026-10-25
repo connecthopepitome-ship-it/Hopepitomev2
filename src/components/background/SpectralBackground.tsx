@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { SpectralDrape } from '@/components/ui/spectral-drape';
+import dynamic from 'next/dynamic';
+
+// Dynamically import SpectralDrape to prevent any SSR / WebGL context evaluation in Node/Worker environments
+const SpectralDrape = dynamic(
+  () => import('@/components/ui/spectral-drape').then((mod) => mod.SpectralDrape),
+  { ssr: false }
+);
 
 function checkWebGLSupport(): boolean {
   if (typeof window === 'undefined') return false;
@@ -32,7 +38,7 @@ export function SpectralBackground() {
 
   return (
     <div
-      className="fixed inset-0 pointer-events-none -z-10 overflow-hidden select-none"
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
       aria-hidden="true"
     >
       {/* Layer 1: Base Near-Black Surface */}
@@ -45,15 +51,15 @@ export function SpectralBackground() {
             className="w-full h-full"
             colors={['#8B6CFF', '#E4DBFF']}
             backgroundColor="transparent"
-            density={1.15}
-            dotSize={1.1}
+            density={1.2}
+            dotSize={1.15}
             strands={8}
             amplitude={1.15}
             frequency={0.75}
-            thickness={0.75}
+            thickness={0.8}
             depth={1.5}
-            softness={0.6}
-            intensity={1.25}
+            softness={0.55}
+            intensity={1.4}
             colorShift={0.2}
             tilt={-36}
             turn={-42}
@@ -62,9 +68,9 @@ export function SpectralBackground() {
             flow={0.85}
             speed={0.85}
             interactive={true}
-            brush={1.0}
-            brushRadius={0.22}
-            parallax={0.7}
+            brush={1.2}
+            brushRadius={0.25}
+            parallax={0.8}
             clickRipples={true}
             globalPointer={true}
             dpr={2}
@@ -72,16 +78,12 @@ export function SpectralBackground() {
         </div>
       ) : (
         /* Graceful Non-WebGL Fallback */
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(139,108,255,0.15),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(139,108,255,0.2),transparent_70%)]" />
       )}
 
-      {/* Layer 3: Atmospheric Vignette & Contrast Control */}
-      {/* Ensures high readability for white and silver typography across all sections */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_25%,transparent_35%,rgba(7,8,11,0.85)_85%)]" />
-
-      {/* Subtle Atmospheric Color Glows */}
-      <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#8B6CFF]/[0.05] blur-[180px] rounded-full" />
-      <div className="absolute bottom-1/4 left-10 w-[450px] h-[450px] bg-[#1f51ff]/[0.04] blur-[160px] rounded-full" />
+      {/* Layer 3: Atmospheric Subtle Violet Ambience (Non-blocking, does not mask mesh) */}
+      <div className="absolute top-1/4 right-10 w-[550px] h-[550px] bg-[#8B6CFF]/[0.07] blur-[160px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 left-10 w-[450px] h-[450px] bg-[#8B6CFF]/[0.05] blur-[180px] rounded-full pointer-events-none" />
     </div>
   );
 }
