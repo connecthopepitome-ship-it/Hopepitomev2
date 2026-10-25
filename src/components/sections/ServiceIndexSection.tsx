@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export interface ServiceDetail {
   number: string;
   id: string;
   title: string;
+  plainSummary: string;
   division: 'NEXORA' | 'ELEVORA';
   category: string;
   targetCustomer: string;
@@ -16,238 +17,339 @@ export interface ServiceDetail {
 }
 
 export const studioServices: ServiceDetail[] = [
+  // --- NEXORA (BUSINESS SOLUTIONS) ---
   {
     number: '01',
     id: 'business-websites',
-    title: 'BUSINESS WEBSITE DEVELOPMENT',
+    title: 'BUSINESS WEBSITES',
+    plainSummary:
+      'Give customers a clear, professional place to learn about your business, explore your services and contact you.',
     division: 'NEXORA',
-    category: 'DIGITAL ENGINEERING',
+    category: 'WEBSITES & WEB APPS',
     targetCustomer:
-      'Growing enterprises, B2B firms, professional consultancies, and technology ventures seeking distinguished brand authority and lightning-fast web performance.',
+      'Small business owners, professional consultancies, service providers, and growing firms needing an up-to-date, trustworthy online presence.',
     scopeOverview:
-      'Full-lifecycle development of bespoke marketing websites and corporate web properties engineered with Next.js App Router, responsive design systems, headless content architecture, and global edge delivery.',
+      'We design and build clean, fast-loading business websites that look great on phones, tablets, and computers. We make sure visitors understand what you offer and can easily reach out through working contact forms.',
     deliverables: [
-      'Tailored Next.js / React application codebase',
-      'Accessible, token-driven custom CSS design system',
-      'Headless CMS or Markdown content structure',
-      'SEO schema, OpenGraph, and sitemap generation',
-      'Edge CDN routing with global SSL deployment',
-      'Zero-downtime deployment pipeline configuration',
+      'Custom visual design matching your brand colours and logo',
+      'Mobile-friendly and tablet-tested responsive layouts',
+      'Dedicated pages for your services, company background, and team',
+      'Working contact and enquiry forms delivered to your email',
+      'Search-engine-friendly structure (SEO titles, descriptions, sitemap)',
+      'Reliable hosting setup and domain connection assistance',
     ],
     process: [
-      { step: '01', label: 'ARCHITECTURE SPEC', desc: 'Sitemap structuring, technical stack selection, and responsive layout blueprints.' },
-      { step: '02', label: 'SPRINT DEVELOPMENT', desc: 'Modular component engineering, typography hierarchy, and content integration.' },
-      { step: '03', label: 'PERFORMANCE AUDIT', desc: 'Core Web Vitals calibration, cross-device testing, and production deployment.' },
+      { step: '01', label: 'REQUIREMENTS', desc: 'We discuss your business goals, target clients, and necessary pages.' },
+      { step: '02', label: 'BUILD', desc: 'We design and build the pages with your text, images, and contact links.' },
+      { step: '03', label: 'LAUNCH', desc: 'We test across devices, connect your domain, and hand over the site.' },
     ],
     quotationPath:
-      'Scoped on structural requirements: page quantity, interactive component complexity, content authoring needs, and third-party integration points. Custom fixed-price quote provided following technical intake.',
+      'Pricing depends on the number of pages, custom features, and whether content writing is needed. We provide an itemized quote after our initial conversation.',
   },
   {
     number: '02',
-    id: 'ecommerce-stores',
-    title: 'E-COMMERCE & ONLINE STORES',
+    id: 'online-stores',
+    title: 'ONLINE STORES & E-COMMERCE',
+    plainSummary:
+      'Sell your products through your own website, with product pages, shopping features and an order-management flow suited to your business.',
     division: 'NEXORA',
-    category: 'COMMERCE ARCHITECTURE',
+    category: 'E-COMMERCE',
     targetCustomer:
-      'Direct-to-consumer brands, specialty retailers, and B2B distributors demanding frictionless checkout experiences and dependable inventory synchronization.',
+      'Retailers, makers, brands, and distributors who want to sell products online with their own direct storefront.',
     scopeOverview:
-      'Engineering headless storefronts and modern online stores featuring modular checkout flows, multi-currency payment gateway integrations, catalog management, and automated order webhooks.',
+      'We build clean online shops with simple product browsing, secure payment checkout, automatic order notifications, and straightforward inventory management.',
     deliverables: [
-      'Headless storefront with ultra-fast catalog navigation',
-      'Integrated checkout via Stripe, PayPal, or regional gateways',
-      'Inventory, variant, and pricing synchronization engine',
-      'Automated customer transaction emails & webhook receipts',
-      'Cart recovery and abandoned session architecture',
-      'Administrative order and inventory management view',
+      'Organized product catalog with categories, images, and pricing',
+      'Shopping cart and smooth checkout experience',
+      'Secure payment gateway setup (e.g., Stripe, PayPal, or regional processors)',
+      'Automated email receipts for customers and order alerts for you',
+      'Basic inventory and order status management dashboard',
+      'Shipping rules and tax configuration support',
     ],
     process: [
-      { step: '01', label: 'CATALOG MODELING', desc: 'SKU structure, currency configurations, and payment provider verification.' },
-      { step: '02', label: 'STOREFRONT CRAFT', desc: 'Product showcase UX, cart state engine, and checkout pipeline implementation.' },
-      { step: '03', label: 'PAYMENT INTEGRATION', desc: 'End-to-end sandbox transaction testing, tax rules, and webhook audit.' },
+      { step: '01', label: 'CATALOG PLANNING', desc: 'We organize your product list, categories, variants, and payment needs.' },
+      { step: '02', label: 'STORE SETUP', desc: 'We build the store layout, cart flows, and integrate your payment provider.' },
+      { step: '03', label: 'TEST ORDERS', desc: 'We process real test transactions before opening the store to customers.' },
     ],
     quotationPath:
-      'Evaluated by catalog scale, variant matrix, payment processor choices, ERP/warehouse hooks, and custom checkout requirements.',
+      'Quoted based on catalog size, product variant complexity, and payment gateway choices. Agreed in writing before starting.',
   },
   {
     number: '03',
-    id: 'custom-software',
-    title: 'CUSTOM SOFTWARE DEVELOPMENT',
+    id: 'custom-business-software',
+    title: 'CUSTOM BUSINESS SOFTWARE',
+    plainSummary:
+      'Replace disconnected spreadsheets and repetitive manual tasks with software designed around your business process.',
     division: 'NEXORA',
-    category: 'FULL-STACK SYSTEMS',
+    category: 'CUSTOM TOOLS',
     targetCustomer:
-      'Mid-market organizations, startups, and operational teams outgrowing off-the-shelf SaaS and needing proprietary internal tools or customer-facing platforms.',
+      'Businesses with specific operational steps that off-the-shelf software cannot handle cleanly.',
     scopeOverview:
-      'End-to-end architecture and implementation of scalable web applications, API services, database layers, and operational portals built with clean code and strict separation of concerns.',
+      'When spreadsheets become disorganized or existing tools are too rigid, we build custom web-based software where your team can log in, track jobs, manage records, and collaborate safely.',
     deliverables: [
-      'Modular full-stack repository (Node.js / Python / TypeScript)',
-      'Relational schema design (PostgreSQL / SQLite / MariaDB)',
-      'Secure REST or GraphQL API with token-based authentication',
-      'Role-based access control (RBAC) and audit logging',
-      'Comprehensive test suites (unit, integration, and API tests)',
-      'Infrastructure as Code / Dockerized deployment configs',
+      'Tailored web application accessible on desktop and mobile browsers',
+      'Secure login accounts with role-based permissions (admin vs staff)',
+      'Structured database for records (customers, orders, equipment, jobs)',
+      'Data import assistance from your existing spreadsheets',
+      'Automated status updates and email notifications',
+      'Administrator training and written system documentation',
     ],
     process: [
-      { step: '01', label: 'SYSTEM BLUEPRINT', desc: 'Domain entity modeling, data relationship maps, and API interface contracts.' },
-      { step: '02', label: 'SPRINT EXECUTION', desc: 'Iterative backend and frontend development with continuous staging previews.' },
-      { step: '03', label: 'VERIFICATION GATE', desc: 'Automated test execution, security review, and staged production rollout.' },
+      { step: '01', label: 'WORKFLOW MAPPING', desc: 'We document your exact step-by-step process and required data fields.' },
+      { step: '02', label: 'SPRINT BUILD', desc: 'We build the software in modules and share progress on a private preview link.' },
+      { step: '03', label: 'TEAM ONBOARDING', desc: 'We test with your real staff, fix edge cases, and deploy the system.' },
     ],
     quotationPath:
-      'Defined by feature specifications, data entity complexity, user permission tiers, and external system integrations. Delivered with milestone-based commercial terms.',
+      'Scoped and priced based on required screens, user roles, data complexity, and integrations. Delivered under milestone-based payments.',
   },
   {
     number: '04',
-    id: 'erp-consulting',
-    title: 'ERP IMPLEMENTATION & CONSULTING',
+    id: 'erp-support',
+    title: 'ERP SETUP, IMPROVEMENT & SUPPORT',
+    plainSummary:
+      'Set up, improve or connect business software used to manage inventory, purchasing, sales, manufacturing and finance.',
     division: 'NEXORA',
-    category: 'ENTERPRISE ARCHITECTURE',
+    category: 'BUSINESS SYSTEMS',
     targetCustomer:
-      'Manufacturers, trading companies, professional services firms, and growing operations seeking Frappe / ERPNext implementation or custom business system upgrades.',
+      'Trading companies, manufacturers, workshops, and growing businesses needing organized records across departments.',
     scopeOverview:
-      'Specialized engineering in Frappe Framework and ERPNext. Custom DocType development, workflow state machines, server hooks, financial ledger integrations, and safe database migration scripts.',
+      'ERP (Enterprise Resource Planning) software helps a business track orders, stock, supplier purchases, and invoices in one connected database. We specialize in Frappe Framework and ERPNext, helping you configure, customize, or maintain your system cleanly.',
     deliverables: [
-      'Custom Frappe application or ERPNext configuration',
-      'Specialized DocTypes, Child Tables, and relational fields',
-      'Server-side validation scripts, hooks, and whitelisted APIs',
-      'Form event handlers and curated list views',
-      'Safe migration patches and upgrade-compatible architecture',
-      'Admin documentation and administrator workflow training',
+      'ERP installation and configuration suited to your operational workflow',
+      'Custom forms and fields for your industry requirements',
+      'Permission setup so staff only see what they need to see',
+      'Automated document printing formats (invoices, purchase orders, delivery notes)',
+      'Data import from legacy systems with data cleanup guidance',
+      'Ongoing technical support, maintenance, and safe upgrades',
     ],
     process: [
-      { step: '01', label: 'PROCESS AUDIT', desc: 'Detailed business process mapping from quotation to ledger accounting.' },
-      { step: '02', label: 'DOCTYPE MODELING', desc: 'Schema creation, permission configuration, and custom script development.' },
-      { step: '03', label: 'MIGRATION & GO-LIVE', desc: 'Data sanitization, staging verification, parallel testing, and production cutover.' },
+      { step: '01', label: 'NEEDS REVIEW', desc: 'We review your buying, stock, sales, and accounting workflows.' },
+      { step: '02', label: 'CONFIGURATION', desc: 'We configure modules, custom fields, print formats, and user permissions.' },
+      { step: '03', label: 'GO-LIVE SUPPORT', desc: 'We verify numbers, train users, and provide hands-on assistance during launch.' },
     ],
     quotationPath:
-      'Priced according to business process scope, module selection (Sales, Buying, Stock, Accounts, HR), custom DocType count, and legacy data migration complexity.',
+      'Pricing depends on which modules you need (Sales, Stock, Buying, Accounts), custom form requirements, and data migration volume.',
   },
   {
     number: '05',
     id: 'crm-automation',
-    title: 'CRM & WORKFLOW AUTOMATION',
+    title: 'CUSTOMER MANAGEMENT & AUTOMATION',
+    plainSummary:
+      'Keep track of new inquiries, customer conversations, and automated follow-ups so no opportunity slips away.',
     division: 'NEXORA',
-    category: 'BUSINESS AUTOMATION',
+    category: 'SALES & SUPPORT',
     targetCustomer:
-      'Sales teams, account managers, and service providers losing pipeline velocity due to fragmented communication and manual lead entry.',
+      'Sales teams, consultants, service businesses, and agencies managing client inquiries across email, phone, and forms.',
     scopeOverview:
-      'Centralized customer relationship management pipelines, lead capture webhooks, automated customer follow-up sequences, and synchronized communications across your operational stack.',
+      'A CRM (Customer Relationship Management system) helps you track who reached out, what they asked for, and what needs to happen next. We set up pipelines that save your team hours of manual note-taking.',
     deliverables: [
-      'Custom lead pipeline with stage progression rules',
-      'Automated enquiry capture from web forms and landing pages',
-      'Notification triggers via transactional email or WhatsApp API',
-      'Customer communication timeline and notes repository',
-      'Executive pipeline metrics and conversion rate reports',
-      'Data hygiene and duplicate prevention protocols',
+      'Clear lead and deal pipeline with stages (New, Contacted, Proposal, Won)',
+      'Automatic capture of inquiries from your website forms directly into the CRM',
+      'Notification triggers sent to your team via email or messaging apps',
+      'Organized customer history with past notes, quotes, and files',
+      'Simple reports showing new leads and active deals',
+      'Deduplication and contact hygiene setup',
     ],
     process: [
-      { step: '01', label: 'FUNNEL DIAGNOSTIC', desc: 'Review existing lead intake, sales friction points, and customer touchpoints.' },
-      { step: '02', label: 'PIPELINE SETUP', desc: 'Custom pipeline stages, field requirements, and automated routing rules.' },
-      { step: '03', label: 'AUTOMATION TESTING', desc: 'Trigger verification, webhook resiliency testing, and handover.' },
+      { step: '01', label: 'LEAD REVIEW', desc: 'We see how leads currently arrive and where delays or lost information happen.' },
+      { step: '02', label: 'PIPELINE SETUP', desc: 'We build your inquiry stages, fields, and automatic notifications.' },
+      { step: '03', label: 'TESTING & HANDOVER', desc: 'We test forms with sample inquiries and guide your team on daily use.' },
     ],
     quotationPath:
-      'Scoped based on lead volume, integration endpoints, required communication channels, and automated workflow logic complexity.',
+      'Priced based on inquiry volume, the number of connected forms or channels, and automation complexity.',
   },
   {
     number: '06',
-    id: 'resume-cv-creation',
-    title: 'EXECUTIVE RESUME & CV CREATION',
-    division: 'ELEVORA',
-    category: 'CAREER ATELIER',
+    id: 'connecting-systems',
+    title: 'CONNECTING BUSINESS SYSTEMS & DASHBOARDS',
+    plainSummary:
+      'Connect separate software tools so data moves automatically, and build simple dashboards to monitor your key numbers.',
+    division: 'NEXORA',
+    category: 'INTEGRATIONS',
     targetCustomer:
-      'C-suite leaders, senior technology architects, functional directors, and ambitious professionals targeting competitive international appointments.',
+      'Businesses using multiple software tools (accounting, spreadsheets, website, CRM) that need them to communicate without manual re-typing.',
     scopeOverview:
-      'Strategic career repositioning and complete editorial restructuring of your CV. Engineered to navigate Applicant Tracking Systems (ATS) while commanding immediate executive credibility among hiring committees.',
+      'When your team spends hours copying customer details or orders from one program into another, we build direct software connections (APIs and webhooks) to transfer data automatically and accurately.',
     deliverables: [
-      'Comprehensive 1-to-1 strategic career diagnostic intake',
-      'Bespoke executive CV engineered in ATS-parsed formats',
-      'Value proposition distillation and leadership impact metrics',
-      'Targeted 1-page executive summary / executive bio',
-      'Editable master source files (Word / Docs) and print-ready PDF',
-      'Revision rounds within standard review period',
+      'Automated data syncing between your website, accounting, and operational tools',
+      'Custom business dashboard displaying key operational numbers in one place',
+      'Error notification alerts if a connection or third-party service fails',
+      'Elimination of double-data entry and human copy-paste errors',
+      'Documentation explaining how data moves between your systems',
     ],
     process: [
-      { step: '01', label: 'DIAGNOSTIC INTAKE', desc: 'Deep dive into career trajectory, key achievements, and target role criteria.' },
-      { step: '02', label: 'NARRATIVE SYNTHESIS', desc: 'Drafting high-impact executive prose with verified ATS keyword calibration.' },
-      { step: '03', label: 'POLISH & FINALIZATION', desc: 'Collaborative review cycle, typography alignment, and multi-format delivery.' },
+      { step: '01', label: 'SYSTEM INVENTORY', desc: 'We check which software tools have available connection points (APIs).' },
+      { step: '02', label: 'INTEGRATION BUILD', desc: 'We write secure connection scripts with error handling.' },
+      { step: '03', label: 'VERIFICATION', desc: 'We monitor live synchronization to verify data accuracy across systems.' },
     ],
     quotationPath:
-      'Tiered by career seniority (Senior Specialist, Management/Director, C-Suite / Executive Advisory) and breadth of career history.',
+      'Quoted based on the number of systems being connected and data transfer frequency.',
   },
+
+  // --- ELEVORA (CAREER BRANDING & PORTFOLIOS) ---
   {
     number: '07',
-    id: 'personal-portfolios',
-    title: 'PERSONAL PORTFOLIO WEBSITES',
+    id: 'career-profile-resume',
+    title: 'CAREER PROFILE & RESUME CREATION',
+    plainSummary:
+      'Present your experience, skills, education and achievements in a clear, professional format that is suited to the opportunities you want.',
     division: 'ELEVORA',
-    category: 'DIGITAL CRAFT',
+    category: 'RESUMES & CVS',
     targetCustomer:
-      'Creative directors, software architects, design leaders, consultants, and founders who need a distinctive personal brand that stands out from boilerplate templates.',
+      'Students, recent graduates, experienced professionals, career changers, and leaders who want a compelling, well-structured CV.',
     scopeOverview:
-      'Bespoke personal web monographs featuring artful typographic layouts, interactive project case studies, and fast worldwide hosting to present your accomplishments with prestige.',
+      'We work directly with you to turn your career history into a concise, professional resume. We make sure your genuine achievements stand out to hiring managers and that the layout works smoothly with hiring software (ATS) used by recruiters.',
     deliverables: [
-      'Custom personal website built with modern front-end standards',
-      'Art-directed case study modules and project archives',
-      'Executive bio, press mentions, and thought leadership sections',
-      'Custom domain configuration and edge deployment',
-      'Direct contact / inquiry dispatch integration',
-      'Mobile-optimized responsive layouts',
+      'One-to-one consultation to understand your career journey and target roles',
+      'Carefully written and organized resume highlighting real accomplishments',
+      'Layout structured for easy reading by both humans and employer screening systems (ATS)',
+      '1-page concise version or full-length CV format depending on your field',
+      'Clean editable source document (Word/Docs) and print-ready PDF',
+      'Agreed revision allowance to refine wording until you are confident',
     ],
     process: [
-      { step: '01', label: 'ARCHIVE CURATION', desc: 'Selecting hallmark projects, extracting impact metrics, and defining visual tone.' },
-      { step: '02', label: 'ATELIER CODING', desc: 'Crafting responsive layouts, refined micro-interactions, and fast media loading.' },
-      { step: '03', label: 'DOMAIN LAUNCH', desc: 'Testing across mobile/desktop, SSL installation, and live domain cutover.' },
+      { step: '01', label: 'CAREER INTAKE', desc: 'We review your background, past roles, projects, and target positions.' },
+      { step: '02', label: 'DRAFTING', desc: 'We organize your story into clear bullet points with measurable impact.' },
+      { step: '03', label: 'FEEDBACK & POLISH', desc: 'You review the draft, request adjustments, and receive final files.' },
     ],
     quotationPath:
-      'Determined by case study depth, custom visual assets, interactive media needs, and domain setup requirements.',
+      'Priced simply by career stage: early career / graduates, experienced professionals, and senior management.',
   },
   {
     number: '08',
-    id: 'linkedin-optimization',
-    title: 'LINKEDIN PROFILE OPTIMIZATION',
+    id: 'personal-portfolios',
+    title: 'PERSONAL PORTFOLIO WEBSITES',
+    plainSummary:
+      'Showcase your work, projects, skills and achievements through a personal website you can share with employers or clients.',
     division: 'ELEVORA',
-    category: 'AUTHORITY POSITIONING',
+    category: 'PORTFOLIOS',
     targetCustomer:
-      'Executives, consultants, and industry practitioners seeking inbound board, advisory, or high-tier leadership opportunities through strategic LinkedIn positioning.',
+      'Designers, software developers, architects, consultants, photographers, researchers, and professionals who need to demonstrate proof of work.',
     scopeOverview:
-      'Total narrative overhaul of your LinkedIn presence. From an attention-commanding headline and compelling narrative About section to strategic keyword integration and network engagement guidelines.',
+      'A resume tells what you did; a portfolio website shows how you did it. We build clean, personalized websites where visitors can explore your case studies, download your CV, and contact you directly.',
     deliverables: [
-      'Strategic headline crafted for executive search discoverability',
-      'Compelling first-person narrative About / Summary section',
-      'Restructured experience entries highlighting quantifiable outcomes',
-      'Featured section curation (articles, case studies, media)',
-      'Custom branded executive banner graphic',
-      'LinkedIn algorithm best-practices & outreach guide',
+      'Custom-designed personal website matching your style and discipline',
+      'Project showcase pages with images, descriptions, and results',
+      'About page with your professional biography and resume download link',
+      'Direct contact form so interested parties can reach you immediately',
+      'Mobile-tested responsive layout that looks great on any screen',
+      'Custom domain setup (yourname.com) and secure hosting deployment',
     ],
     process: [
-      { step: '01', label: 'PROFILE AUDIT', desc: 'Analysis of current search visibility, narrative gaps, and competitor benchmarking.' },
-      { step: '02', label: 'NARRATIVE REWRITE', desc: 'Composing executive headline, bio, and achievement bullets.' },
-      { step: '03', label: 'PROFILE IMPLEMENTATION', desc: 'Guidance or direct implementation, banner delivery, and rollout review.' },
+      { step: '01', label: 'PROJECT SELECTION', desc: 'We help you select your strongest work and outline each case study.' },
+      { step: '02', label: 'SITE CREATION', desc: 'We build your personal site with your imagery, text, and contact links.' },
+      { step: '03', label: 'LIVE LAUNCH', desc: 'We link your custom domain, test all pages, and hand over the site.' },
     ],
     quotationPath:
-      'Available as an independent strategic engagement or bundled with an executive resume package.',
+      'Based on the number of project case studies, custom design requests, and domain setup assistance.',
   },
   {
     number: '09',
-    id: 'job-portal-management',
-    title: 'JOB PORTAL & CAREER PRESENCE',
+    id: 'linkedin-improvement',
+    title: 'LINKEDIN PROFILE IMPROVEMENT',
+    plainSummary:
+      'Make your professional profile clearer, more complete and better aligned with the work you want to pursue.',
     division: 'ELEVORA',
-    category: 'CAREER STRATEGY',
+    category: 'ONLINE PRESENCE',
     targetCustomer:
-      'Senior professionals actively conducting confidential searches who require consistent, polished representation across premier career portals.',
+      'Anyone looking to be discovered for job opportunities, consulting inquiries, speaking invitations, or professional networking.',
     scopeOverview:
-      'Comprehensive calibration of your digital career profiles across leading regional and global platforms (e.g. Indeed, Glassdoor, industry associations, executive talent networks), ensuring consistent positioning.',
+      'We rewrite and polish your LinkedIn profile sections—from a headline that describes what you actually do, to an engaging About summary, clear experience entries, and advice on profile settings.',
     deliverables: [
-      'Cross-platform narrative consistency audit',
-      'Standardized bio and achievement profiles formatted per portal',
-      'Targeted keyword alignment matching specific job descriptions',
-      'Confidential application guidance and outreach templates',
-      'Profile setup checklists and tracking ledger',
+      'Clear, professional headline that describes your role and focus',
+      'Engaging About summary written in a natural, confident first-person voice',
+      'Restructured experience entries highlighting responsibilities and outcomes',
+      'Selection of relevant skills aligned with your target industry',
+      'Branded profile banner graphic formatted for desktop and mobile',
+      'Actionable checklist for managing recommendations and profile visibility',
     ],
     process: [
-      { step: '01', label: 'PORTAL SELECTION', desc: 'Identify premier portals and industry directories relevant to target roles.' },
-      { step: '02', label: 'ASSET CALIBRATION', desc: 'Format descriptions, metadata tags, and credentials for each platform.' },
-      { step: '03', label: 'SANITY AUDIT', desc: 'Verify cross-portal consistency and search discoverability.' },
+      { step: '01', label: 'PROFILE AUDIT', desc: 'We examine your current profile and compare it with roles you want to attract.' },
+      { step: '02', label: 'REWRITE', desc: 'We write your new headline, summary, and experience descriptions.' },
+      { step: '03', label: 'UPDATE', desc: 'We guide you through applying the text or update it directly with you.' },
     ],
     quotationPath:
-      'Based on the number of target portals and depth of custom tailoring required per industry discipline.',
+      'Offered as a standalone service or bundled with our resume creation service at a combined rate.',
+  },
+  {
+    number: '10',
+    id: 'job-search-management',
+    title: 'JOB SEARCH PROFILE SETUP & MANAGEMENT',
+    plainSummary:
+      'Get help setting up and maintaining relevant job portal profiles and organizing the information used in your applications.',
+    division: 'ELEVORA',
+    category: 'JOB PORTALS',
+    targetCustomer:
+      'Busy professionals and active job seekers who want consistent, well-presented profiles across major employment platforms.',
+    scopeOverview:
+      'Searching for opportunities often requires setting up accounts across multiple portals (e.g., Indeed, Glassdoor, industry job boards). We ensure your details, credentials, and summary are presented accurately and consistently across each site.',
+    deliverables: [
+      'Selection of relevant job portals suited to your industry and location',
+      'Standardized text snippets for short bios, work history, and skills',
+      'Profile setup and profile completion checklist across agreed portals',
+      'A personal spreadsheet tracking your logins, target roles, and applications',
+      'Guidance on setting up relevant email alerts for new job postings',
+    ],
+    process: [
+      { step: '01', label: 'PORTAL SELECTION', desc: 'We identify which platforms are most active for your target field.' },
+      { step: '02', label: 'PROFILE POPULATION', desc: 'We prepare the required text blocks and configure your profiles.' },
+      { step: '03', label: 'TRACKER HANDOVER', desc: 'We deliver your application tracking sheet and alert setup guide.' },
+    ],
+    quotationPath:
+      'Quoted based on the number of job portals to be configured.',
+  },
+  {
+    number: '11',
+    id: 'tailored-applications',
+    title: 'TAILORED APPLICATIONS FOR SPECIFIC JOBS',
+    plainSummary:
+      'Adapt your genuine experience and application materials to the requirements of a specific role without inventing skills or achievements.',
+    division: 'ELEVORA',
+    category: 'TARGETED ROLES',
+    targetCustomer:
+      'Candidates applying for a specific dream role or high-priority opportunity who need their application to stand out clearly.',
+    scopeOverview:
+      'Sending a generic resume for every role often fails to address the employer’s specific needs. We analyze the job description and help you adapt your genuine background so your relevant experience is immediately obvious to the hiring team.',
+    deliverables: [
+      'Detailed comparison between the job posting and your background',
+      'Tailored resume version emphasizing your most relevant projects and skills',
+      'Targeted cover letter or introductory email addressing the hiring team directly',
+      'Assistance preparing answers for common application form questions',
+      'Review of your portfolio links to ensure relevant examples are front and centre',
+    ],
+    process: [
+      { step: '01', label: 'JOB REVIEW', desc: 'You share the specific job description and company background.' },
+      { step: '02', label: 'MATERIAL ADAPTATION', desc: 'We adapt your CV emphasis and draft a targeted cover letter.' },
+      { step: '03', label: 'FINAL CHECK', desc: 'We do a final proofread together before you submit your application.' },
+    ],
+    quotationPath:
+      'Priced per application package (tailored CV + targeted cover letter).',
+  },
+  {
+    number: '12',
+    id: 'document-updates',
+    title: 'CAREER DOCUMENT UPDATES & REVISIONS',
+    plainSummary:
+      'Keep your career documents fresh with quick updates whenever you complete a new project, earn a certificate or change roles.',
+    division: 'ELEVORA',
+    category: 'UPDATES & REVIEWS',
+    targetCustomer:
+      'Past clients or professionals who already have a solid CV but need new achievements, promotions, or qualifications added.',
+    scopeOverview:
+      'You should not have to rewrite your entire resume from scratch just because you took on a new project or earned a new credential. We help you cleanly integrate new experience while keeping the overall document balanced and concise.',
+    deliverables: [
+      'Addition of new employment roles, certifications, or recent achievements',
+      'Condensing of older experience to keep your document at an optimal length',
+      'Format and typography refresh to keep styling modern and clean',
+      'Updated PDF and editable source files ready to share',
+    ],
+    process: [
+      { step: '01', label: 'SHARE UPDATES', desc: 'Send your existing CV and details of the new role or accomplishment.' },
+      { step: '02', label: 'EDIT & REBALANCE', desc: 'We integrate the new information and rebalance formatting.' },
+      { step: '03', label: 'FILE DELIVERY', desc: 'We deliver your refreshed, polished documents within agreed timing.' },
+    ],
+    quotationPath:
+      'Flat fee per document refresh. Discounted for returning clients.',
   },
 ];
 
@@ -260,7 +362,6 @@ export function ServiceIndexSection() {
   );
 
   const handleInquire = (service: ServiceDetail) => {
-    // Dispatch custom event so the enquiry form picks it up
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('hopepitome-select-service', {
@@ -278,17 +379,17 @@ export function ServiceIndexSection() {
   };
 
   return (
-    <section id="services" className="relative py-28 border-b border-editorial overflow-hidden">
+    <section id="services" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between pb-12 border-b border-editorial gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between pb-10 border-b border-editorial gap-6">
           <div>
             <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase mb-3">
               <span className="text-cobalt-blue font-bold">04 //</span>
-              <span>SERVICE DISCOVERY REGISTER</span>
+              <span>SERVICES & WHAT WE OFFER</span>
             </div>
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-warm-white uppercase">
-              COMPREHENSIVE CAPABILITIES
+              EXPLORE OUR SERVICES
             </h2>
           </div>
 
@@ -299,13 +400,13 @@ export function ServiceIndexSection() {
                 key={tab}
                 type="button"
                 onClick={() => setFilter(tab)}
-                className={`px-3 py-1.5 uppercase transition-all border ${
+                className={`px-3.5 py-1.5 uppercase transition-all border ${
                   filter === tab
                     ? 'border-cobalt-blue bg-cobalt-blue/15 text-warm-white font-bold'
                     : 'border-white/10 text-muted-stone hover:text-warm-white hover:border-white/25'
                 }`}
               >
-                {tab === 'ALL' ? 'ALL SERVICES (09)' : tab}
+                {tab === 'ALL' ? 'ALL SERVICES (12)' : tab === 'NEXORA' ? 'NEXORA (BUSINESS)' : 'ELEVORA (CAREER)'}
               </button>
             ))}
           </div>
@@ -326,28 +427,33 @@ export function ServiceIndexSection() {
                 <button
                   type="button"
                   onClick={() => setActiveId(isOpen ? null : item.id)}
-                  className="w-full py-7 px-2 sm:px-4 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 focus:outline-none focus-visible:bg-white/[0.03]"
+                  className="w-full py-6 px-2 sm:px-4 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 focus:outline-none focus-visible:bg-white/[0.03]"
                   aria-expanded={isOpen}
                 >
-                  <div className="flex items-baseline space-x-6 lg:space-x-10">
+                  <div className="flex items-baseline space-x-5 lg:space-x-8">
                     <span className="font-mono text-sm md:text-base text-muted-stone group-hover:text-cobalt-blue transition-colors shrink-0">
                       {item.number}
                     </span>
 
-                    <h3 className="font-display font-bold text-xl sm:text-2xl lg:text-3xl uppercase tracking-tight text-warm-white group-hover:text-silver transition-colors">
-                      {item.title}
-                    </h3>
+                    <div>
+                      <h3 className="font-display font-bold text-lg sm:text-2xl uppercase tracking-tight text-warm-white group-hover:text-silver transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-stone-light font-sans normal-case mt-1 max-w-2xl">
+                        {item.plainSummary}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center space-x-4 self-start md:self-auto pl-12 md:pl-0">
+                  <div className="flex items-center space-x-4 self-start md:self-auto pl-10 md:pl-0">
                     <span
-                      className={`text-[10px] font-mono tracking-widest uppercase px-2.5 py-1 border ${
+                      className={`text-[10px] font-mono tracking-widest uppercase px-2.5 py-1 border shrink-0 ${
                         item.division === 'NEXORA'
                           ? 'border-cobalt-blue/40 text-cobalt-blue bg-cobalt-blue/10'
                           : 'border-white/20 text-stone-light bg-white/5'
                       }`}
                     >
-                      {item.division}
+                      {item.division === 'NEXORA' ? 'BUSINESS' : 'CAREER'}
                     </span>
 
                     <span className="text-stone-light text-xs font-mono w-4 text-center">
@@ -358,35 +464,41 @@ export function ServiceIndexSection() {
 
                 {/* Expanded Full Drawer */}
                 {isOpen && (
-                  <div className="px-4 sm:px-6 pb-10 pt-2 grid grid-cols-1 lg:grid-cols-12 gap-8 text-sm animate-in fade-in duration-200">
-                    {/* Left: Overview, Target Customer & Process */}
-                    <div className="lg:col-span-7 space-y-6">
+                  <div className="px-4 sm:px-6 pb-8 pt-3 grid grid-cols-1 lg:grid-cols-12 gap-8 text-sm animate-in fade-in duration-200">
+                    {/* Left: Audience, Detailed Scope & 3-Step Process */}
+                    <div className="lg:col-span-7 space-y-5">
                       <div>
-                        <span className="tech-label block mb-2">[ TARGET AUDIENCE ]</span>
+                        <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-1 font-bold">
+                          WHO IS THIS FOR?
+                        </span>
                         <p className="text-warm-white font-sans text-sm leading-relaxed">
                           {item.targetCustomer}
                         </p>
                       </div>
 
                       <div>
-                        <span className="tech-label block mb-2">[ SCOPE OVERVIEW ]</span>
+                        <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-1 font-bold">
+                          WHAT WE DO
+                        </span>
                         <p className="text-stone-light font-sans text-sm leading-relaxed">
                           {item.scopeOverview}
                         </p>
                       </div>
 
                       <div>
-                        <span className="tech-label block mb-3">[ EXECUTION PROCESS ]</span>
+                        <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-2 font-bold">
+                          HOW WE DELIVER THIS
+                        </span>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           {item.process.map((p) => (
                             <div
                               key={p.step}
                               className="p-3 bg-graphite-900 border border-editorial text-xs"
                             >
-                              <div className="font-mono text-[10px] text-cobalt-blue mb-1">
-                                STAGE {p.step} // {p.label}
+                              <div className="font-mono text-[10px] text-cobalt-blue mb-1 font-semibold">
+                                STEP {p.step} — {p.label}
                               </div>
-                              <p className="text-muted-stone text-[11px] leading-snug">
+                              <p className="text-muted-stone text-[11px] leading-snug font-sans">
                                 {p.desc}
                               </p>
                             </div>
@@ -395,11 +507,13 @@ export function ServiceIndexSection() {
                       </div>
                     </div>
 
-                    {/* Right: Deliverables, Quotation Path & Direct CTA */}
-                    <div className="lg:col-span-5 lg:border-l lg:border-white/[0.08] lg:pl-8 flex flex-col justify-between space-y-6">
+                    {/* Right: What You Receive, Price Scoping & Direct Action */}
+                    <div className="lg:col-span-5 lg:border-l lg:border-white/[0.08] lg:pl-8 flex flex-col justify-between space-y-5">
                       <div>
-                        <span className="tech-label block mb-3">[ CONCRETE DELIVERABLES ]</span>
-                        <ul className="space-y-2 text-xs font-mono text-muted-stone uppercase">
+                        <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block mb-2 font-bold">
+                          WHAT YOU WILL RECEIVE
+                        </span>
+                        <ul className="space-y-2 text-xs font-mono text-muted-stone">
                           {item.deliverables.map((deliv, i) => (
                             <li key={i} className="flex items-start space-x-2">
                               <span className="text-cobalt-blue text-[10px] mt-0.5">■</span>
@@ -411,9 +525,9 @@ export function ServiceIndexSection() {
                         </ul>
                       </div>
 
-                      <div className="p-4 bg-white/[0.02] border border-white/[0.08] space-y-2">
-                        <span className="text-[10px] font-mono text-warm-white uppercase tracking-wider block">
-                          QUOTATION & SCOPING PATH
+                      <div className="p-4 bg-white/[0.02] border border-white/[0.08] space-y-1.5">
+                        <span className="text-[10px] font-mono text-warm-white uppercase tracking-wider block font-bold">
+                          HOW QUOTATIONS & TIMELINES WORK
                         </span>
                         <p className="text-xs text-muted-stone font-sans leading-relaxed">
                           {item.quotationPath}
@@ -424,9 +538,9 @@ export function ServiceIndexSection() {
                         <button
                           type="button"
                           onClick={() => handleInquire(item)}
-                          className="w-full py-3 px-4 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors duration-200 font-mono text-xs tracking-widest uppercase font-bold flex items-center justify-center space-x-2"
+                          className="w-full py-3 px-4 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2"
                         >
-                          <span>INQUIRE FOR {item.title}</span>
+                          <span>Ask about {item.title}</span>
                           <span>→</span>
                         </button>
                       </div>

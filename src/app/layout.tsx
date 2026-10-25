@@ -24,17 +24,21 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'HOPEPITOME / Experimental Digital Studio & Technology Systems',
+  title: 'HOPEPITOME / Digital Solutions for Business & Career Branding',
   description:
-    'Hopepitome is an independent digital studio engineered at the intersection of business technology and professional career branding through Nexora and Elevora.',
+    'We build websites and business software through Nexora, and help people present their skills and career experience with confidence through Elevora.',
   keywords: [
     'Digital Studio',
     'Nexora',
     'Elevora',
-    'Software Architecture',
-    'ERP Implementation',
-    'Career Branding',
+    'Business Websites',
+    'Online Stores',
     'Custom Software',
+    'ERP Systems',
+    'Career Profiles',
+    'Resumes',
+    'Portfolios',
+    'LinkedIn Improvement',
   ],
 };
 

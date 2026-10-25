@@ -2,51 +2,42 @@
 
 export function StatementSection() {
   return (
-    <section id="statement" className="relative py-28 md:py-36 border-b border-editorial overflow-hidden">
-      {/* Background Editorial Markers */}
+    <section id="statement" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Index Marker */}
-        <div className="flex items-center space-x-3 mb-12 text-xs font-mono tracking-widest text-muted-stone uppercase">
+        <div className="flex items-center space-x-3 mb-10 text-xs font-mono tracking-widest text-muted-stone uppercase">
           <span className="text-cobalt-blue font-bold">02 //</span>
-          <span>STUDIO STATEMENT</span>
+          <span>OUR APPROACH</span>
         </div>
 
         {/* Large Editorial Statement */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-          <div className="lg:col-span-8">
-            <h2 className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight leading-[1.02] text-warm-white uppercase">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="lg:col-span-7">
+            <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-warm-white uppercase">
               TECHNOLOGY
               <br />
               FOR BUSINESS.
               <br />
-              <span className="text-muted-stone">DESIGN FOR</span>
-              <br />
-              <span className="text-silver">PEOPLE.</span>
+              <span className="text-silver">DESIGN FOR PEOPLE.</span>
             </h2>
           </div>
 
-          <div className="lg:col-span-4 flex flex-col justify-end space-y-8 lg:border-l lg:border-editorial lg:pl-10">
-            <div className="space-y-4">
-              <span className="tech-label">[ THE THESIS ]</span>
-              <p className="text-stone-light text-base leading-relaxed">
-                Most agencies treat digital software as an isolated utility and personal
-                branding as an afterthought. Hopepitome unifies both disciplines.
-              </p>
-              <p className="text-muted-stone text-sm leading-relaxed">
-                We engineer reliable, scalable web systems and business workflows through
-                <strong className="text-warm-white font-medium"> Nexora</strong>, and sculpt distinctive, professional career identities and portfolios through
-                <strong className="text-warm-white font-medium"> Elevora</strong>.
-              </p>
-            </div>
+          <div className="lg:col-span-5 flex flex-col justify-center space-y-6 lg:border-l lg:border-editorial lg:pl-10">
+            <p className="text-warm-white text-base sm:text-lg leading-relaxed font-sans">
+              Every business has its own way of working, and every person has a story worth presenting well.
+            </p>
+            <p className="text-stone-light text-sm sm:text-base leading-relaxed font-sans">
+              Hopepitome helps businesses build the digital tools they need and helps individuals communicate their skills and experience with confidence.
+            </p>
 
-            <div className="pt-6 border-t border-editorial grid grid-cols-2 gap-4 text-xs font-mono tracking-widest uppercase">
+            <div className="pt-4 border-t border-editorial grid grid-cols-2 gap-4 text-xs font-mono tracking-wider uppercase">
               <div>
-                <span className="text-muted-stone block text-[10px]">PARADIGM</span>
-                <span className="text-warm-white font-bold">DUAL-DISCIPLINE</span>
+                <span className="text-cobalt-blue block text-[10px] font-bold">FOR BUSINESS</span>
+                <span className="text-warm-white font-semibold">Nexora Solutions</span>
               </div>
               <div>
-                <span className="text-muted-stone block text-[10px]">EXECUTION</span>
-                <span className="text-warm-white font-bold">TAILORED CRAFT</span>
+                <span className="text-stone-light block text-[10px] font-bold">FOR INDIVIDUALS</span>
+                <span className="text-warm-white font-semibold">Elevora Studio</span>
               </div>
             </div>
           </div>

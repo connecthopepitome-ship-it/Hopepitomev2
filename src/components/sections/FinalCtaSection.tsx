@@ -22,10 +22,10 @@ const initialFormState: FormState = {
   email: '',
   phoneWhatsapp: '',
   division: 'NEXORA',
-  serviceTitle: 'BUSINESS WEBSITE DEVELOPMENT',
+  serviceTitle: 'BUSINESS WEBSITES',
   requirements: '',
-  budgetRange: '$3,000 – $7,500 (Core Website / Executive Package)',
-  desiredTimeline: '1 Month',
+  budgetRange: '$1,500 – $4,000 (Complete website or career profile package)',
+  desiredTimeline: 'Within 1 month',
   attachmentUrl: '',
   consent: false,
   botHoneypot: '',
@@ -87,7 +87,7 @@ export function FinalCtaSection() {
     const matchingServices = studioServices.filter(
       (s) => div === 'BOTH' || s.division === div
     );
-    const newService = matchingServices[0]?.title || 'Custom Scope Inquiry';
+    const newService = matchingServices[0]?.title || 'Custom Project';
     setFormData((prev) => ({
       ...prev,
       division: div,
@@ -99,10 +99,10 @@ export function FinalCtaSection() {
     e.preventDefault();
     setErrors({});
 
-    // Client-side quick check
+    // Client-side validation check
     const clientErrors: Record<string, string> = {};
     if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
-      clientErrors.fullName = 'Please enter your full name.';
+      clientErrors.fullName = 'Please enter your name.';
     }
     if (
       !formData.email.trim() ||
@@ -112,10 +112,10 @@ export function FinalCtaSection() {
     }
     if (formData.requirements.trim().length < 15) {
       clientErrors.requirements =
-        'Please provide at least 15 characters describing your requirements.';
+        'Please describe your requirements in at least 15 characters so we can understand your project.';
     }
     if (!formData.consent) {
-      clientErrors.consent = 'Consent to our privacy handling is required.';
+      clientErrors.consent = 'Please confirm consent to proceed.';
     }
 
     if (Object.keys(clientErrors).length > 0) {
@@ -137,7 +137,7 @@ export function FinalCtaSection() {
       if (response.ok && data?.success) {
         setSubmissionReceipt({
           referenceCode: data.referenceCode,
-          division: formData.division,
+          division: formData.division === 'NEXORA' ? 'Business Services (Nexora)' : formData.division === 'ELEVORA' ? 'Career Services (Elevora)' : 'Combined (Both)',
           serviceTitle: formData.serviceTitle,
           fullName: formData.fullName,
           timestamp: new Date().toLocaleTimeString([], {
@@ -153,16 +153,16 @@ export function FinalCtaSection() {
           setErrors({
             form:
               data?.error ||
-              'Unable to process transmission at this time. Please email studio@hopepitome.com directly.',
+              'Unable to send your enquiry right now. Please email studio@hopepitome.com directly.',
           });
         }
       }
     } catch {
-      // In local dev without backend worker proxy, simulate clean receipt with generated ID
+      // Local fallback in offline mode
       const fallbackRef = `HP-202610-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       setSubmissionReceipt({
         referenceCode: fallbackRef,
-        division: formData.division,
+        division: formData.division === 'NEXORA' ? 'Business Services (Nexora)' : formData.division === 'ELEVORA' ? 'Career Services (Elevora)' : 'Combined (Both)',
         serviceTitle: formData.serviceTitle,
         fullName: formData.fullName,
         timestamp: new Date().toLocaleTimeString([], {
@@ -177,60 +177,74 @@ export function FinalCtaSection() {
   };
 
   return (
-    <section id="contact" className="relative py-32 border-b border-editorial overflow-hidden">
+    <section id="contact" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
       {/* Background Editorial Grid */}
-      <div className="absolute inset-0 editorial-grid-fine opacity-25 pointer-events-none" />
+      <div className="absolute inset-0 editorial-grid-fine opacity-20 pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Marker */}
-        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase mb-12">
+        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase mb-10">
           <span className="text-cobalt-blue font-bold">08 //</span>
-          <span>INITIATE ENGAGEMENT</span>
+          <span>GET IN TOUCH</span>
         </div>
 
         {/* Large Editorial Headline */}
-        <div className="mb-16">
-          <h2 className="font-display font-extrabold text-5xl sm:text-6xl md:text-7xl lg:text-9xl tracking-tight leading-[0.9] text-warm-white uppercase">
-            LET&apos;S MAKE
+        <div className="mb-14">
+          <h2 className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight leading-[0.96] text-warm-white uppercase">
+            TELL US ABOUT
             <br />
-            SOMETHING
-            <br />
-            <span className="text-silver">MATTER.</span>
+            YOUR PROJECT.
           </h2>
+          <p className="text-stone-light text-base sm:text-lg font-sans mt-4 max-w-2xl leading-relaxed">
+            Share what you&apos;re trying to achieve. We&apos;ll review your requirements and explain the next steps.
+          </p>
         </div>
 
         {/* Main Grid: Parameters Sidebar + Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-12 border-t border-editorial">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-10 border-t border-editorial">
           {/* Sidebar */}
-          <div className="lg:col-span-5 flex flex-col justify-between space-y-8">
-            <div>
-              <span className="tech-label">[ ENGAGEMENT PARAMETERS ]</span>
-              <p className="text-stone-light text-sm sm:text-base leading-relaxed mt-4 mb-6 font-sans">
-                Tell us about your digital infrastructure needs or executive branding ambitions. Our studio principals review all inquiries directly to prepare a scoped architecture specification.
-              </p>
+          <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block font-bold">
+                WHAT HAPPENS NEXT?
+              </span>
 
-              <div className="space-y-3 text-xs font-mono text-muted-stone uppercase">
-                <div className="flex items-start space-x-2">
-                  <span className="text-cobalt-blue mt-0.5">●</span>
-                  <span>ONBOARDING: SCOPED UPON TECHNICAL INTAKE</span>
+              <div className="space-y-3 text-xs text-stone-light font-sans">
+                <div className="p-3 bg-graphite-900 border border-editorial">
+                  <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
+                    1. REVIEW WITHIN ONE BUSINESS DAY
+                  </strong>
+                  <p className="text-muted-stone text-xs">
+                    Our team reviews your project brief, questions, or target role requirements.
+                  </p>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-cobalt-blue mt-0.5">●</span>
-                  <span>DIRECT PRINCIPAL CONSULTATION</span>
+
+                <div className="p-3 bg-graphite-900 border border-editorial">
+                  <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
+                    2. CONSULTATION & QUESTIONS
+                  </strong>
+                  <p className="text-muted-stone text-xs">
+                    If needed, we reply with clarification questions to understand your exact scope.
+                  </p>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-cobalt-blue mt-0.5">●</span>
-                  <span>CONFIDENTIAL DISCOVERY (MUTUAL NDA UPON REQUEST)</span>
+
+                <div className="p-3 bg-graphite-900 border border-editorial">
+                  <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
+                    3. CLEAR PLAN & QUOTE
+                  </strong>
+                  <p className="text-muted-stone text-xs">
+                    We provide a written summary of deliverables, estimated timeline, and pricing.
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="p-5 border border-white/[0.08] bg-white/[0.01] space-y-2">
-              <span className="text-[10px] font-mono tracking-widest uppercase text-warm-white block font-bold">
-                DIRECT INTAKE DESK
+              <span className="text-[10px] font-mono tracking-wider uppercase text-warm-white block font-bold">
+                DIRECT CONTACT DETAILS
               </span>
               <div className="text-xs font-mono text-muted-stone">
-                <span>PRIMARY: </span>
+                <span>General inquiries: </span>
                 <a
                   href="mailto:studio@hopepitome.com"
                   className="text-warm-white hover:text-cobalt-blue transition-colors underline underline-offset-4"
@@ -239,7 +253,7 @@ export function FinalCtaSection() {
                 </a>
               </div>
               <div className="text-xs font-mono text-muted-stone">
-                <span>ESCALATIONS: </span>
+                <span>Project support: </span>
                 <a
                   href="mailto:connect.hopepitome@gmail.com"
                   className="text-warm-white hover:text-cobalt-blue transition-colors"
@@ -251,38 +265,38 @@ export function FinalCtaSection() {
           </div>
 
           {/* Form Container */}
-          <div className="lg:col-span-7 bg-graphite-900 border border-editorial p-6 sm:p-10">
+          <div className="lg:col-span-7 bg-graphite-900 border border-editorial p-6 sm:p-8">
             {submissionReceipt ? (
-              <div className="py-12 text-center space-y-6 animate-in fade-in duration-300">
+              <div className="py-8 text-center space-y-5 animate-in fade-in duration-300">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-cobalt-blue/50 bg-cobalt-blue/10 text-cobalt-blue font-mono font-bold text-lg">
                   ✓
                 </div>
 
-                <div className="space-y-2">
-                  <span className="text-xs font-mono tracking-widest uppercase text-cobalt-blue block">
-                    TRANSMISSION REGISTERED
+                <div className="space-y-1">
+                  <span className="text-xs font-mono tracking-wider uppercase text-cobalt-blue block font-semibold">
+                    ENQUIRY RECEIVED
                   </span>
-                  <h3 className="font-display font-bold text-2xl sm:text-3xl uppercase tracking-tight text-warm-white">
-                    PROJECT BRIEF RECEIVED
+                  <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-warm-white">
+                    THANK YOU FOR REACHING OUT
                   </h3>
                 </div>
 
                 {/* Receipt Details Box */}
-                <div className="p-6 bg-graphite-950 border border-white/10 text-left font-mono text-xs space-y-2 max-w-lg mx-auto">
+                <div className="p-5 bg-graphite-950 border border-white/10 text-left font-mono text-xs space-y-2 max-w-lg mx-auto">
                   <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
-                    <span>TRACKING REFERENCE:</span>
+                    <span>REFERENCE ID:</span>
                     <span className="text-warm-white font-bold">{submissionReceipt.referenceCode}</span>
                   </div>
                   <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
-                    <span>REGISTERED CLIENT:</span>
+                    <span>NAME:</span>
                     <span className="text-warm-white">{submissionReceipt.fullName}</span>
                   </div>
                   <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
-                    <span>DIVISION / SCOPE:</span>
+                    <span>CATEGORY:</span>
                     <span className="text-cobalt-blue">{submissionReceipt.division}</span>
                   </div>
                   <div className="flex justify-between text-muted-stone pt-1">
-                    <span>SERVICE FOCUS:</span>
+                    <span>SERVICE:</span>
                     <span className="text-warm-white truncate max-w-[200px]">
                       {submissionReceipt.serviceTitle}
                     </span>
@@ -290,19 +304,19 @@ export function FinalCtaSection() {
                 </div>
 
                 <p className="text-stone-light text-xs font-sans max-w-md mx-auto leading-relaxed">
-                  A confirmation dispatch and initial scoping evaluation will be forwarded to your email address within one business day.
+                  We have received your enquiry. A member of our studio will review your details and respond to your email within one business day.
                 </p>
 
                 <button
                   type="button"
                   onClick={() => setSubmissionReceipt(null)}
-                  className="inline-block mt-4 text-xs font-mono tracking-widest uppercase text-cobalt-blue hover:text-warm-white transition-colors"
+                  className="inline-block mt-2 text-xs font-mono tracking-wider uppercase text-cobalt-blue hover:text-warm-white transition-colors"
                 >
-                  ← SUBMIT ANOTHER ENQUIRY
+                  ← Send another enquiry
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 {/* Honeypot Spam Prevention (Hidden) */}
                 <input
                   type="text"
@@ -315,17 +329,17 @@ export function FinalCtaSection() {
                   aria-hidden="true"
                 />
 
-                {/* Global Form Error Notice */}
+                {/* Form Error Notice */}
                 {errors.form && (
                   <div className="p-3 bg-red-950/40 border border-red-500/40 text-red-200 text-xs font-mono">
                     {errors.form}
                   </div>
                 )}
 
-                {/* 1. Division Selector */}
+                {/* 1. What do you need help with? */}
                 <div>
-                  <label className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-2">
-                    01 // SELECT DIVISION
+                  <label className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-2">
+                    WHAT DO YOU NEED HELP WITH?
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {(['NEXORA', 'ELEVORA', 'BOTH'] as const).map((div) => (
@@ -333,39 +347,43 @@ export function FinalCtaSection() {
                         key={div}
                         type="button"
                         onClick={() => handleDivisionChange(div)}
-                        className={`py-2.5 px-3 text-xs font-mono tracking-widest uppercase border transition-all text-center ${
+                        className={`py-2.5 px-2 text-xs font-mono tracking-wider uppercase border transition-all text-center ${
                           formData.division === div
                             ? 'border-cobalt-blue bg-cobalt-blue/15 text-warm-white font-bold'
                             : 'border-white/10 bg-transparent text-muted-stone hover:border-white/30'
                         }`}
                       >
-                        {div === 'BOTH' ? 'COMBINED' : div}
+                        {div === 'NEXORA'
+                          ? 'Business Services'
+                          : div === 'ELEVORA'
+                          ? 'Career Services'
+                          : 'Both / Combined'}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* 2. Service Selection Dropdown */}
+                {/* 2. Select a service */}
                 <div>
                   <label
                     htmlFor="service-select"
-                    className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-2"
+                    className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
                   >
-                    02 // TARGET SERVICE OR CAPABILITY
+                    SELECT A SERVICE
                   </label>
                   <select
                     id="service-select"
                     value={formData.serviceTitle}
                     onChange={(e) => handleInputChange('serviceTitle', e.target.value)}
-                    className="w-full bg-graphite-950 border border-white/10 px-4 py-3 text-warm-white font-mono text-xs uppercase focus:outline-none focus:border-cobalt-blue"
+                    className="w-full bg-graphite-950 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs uppercase focus:outline-none focus:border-cobalt-blue"
                   >
                     {availableServices.map((srv) => (
                       <option key={srv.id} value={srv.title} className="bg-graphite-950 text-white">
-                        [{srv.division}] {srv.title}
+                        [{srv.division === 'NEXORA' ? 'BUSINESS' : 'CAREER'}] {srv.title}
                       </option>
                     ))}
-                    <option value="CUSTOM SCOPE OR ARCHITECTURE" className="bg-graphite-950 text-white">
-                      [OTHER] CUSTOM SCOPE / ARCHITECTURAL INQUIRY
+                    <option value="Custom Project or Consultation" className="bg-graphite-950 text-white">
+                      [OTHER] Custom Project or General Consultation
                     </option>
                   </select>
                 </div>
@@ -375,9 +393,9 @@ export function FinalCtaSection() {
                   <div>
                     <label
                       htmlFor="full-name"
-                      className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
                     >
-                      FULL NAME *
+                      YOUR NAME *
                     </label>
                     <input
                       id="full-name"
@@ -385,8 +403,8 @@ export function FinalCtaSection() {
                       required
                       value={formData.fullName}
                       onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      placeholder="Jane Doe"
-                      className={`w-full bg-graphite-950 border px-4 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
+                      placeholder="e.g. Alex Morgan"
+                      className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
                         errors.fullName ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
                       }`}
                     />
@@ -398,9 +416,9 @@ export function FinalCtaSection() {
                   <div>
                     <label
                       htmlFor="client-email"
-                      className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
                     >
-                      WORK EMAIL *
+                      EMAIL ADDRESS *
                     </label>
                     <input
                       id="client-email"
@@ -408,8 +426,8 @@ export function FinalCtaSection() {
                       required
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="jane@organization.com"
-                      className={`w-full bg-graphite-950 border px-4 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
+                      placeholder="e.g. alex@example.com"
+                      className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
                         errors.email ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
                       }`}
                     />
@@ -423,96 +441,34 @@ export function FinalCtaSection() {
                 <div>
                   <label
                     htmlFor="phone-whatsapp"
-                    className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-1.5"
+                    className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
                   >
-                    PHONE OR WHATSAPP (OPTIONAL)
+                    OPTIONAL PHONE OR WHATSAPP NUMBER
                   </label>
                   <input
                     id="phone-whatsapp"
                     type="tel"
                     value={formData.phoneWhatsapp}
                     onChange={(e) => handleInputChange('phoneWhatsapp', e.target.value)}
-                    placeholder="+1 (555) 000-0000 or WhatsApp number"
-                    className="w-full bg-graphite-950 border border-white/10 px-4 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none focus:border-cobalt-blue"
+                    placeholder="e.g. +1 555-0123"
+                    className="w-full bg-graphite-950 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none focus:border-cobalt-blue"
                   />
                   {errors.phoneWhatsapp && (
                     <p className="text-red-400 text-[10px] font-mono mt-1">{errors.phoneWhatsapp}</p>
                   )}
                 </div>
 
-                {/* 5. Budget Range & Timeline Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="budget-range"
-                      className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-1.5"
-                    >
-                      ANTICIPATED BUDGET TIER
-                    </label>
-                    <select
-                      id="budget-range"
-                      value={formData.budgetRange}
-                      onChange={(e) => handleInputChange('budgetRange', e.target.value)}
-                      className="w-full bg-graphite-950 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-cobalt-blue"
-                    >
-                      <option className="bg-graphite-950" value="Under $3,000 (Monograph / Starter Scope)">
-                        Under $3,000 (Monograph / Starter Scope)
-                      </option>
-                      <option className="bg-graphite-950" value="$3,000 – $7,500 (Core Website / Executive Package)">
-                        $3,000 – $7,500 (Core Website / Executive Package)
-                      </option>
-                      <option className="bg-graphite-950" value="$7,500 – $15,000 (Commerce / Custom Software)">
-                        $7,500 – $15,000 (Commerce / Custom Software)
-                      </option>
-                      <option className="bg-graphite-950" value="$15,000+ (Full ERP / Enterprise Architecture)">
-                        $15,000+ (Full ERP / Enterprise Architecture)
-                      </option>
-                      <option className="bg-graphite-950" value="To be scoped during discovery">
-                        To be scoped during discovery
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="desired-timeline"
-                      className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-1.5"
-                    >
-                      TARGET TIMELINE
-                    </label>
-                    <select
-                      id="desired-timeline"
-                      value={formData.desiredTimeline}
-                      onChange={(e) => handleInputChange('desiredTimeline', e.target.value)}
-                      className="w-full bg-graphite-950 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-cobalt-blue"
-                    >
-                      <option className="bg-graphite-950" value="Immediate (< 2 Weeks Onboarding)">
-                        Immediate (&lt; 2 Weeks Onboarding)
-                      </option>
-                      <option className="bg-graphite-950" value="1 Month">
-                        1 Month
-                      </option>
-                      <option className="bg-graphite-950" value="2–3 Months">
-                        2–3 Months
-                      </option>
-                      <option className="bg-graphite-950" value="Flexible / Exploratory">
-                        Flexible / Exploratory
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* 6. Requirements Textarea */}
+                {/* 5. Requirements Textarea */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label
                       htmlFor="client-requirements"
-                      className="text-xs font-mono tracking-widest uppercase text-muted-stone"
+                      className="text-xs font-mono tracking-wider uppercase text-muted-stone"
                     >
-                      PROJECT OR CAREER OBJECTIVES *
+                      TELL US A LITTLE ABOUT YOUR REQUIREMENTS *
                     </label>
                     <span className="text-[10px] font-mono text-muted-stone">
-                      {formData.requirements.length} / 5000 chars
+                      {formData.requirements.length} chars (min 15)
                     </span>
                   </div>
                   <textarea
@@ -521,8 +477,8 @@ export function FinalCtaSection() {
                     required
                     value={formData.requirements}
                     onChange={(e) => handleInputChange('requirements', e.target.value)}
-                    placeholder="Outline your current business architecture, key challenges, required integrations, or career narrative goals..."
-                    className={`w-full bg-graphite-950 border px-4 py-3 text-warm-white font-sans text-xs sm:text-sm placeholder:text-muted-stone/40 focus:outline-none resize-none ${
+                    placeholder="Tell us about what you want to build, the problems you are facing, or what your target job or career transition looks like..."
+                    className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-sans text-xs sm:text-sm placeholder:text-muted-stone/40 focus:outline-none resize-none ${
                       errors.requirements ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
                     }`}
                   />
@@ -531,21 +487,83 @@ export function FinalCtaSection() {
                   )}
                 </div>
 
-                {/* 7. Optional Attachment URL */}
+                {/* 6. Budget & Timeline Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="budget-range"
+                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                    >
+                      OPTIONAL BUDGET RANGE
+                    </label>
+                    <select
+                      id="budget-range"
+                      value={formData.budgetRange}
+                      onChange={(e) => handleInputChange('budgetRange', e.target.value)}
+                      className="w-full bg-graphite-950 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-cobalt-blue"
+                    >
+                      <option className="bg-graphite-950" value="Under $1,500 (Focused project or document review)">
+                        Under $1,500 (Focused project or document review)
+                      </option>
+                      <option className="bg-graphite-950" value="$1,500 – $4,000 (Complete website or career package)">
+                        $1,500 – $4,000 (Complete website or career package)
+                      </option>
+                      <option className="bg-graphite-950" value="$4,000 – $10,000 (E-commerce store or custom tool)">
+                        $4,000 – $10,000 (E-commerce store or custom tool)
+                      </option>
+                      <option className="bg-graphite-950" value="$10,000+ (Full ERP or multi-system software)">
+                        $10,000+ (Full ERP or multi-system software)
+                      </option>
+                      <option className="bg-graphite-950" value="Need guidance / Let's discuss">
+                        Need guidance / Let&apos;s discuss
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="desired-timeline"
+                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                    >
+                      PREFERRED TIMELINE
+                    </label>
+                    <select
+                      id="desired-timeline"
+                      value={formData.desiredTimeline}
+                      onChange={(e) => handleInputChange('desiredTimeline', e.target.value)}
+                      className="w-full bg-graphite-950 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-cobalt-blue"
+                    >
+                      <option className="bg-graphite-950" value="Within 2 weeks">
+                        Within 2 weeks
+                      </option>
+                      <option className="bg-graphite-950" value="Within 1 month">
+                        Within 1 month
+                      </option>
+                      <option className="bg-graphite-950" value="1–3 months">
+                        1–3 months
+                      </option>
+                      <option className="bg-graphite-950" value="Flexible / Planning ahead">
+                        Flexible / Planning ahead
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 7. Optional Link to Files */}
                 <div>
                   <label
                     htmlFor="attachment-url"
-                    className="block text-xs font-mono tracking-widest uppercase text-muted-stone mb-1.5"
+                    className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
                   >
-                    LINK TO SPECIFICATION OR BRIEF (OPTIONAL)
+                    OPTIONAL LINK TO FILES OR BRIEF
                   </label>
                   <input
                     id="attachment-url"
                     type="url"
                     value={formData.attachmentUrl}
                     onChange={(e) => handleInputChange('attachmentUrl', e.target.value)}
-                    placeholder="https://drive.google.com/..., https://figma.com/..., or repository link"
-                    className={`w-full bg-graphite-950 border px-4 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
+                    placeholder="https://drive.google.com/..., https://figma.com/..., or current website URL"
+                    className={`w-full bg-graphite-950 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
                       errors.attachmentUrl ? 'border-red-500' : 'border-white/10 focus:border-cobalt-blue'
                     }`}
                   />
@@ -564,7 +582,7 @@ export function FinalCtaSection() {
                       className="mt-0.5 rounded-none border-white/20 bg-graphite-950 text-cobalt-blue focus:ring-0"
                     />
                     <span className="text-[11px] font-mono text-muted-stone group-hover:text-warm-white transition-colors leading-relaxed">
-                      I agree to the processing of this project brief for consultation and quotation scoping under Hopepitome&apos;s confidential intake policy.
+                      I agree to share these details with Hopepitome for project consultation and quotation purposes.
                     </span>
                   </label>
                   {errors.consent && (
@@ -576,10 +594,10 @@ export function FinalCtaSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors duration-300 font-mono text-xs tracking-widest uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50"
+                  className="w-full py-3.5 bg-white text-graphite-950 hover:bg-cobalt-blue hover:text-white transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
-                  <span>{isSubmitting ? 'TRANSMITTING BRIEF...' : 'SUBMIT PROJECT BRIEF'}</span>
-                  <span>↗</span>
+                  <span>{isSubmitting ? 'Sending your enquiry...' : 'Send my enquiry'}</span>
+                  <span>→</span>
                 </button>
               </form>
             )}
