@@ -74,12 +74,12 @@ export function SpectralBackground() {
             zoom={isMobile ? 1.0 : 1.1}
             flow={0.85}
             speed={isMobile ? 0.7 : 0.85}
-            interactive={!isMobile}
-            brush={1.2}
-            brushRadius={0.25}
+            interactive={true}
+            brush={isMobile ? 1.35 : 1.2}
+            brushRadius={isMobile ? 0.28 : 0.25}
             parallax={isMobile ? 0.4 : 0.8}
-            clickRipples={!isMobile}
-            globalPointer={!isMobile}
+            clickRipples={true}
+            globalPointer={true}
             dpr={isMobile ? 1.25 : 2}
           />
         </div>

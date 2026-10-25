@@ -649,31 +649,31 @@ export function SpectralDrape({
     return () => observer.disconnect();
   }, [globalPointer]);
 
-  // Pointer event listeners
+  // Pointer & Touch event listeners
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    const updateCoords = (e: PointerEvent) => {
+    const updateCoords = (clientX: number, clientY: number) => {
       const p = pointerRef.current;
       if (globalPointer && typeof window !== 'undefined') {
-        p.x = e.clientX / Math.max(window.innerWidth, 1);
-        p.y = 1 - e.clientY / Math.max(window.innerHeight, 1);
+        p.x = clientX / Math.max(window.innerWidth, 1);
+        p.y = 1 - clientY / Math.max(window.innerHeight, 1);
       } else {
         const rect = el.getBoundingClientRect();
-        p.x = (e.clientX - rect.left) / Math.max(rect.width, 1);
-        p.y = 1 - (e.clientY - rect.top) / Math.max(rect.height, 1);
+        p.x = (clientX - rect.left) / Math.max(rect.width, 1);
+        p.y = 1 - (clientY - rect.top) / Math.max(rect.height, 1);
       }
       p.inside = true;
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-      updateCoords(e);
+      updateCoords(e.clientX, e.clientY);
       wakeRef.current?.();
     };
 
     const handlePointerDown = (e: PointerEvent) => {
-      updateCoords(e);
+      updateCoords(e.clientX, e.clientY);
       const p = pointerRef.current;
       p.pressX = 2 * p.x - 1;
       p.pressY = 2 * p.y - 1;
@@ -686,24 +686,63 @@ export function SpectralDrape({
       wakeRef.current?.();
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 0) {
+        updateCoords(e.touches[0].clientX, e.touches[0].clientY);
+        wakeRef.current?.();
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 0) {
+        updateCoords(e.touches[0].clientX, e.touches[0].clientY);
+        const p = pointerRef.current;
+        p.pressX = 2 * p.x - 1;
+        p.pressY = 2 * p.y - 1;
+        p.presses += 1;
+        wakeRef.current?.();
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!e.touches || e.touches.length === 0) {
+        pointerRef.current.inside = false;
+        wakeRef.current?.();
+      }
+    };
+
     if (globalPointer && typeof window !== 'undefined') {
       window.addEventListener('pointermove', handlePointerMove, { passive: true });
       window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+      window.addEventListener('touchstart', handleTouchStart, { passive: true });
+      window.addEventListener('touchmove', handleTouchMove, { passive: true });
+      window.addEventListener('touchend', handleTouchEnd, { passive: true });
+      window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
       document.addEventListener('mouseleave', handlePointerLeave, { passive: true });
       return () => {
         window.removeEventListener('pointermove', handlePointerMove);
         window.removeEventListener('pointerdown', handlePointerDown);
+        window.removeEventListener('touchstart', handleTouchStart);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
+        window.removeEventListener('touchcancel', handleTouchEnd);
         document.removeEventListener('mouseleave', handlePointerLeave);
       };
     } else {
       el.addEventListener('pointermove', handlePointerMove, { passive: true });
       el.addEventListener('pointerdown', handlePointerDown, { passive: true });
+      el.addEventListener('touchstart', handleTouchStart, { passive: true });
+      el.addEventListener('touchmove', handleTouchMove, { passive: true });
+      el.addEventListener('touchend', handleTouchEnd, { passive: true });
       el.addEventListener('pointerleave', handlePointerLeave, { passive: true });
       el.addEventListener('pointercancel', handlePointerLeave, { passive: true });
 
       return () => {
         el.removeEventListener('pointermove', handlePointerMove);
         el.removeEventListener('pointerdown', handlePointerDown);
+        el.removeEventListener('touchstart', handleTouchStart);
+        el.removeEventListener('touchmove', handleTouchMove);
+        el.removeEventListener('touchend', handleTouchEnd);
         el.removeEventListener('pointerleave', handlePointerLeave);
         el.removeEventListener('pointercancel', handlePointerLeave);
       };
