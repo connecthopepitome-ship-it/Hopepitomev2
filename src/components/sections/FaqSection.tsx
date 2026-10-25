@@ -68,35 +68,39 @@ export function FaqSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
-          <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase">
-            <span className="text-[#8B6CFF] font-bold">09 //</span>
-            <span className="text-warm-white">FREQUENTLY ASKED QUESTIONS</span>
+          <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
+            <span className="text-[#9D85FF] font-bold">09 //</span>
+            <span className="text-[#F8F9FA] font-medium">FREQUENTLY ASKED QUESTIONS</span>
           </div>
-          <div className="text-xs font-mono tracking-wider uppercase text-muted-stone flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B6CFF] inline-block shadow-[0_0_8px_#8B6CFF]" />
+          <div className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-[#9D85FF] inline-block shadow-[0_0_8px_#9D85FF]" />
             <span>STRAIGHTFORWARD ANSWERS FOR BUSINESSES</span>
           </div>
         </div>
 
         {/* Section Headline */}
         <div className="pt-10 pb-12 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-warm-white mb-4">
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
             QUESTIONS YOU MAY HAVE.
           </h2>
-          <p className="text-stone-light text-base leading-relaxed font-sans">
+          <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
             Clear information on our capabilities, pricing philosophy, and collaboration model so you can
             make informed decisions for your business.
           </p>
         </div>
 
         {/* FAQs Accordion */}
-        <div className="space-y-3 max-w-4xl">
+        <div className="space-y-3.5 max-w-4xl">
           {faqs.map((faq) => {
             const isOpen = openItem === faq.id;
             return (
               <div
                 key={faq.id}
-                className="bg-[#101116]/60 backdrop-blur-md border border-white/[0.08] transition-colors hover:border-white/20"
+                className={`bg-[#121520]/95 backdrop-blur-md border transition-all shadow-md ${
+                  isOpen
+                    ? 'border-l-4 border-l-[#9D85FF] border-white/[0.22] bg-[#161A2B]'
+                    : 'border-white/[0.14] hover:border-[#9D85FF]/50'
+                }`}
               >
                 <button
                   type="button"
@@ -104,12 +108,12 @@ export function FaqSection() {
                   className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4"
                   aria-expanded={isOpen}
                 >
-                  <span className="font-display font-bold text-base sm:text-lg text-warm-white uppercase tracking-tight">
+                  <span className="font-display font-bold text-base sm:text-lg text-[#F8F9FA] uppercase tracking-tight">
                     {faq.q}
                   </span>
                   <span
-                    className={`font-mono text-sm text-[#8B6CFF] shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-45' : ''
+                    className={`font-mono text-base font-bold text-[#9D85FF] shrink-0 transition-transform duration-200 ${
+                      isOpen ? 'rotate-45 text-[#E8E2FF]' : ''
                     }`}
                   >
                     +
@@ -117,7 +121,7 @@ export function FaqSection() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 sm:px-6 pb-6 pt-1 text-sm font-sans text-stone-light leading-relaxed border-t border-white/[0.04]">
+                  <div className="px-5 sm:px-6 pb-6 pt-2 text-sm font-sans text-[#D0D4DC] leading-relaxed border-t border-white/[0.08]">
                     <p>{faq.a}</p>
                   </div>
                 )}
@@ -127,11 +131,11 @@ export function FaqSection() {
         </div>
 
         {/* Bottom Help Text */}
-        <div className="mt-10 p-5 bg-[#101116]/40 border border-white/[0.08] max-w-4xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-muted-stone">
+        <div className="mt-10 p-5 bg-[#090B10] border border-white/[0.14] max-w-4xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-[#D0D4DC] shadow-inner">
           <span>Have a question not listed here?</span>
           <a
             href="#contact"
-            className="text-[#8B6CFF] hover:text-white transition-colors uppercase font-bold"
+            className="text-[#9D85FF] hover:text-white transition-colors uppercase font-bold"
           >
             Ask us directly in the form below →
           </a>

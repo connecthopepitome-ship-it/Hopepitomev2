@@ -41,15 +41,15 @@ export function SpectralBackground() {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* Layer 1: Base Near-Black Surface */}
-      <div className="absolute inset-0 bg-[#07080B]" />
+      {/* Layer 1: Base Obsidian Surface */}
+      <div className="absolute inset-0 bg-[#07080C]" />
 
       {/* Layer 2: 3D Living Spectral Drape Mesh */}
       {mounted && hasWebGL ? (
         <div className="absolute inset-0 w-full h-full">
           <SpectralDrape
             className="w-full h-full"
-            colors={['#8B6CFF', '#E4DBFF']}
+            colors={['#9D85FF', '#E8E2FF']}
             backgroundColor="transparent"
             density={1.2}
             dotSize={1.15}
@@ -59,7 +59,7 @@ export function SpectralBackground() {
             thickness={0.8}
             depth={1.5}
             softness={0.55}
-            intensity={1.4}
+            intensity={1.3}
             colorShift={0.2}
             tilt={-36}
             turn={-42}
@@ -78,12 +78,15 @@ export function SpectralBackground() {
         </div>
       ) : (
         /* Graceful Non-WebGL Fallback */
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(139,108,255,0.2),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(157,133,255,0.2),transparent_70%)]" />
       )}
 
-      {/* Layer 3: Atmospheric Subtle Violet Ambience (Non-blocking, does not mask mesh) */}
-      <div className="absolute top-1/4 right-10 w-[550px] h-[550px] bg-[#8B6CFF]/[0.07] blur-[160px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 left-10 w-[450px] h-[450px] bg-[#8B6CFF]/[0.05] blur-[180px] rounded-full pointer-events-none" />
+      {/* Layer 3: Atmospheric Subtle Violet Ambience */}
+      <div className="absolute top-1/4 right-10 w-[550px] h-[550px] bg-[#9D85FF]/[0.08] blur-[160px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 left-10 w-[450px] h-[450px] bg-[#9D85FF]/[0.06] blur-[180px] rounded-full pointer-events-none" />
+
+      {/* Layer 4: Global Optical Contrast Stabilizer (preserves 3D visibility while preventing text blinding) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#07080C]/20 via-transparent to-[#07080C]/35 pointer-events-none" />
     </div>
   );
 }

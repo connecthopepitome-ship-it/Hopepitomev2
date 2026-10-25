@@ -18,23 +18,23 @@ export function HeroSection() {
           {/* Left Column: Bold Typography & Narrative */}
           <div className="lg:col-span-8 flex flex-col justify-center">
             {/* Eyebrow Label */}
-            <div className="inline-flex items-center space-x-2.5 text-xs font-mono tracking-widest uppercase text-muted-stone mb-6">
-              <span className="w-1.5 h-1.5 bg-[#8B6CFF]" />
-              <span className="text-[#E4DBFF]/90 font-medium">
+            <div className="inline-flex items-center space-x-2.5 text-xs font-mono tracking-widest uppercase text-[#9DA3AE] mb-6">
+              <span className="w-2 h-2 bg-[#9D85FF] shadow-[0_0_8px_#9D85FF]" />
+              <span className="text-[#E8E2FF] font-semibold">
                 BUSINESS TECHNOLOGY · WEB · SOFTWARE · AUTOMATION
               </span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.6rem] tracking-tight leading-[1.02] text-warm-white uppercase mb-8">
+            <h1 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-[4.6rem] tracking-tight leading-[1.02] text-[#F8F9FA] uppercase mb-8">
               Your business has a next level.{' '}
-              <span className="bg-gradient-to-r from-white via-[#E4DBFF] to-[#8B6CFF] bg-clip-text text-transparent block mt-1">
+              <span className="bg-gradient-to-r from-white via-[#E8E2FF] to-[#9D85FF] bg-clip-text text-transparent block mt-1">
                 Let&apos;s build the systems to get there.
               </span>
             </h1>
 
             {/* Supporting Copy */}
-            <p className="max-w-2xl text-stone-light text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 font-sans">
+            <p className="max-w-2xl text-[#D0D4DC] text-base sm:text-lg md:text-xl font-normal leading-relaxed mb-8 font-sans">
               From your first professional website to a complete online store or a custom business
               application, Hopepitome turns your ideas and everyday challenges into digital
               solutions built around the way you work.
@@ -44,7 +44,7 @@ export function HeroSection() {
             <div className="flex flex-wrap items-center gap-4 mb-5">
               <a
                 href="#contact"
-                className="px-7 py-3.5 bg-white text-graphite-950 hover:bg-[#8B6CFF] hover:text-[#07080B] transition-all duration-300 font-mono text-xs tracking-wider uppercase font-bold flex items-center space-x-2 shadow-lg shadow-white/5"
+                className="px-7 py-3.5 bg-white text-[#07080C] hover:bg-[#9D85FF] hover:text-[#07080C] transition-all duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center space-x-2 shadow-lg shadow-white/10"
               >
                 <span>Tell Us What You Need</span>
                 <span>→</span>
@@ -52,74 +52,77 @@ export function HeroSection() {
 
               <a
                 href="#services"
-                className="px-6 py-3.5 border border-white/20 text-warm-white hover:border-[#8B6CFF]/60 hover:bg-[#8B6CFF]/[0.08] transition-all duration-300 font-mono text-xs tracking-wider uppercase flex items-center space-x-2 backdrop-blur-sm"
+                className="px-6 py-3.5 bg-[#121520]/80 border border-white/25 text-[#F8F9FA] hover:border-[#9D85FF]/80 hover:bg-[#9D85FF]/10 transition-all duration-200 font-mono text-xs tracking-wider uppercase flex items-center space-x-2 backdrop-blur-md"
               >
                 <span>Explore Our Solutions</span>
-                <span className="text-[#8B6CFF]">↓</span>
+                <span className="text-[#9D85FF]">↓</span>
               </a>
             </div>
 
             {/* Supporting Micro-Statement */}
-            <p className="text-xs font-mono tracking-wide text-muted-stone mb-10">
+            <p className="text-xs font-mono tracking-wide text-[#9DA3AE] mb-10">
               [ Clear scope. Practical solutions. Transparent project pricing. ]
             </p>
 
             {/* Three Commercial Pillar Highlight Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-6 border-t border-white/[0.08]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-white/[0.14]">
               {/* Pillar 01 */}
               <a
                 href="#services"
-                className="p-4 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group flex flex-col justify-between"
+                className="p-4.5 bg-[#121520]/92 border border-white/[0.14] hover:border-[#9D85FF]/60 hover:bg-[#171B2B]/95 transition-all duration-200 backdrop-blur-md group flex flex-col justify-between shadow-md"
               >
                 <div>
-                  <span className="text-[10px] font-mono text-[#8B6CFF] block mb-1">01 // WEB & COMMERCE</span>
-                  <h3 className="text-sm font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
+                  <span className="text-[10px] font-mono text-[#9D85FF] font-bold block mb-1">01 // WEB & COMMERCE</span>
+                  <h3 className="text-sm font-display font-bold uppercase text-[#F8F9FA] group-hover:text-[#E8E2FF] transition-colors mb-1.5">
                     Websites & Stores
                   </h3>
-                  <p className="text-[11px] text-stone-light font-sans leading-relaxed">
+                  <p className="text-xs text-[#D0D4DC] font-sans leading-relaxed">
                     Fast corporate sites, catalogues and online stores designed to make selling easier.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono text-muted-stone group-hover:text-white transition-colors pt-3">
-                  Explore websites →
+                <span className="text-[11px] font-mono text-[#9DA3AE] group-hover:text-white transition-colors pt-3 flex items-center space-x-1">
+                  <span>Explore websites</span>
+                  <span>→</span>
                 </span>
               </a>
 
               {/* Pillar 02 */}
               <a
                 href="#services"
-                className="p-4 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group flex flex-col justify-between"
+                className="p-4.5 bg-[#121520]/92 border border-white/[0.14] hover:border-[#9D85FF]/60 hover:bg-[#171B2B]/95 transition-all duration-200 backdrop-blur-md group flex flex-col justify-between shadow-md"
               >
                 <div>
-                  <span className="text-[10px] font-mono text-[#8B6CFF] block mb-1">02 // SOFTWARE</span>
-                  <h3 className="text-sm font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
+                  <span className="text-[10px] font-mono text-[#9D85FF] font-bold block mb-1">02 // SOFTWARE</span>
+                  <h3 className="text-sm font-display font-bold uppercase text-[#F8F9FA] group-hover:text-[#E8E2FF] transition-colors mb-1.5">
                     Custom Web Apps
                   </h3>
-                  <p className="text-[11px] text-stone-light font-sans leading-relaxed">
+                  <p className="text-xs text-[#D0D4DC] font-sans leading-relaxed">
                     Client portals, quotation calculators and dashboards tailored to your processes.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono text-muted-stone group-hover:text-white transition-colors pt-3">
-                  Explore software →
+                <span className="text-[11px] font-mono text-[#9DA3AE] group-hover:text-white transition-colors pt-3 flex items-center space-x-1">
+                  <span>Explore software</span>
+                  <span>→</span>
                 </span>
               </a>
 
               {/* Pillar 03 */}
               <a
                 href="#services"
-                className="p-4 bg-[#101116]/60 border border-white/[0.08] hover:border-[#8B6CFF]/50 transition-all duration-300 backdrop-blur-md group flex flex-col justify-between"
+                className="p-4.5 bg-[#121520]/92 border border-white/[0.14] hover:border-[#9D85FF]/60 hover:bg-[#171B2B]/95 transition-all duration-200 backdrop-blur-md group flex flex-col justify-between shadow-md"
               >
                 <div>
-                  <span className="text-[10px] font-mono text-[#8B6CFF] block mb-1">03 // AUTOMATION</span>
-                  <h3 className="text-sm font-display font-bold uppercase text-warm-white group-hover:text-[#E4DBFF] transition-colors mb-1">
+                  <span className="text-[10px] font-mono text-[#9D85FF] font-bold block mb-1">03 // AUTOMATION</span>
+                  <h3 className="text-sm font-display font-bold uppercase text-[#F8F9FA] group-hover:text-[#E8E2FF] transition-colors mb-1.5">
                     Connected Systems
                   </h3>
-                  <p className="text-[11px] text-stone-light font-sans leading-relaxed">
+                  <p className="text-xs text-[#D0D4DC] font-sans leading-relaxed">
                     Integrations, CRM setups and workflows that eliminate repetitive manual entries.
                   </p>
                 </div>
-                <span className="text-[10px] font-mono text-muted-stone group-hover:text-white transition-colors pt-3">
-                  Explore automation →
+                <span className="text-[11px] font-mono text-[#9DA3AE] group-hover:text-white transition-colors pt-3 flex items-center space-x-1">
+                  <span>Explore systems</span>
+                  <span>→</span>
                 </span>
               </a>
             </div>
@@ -128,32 +131,32 @@ export function HeroSection() {
           {/* Right Column: Architectural Negative Space allowing the 3D Drape to breathe */}
           <div className="hidden lg:flex lg:col-span-4 flex-col justify-end items-end h-full pointer-events-none select-none pr-4">
             <div className="space-y-4 text-right">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 border border-white/10 bg-[#101116]/60 backdrop-blur-md text-[10px] font-mono tracking-widest uppercase text-stone-light">
-                <span className="w-1.5 h-1.5 bg-[#8B6CFF] rounded-full animate-ping" />
-                <span>3D SPECTRAL FIELD ACTIVE</span>
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 border border-white/20 bg-[#121520]/90 backdrop-blur-md text-[10px] font-mono tracking-widest uppercase text-[#D0D4DC] shadow-md">
+                <span className="w-2 h-2 bg-[#9D85FF] rounded-full animate-ping shadow-[0_0_8px_#9D85FF]" />
+                <span className="font-semibold">3D SPECTRAL FIELD ACTIVE</span>
               </div>
-              <p className="text-xs font-mono text-muted-stone tracking-wide max-w-[220px] leading-relaxed">
-                Move pointer to displace live fluid wakes · Click anywhere to propagate light ripples
+              <p className="text-xs font-mono text-[#9DA3AE] tracking-wide max-w-[220px] leading-relaxed">
+                Move pointer to displace fluid wakes · Click to propagate light ripples
               </p>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar Indicator */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-6 border-t border-white/[0.08] text-xs font-mono text-muted-stone tracking-wider uppercase gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-6 border-t border-white/[0.14] text-xs font-mono text-[#9DA3AE] tracking-wider uppercase gap-3">
           <div className="flex items-center space-x-3">
-            <span className="text-warm-white font-medium">HOPEPITOME STUDIO</span>
-            <span>•</span>
+            <span className="text-[#F8F9FA] font-semibold">HOPEPITOME STUDIO</span>
+            <span className="text-white/20">•</span>
             <span>COMMERCIAL DIGITAL TOOLS &amp; BUSINESS SYSTEMS</span>
           </div>
 
           <a
             href="#services"
-            className="group flex items-center space-x-2 text-[11px] hover:text-warm-white transition-colors self-start sm:self-auto"
+            className="group flex items-center space-x-2 text-xs hover:text-white transition-colors self-start sm:self-auto font-medium"
             aria-label="Scroll to What We Build"
           >
             <span>DISCOVER WHAT WE BUILD</span>
-            <span className="text-[#8B6CFF] group-hover:translate-y-0.5 transition-transform">
+            <span className="text-[#9D85FF] group-hover:translate-y-0.5 transition-transform font-bold">
               ↓
             </span>
           </a>

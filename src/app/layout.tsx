@@ -67,7 +67,7 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} dark`}
     >
-      <body className="bg-[#07080B] text-warm-white font-sans antialiased selection:bg-[#8B6CFF] selection:text-white overflow-x-hidden min-h-screen relative">
+      <body className="bg-[#07080C] text-[#F8F9FA] font-sans antialiased selection:bg-[#9D85FF] selection:text-[#07080C] overflow-x-hidden min-h-screen relative">
         {/* Persistent 3D Spectral Drape Living Background */}
         <SpectralBackground />
 

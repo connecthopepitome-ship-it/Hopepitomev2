@@ -28,28 +28,28 @@ export function StatementSection() {
     <section id="statement" className="relative py-24 md:py-32 border-b border-editorial overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Index Marker */}
-        <div className="flex items-center space-x-3 mb-10 text-xs font-mono tracking-widest text-muted-stone uppercase">
-          <span className="text-[#8B6CFF] font-bold">02 //</span>
-          <span className="text-warm-white">CORE PRINCIPLE</span>
+        <div className="flex items-center space-x-3 mb-10 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
+          <span className="text-[#9D85FF] font-bold">02 //</span>
+          <span className="text-[#F8F9FA] font-medium">CORE PRINCIPLE</span>
         </div>
 
         {/* Large Editorial Statement */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start pb-14 border-b border-white/[0.08]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start pb-14 border-b border-white/[0.14]">
           <div className="lg:col-span-7">
-            <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-warm-white uppercase">
+            <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-[#F8F9FA] uppercase">
               NOT JUST A WEBSITE.
               <br />
-              <span className="bg-gradient-to-r from-white via-[#E4DBFF] to-[#8B6CFF] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-[#E8E2FF] to-[#9D85FF] bg-clip-text text-transparent">
                 A BETTER WAY TO DO BUSINESS.
               </span>
             </h2>
           </div>
 
-          <div className="lg:col-span-5 flex flex-col justify-center space-y-5 lg:border-l lg:border-white/[0.08] lg:pl-10">
-            <p className="text-warm-white text-base sm:text-lg leading-relaxed font-sans">
+          <div className="lg:col-span-5 flex flex-col justify-center space-y-5 lg:border-l lg:border-white/[0.14] lg:pl-10">
+            <p className="text-[#F8F9FA] text-base sm:text-lg leading-relaxed font-sans font-medium">
               Your website, your online store and the software behind your operations should work together.
             </p>
-            <p className="text-stone-light text-sm sm:text-base leading-relaxed font-sans">
+            <p className="text-[#D0D4DC] text-sm sm:text-base leading-relaxed font-sans">
               We help you build the right digital foundation, improve how your business runs and add new
               capabilities as you grow.
             </p>
@@ -61,17 +61,17 @@ export function StatementSection() {
           {principles.map((p) => (
             <div
               key={p.num}
-              className="p-5 bg-[#101116]/60 border border-white/[0.08] backdrop-blur-md flex flex-col justify-between hover:border-[#8B6CFF]/40 transition-colors"
+              className="p-6 bg-[#121520]/92 border border-white/[0.14] backdrop-blur-md flex flex-col justify-between hover:border-[#9D85FF]/50 hover:bg-[#171B2B]/95 transition-all duration-200 shadow-md"
             >
               <div>
-                <span className="font-mono text-xs text-[#8B6CFF] font-bold block mb-3">
+                <span className="font-mono text-xs text-[#9D85FF] font-bold block mb-3">
                   {p.num} // PRINCIPLE
                 </span>
-                <h3 className="text-base font-display font-bold text-warm-white mb-2 leading-snug">
+                <h3 className="text-base font-display font-bold text-[#F8F9FA] mb-2 leading-snug">
                   {p.title}
                 </h3>
               </div>
-              <p className="text-xs text-stone-light font-sans leading-relaxed pt-2">
+              <p className="text-xs text-[#D0D4DC] font-sans leading-relaxed pt-3 border-t border-white/[0.08]">
                 {p.desc}
               </p>
             </div>

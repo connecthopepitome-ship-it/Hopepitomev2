@@ -201,29 +201,29 @@ export function MainServicesSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-10 border-b border-editorial gap-4">
-          <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase">
-            <span className="text-[#8B6CFF] font-bold">03 //</span>
-            <span className="text-warm-white">WHAT WE BUILD</span>
+          <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase">
+            <span className="text-[#9D85FF] font-bold">03 //</span>
+            <span className="text-[#F8F9FA] font-medium">WHAT WE BUILD</span>
           </div>
-          <div className="text-xs font-mono tracking-wider uppercase text-muted-stone flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8B6CFF] inline-block shadow-[0_0_8px_#8B6CFF]" />
+          <div className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-[#9D85FF] inline-block shadow-[0_0_8px_#9D85FF]" />
             <span>SIX COMMERCIAL SERVICE DISCIPLINES</span>
           </div>
         </div>
 
         {/* Section Headline */}
         <div className="pt-10 pb-12 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-warm-white mb-4">
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-[#F8F9FA] mb-4">
             DIGITAL TOOLS AND SYSTEMS DESIGNED FOR BUSINESS.
           </h2>
-          <p className="text-stone-light text-base leading-relaxed font-sans">
+          <p className="text-[#D0D4DC] text-base leading-relaxed font-sans">
             From customer-facing websites to backend operations and automations, explore our primary
             areas of design, engineering, and systems implementation.
           </p>
         </div>
 
         {/* Desktop Quick Jump Tabs */}
-        <div className="hidden lg:grid grid-cols-6 gap-2 mb-10 pb-6 border-b border-white/[0.08]">
+        <div className="hidden lg:grid grid-cols-6 gap-2.5 mb-10 pb-6 border-b border-white/[0.14]">
           {businessServices.map((srv) => (
             <button
               key={srv.id}
@@ -235,11 +235,11 @@ export function MainServicesSection() {
               }}
               className={`p-3 text-left font-mono transition-all border ${
                 activeTab === srv.id
-                  ? 'border-[#8B6CFF] bg-[#8B6CFF]/15 text-warm-white shadow-[0_0_12px_rgba(139,108,255,0.2)]'
-                  : 'border-white/[0.06] bg-[#101116]/40 text-muted-stone hover:text-white hover:border-white/20'
+                  ? 'border-[#9D85FF] bg-[#9D85FF]/20 text-[#F8F9FA] shadow-[0_0_15px_rgba(157,133,255,0.25)]'
+                  : 'border-white/[0.12] bg-[#121520]/80 text-[#D0D4DC] hover:text-white hover:border-[#9D85FF]/60 hover:bg-[#171B2B]'
               }`}
             >
-              <span className="text-[10px] text-[#8B6CFF] block font-bold mb-1">{srv.num} //</span>
+              <span className="text-[10px] text-[#9D85FF] block font-bold mb-1">{srv.num} //</span>
               <span className="text-xs uppercase font-medium leading-tight line-clamp-2">
                 {srv.title}
               </span>
@@ -253,50 +253,50 @@ export function MainServicesSection() {
             <article
               key={service.id}
               id={service.id}
-              className="p-6 sm:p-10 lg:p-12 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08] hover:border-[#8B6CFF]/40 transition-all duration-300 relative group scroll-mt-28"
+              className="p-6 sm:p-10 lg:p-12 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] hover:border-[#9D85FF]/60 hover:bg-[#151928] transition-all duration-300 relative group scroll-mt-28 shadow-xl shadow-black/40"
             >
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 {/* Left Overview Column */}
                 <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-6">
                   <div>
-                    <div className="flex items-center space-x-3 font-mono text-xs text-[#8B6CFF] mb-3">
+                    <div className="flex items-center space-x-3 font-mono text-xs text-[#9D85FF] mb-3">
                       <span className="font-bold text-sm">{service.num}</span>
                       <span>//</span>
-                      <span className="text-muted-stone uppercase">{service.title}</span>
+                      <span className="text-[#9DA3AE] uppercase font-semibold">{service.title}</span>
                     </div>
 
-                    <h3 className="text-2xl sm:text-3xl font-display font-extrabold uppercase text-warm-white tracking-tight mb-4 leading-snug">
+                    <h3 className="text-2xl sm:text-3xl font-display font-extrabold uppercase text-[#F8F9FA] tracking-tight mb-4 leading-snug">
                       {service.headline}
                     </h3>
 
-                    <p className="text-stone-light text-sm sm:text-base font-sans leading-relaxed">
+                    <p className="text-[#D0D4DC] text-sm sm:text-base font-sans leading-relaxed">
                       {service.description}
                     </p>
                   </div>
 
                   {/* Contextual Callout */}
                   {service.callout && (
-                    <div className="p-4 bg-[#07080B]/70 border border-[#8B6CFF]/25 font-mono text-xs space-y-2">
-                      <span className="text-[#8B6CFF] block text-[10px] font-bold tracking-wider uppercase">
+                    <div className="p-4.5 bg-[#090B10] border border-[#9D85FF]/40 font-mono text-xs space-y-2 shadow-inner">
+                      <span className="text-[#9D85FF] block text-[10px] font-bold tracking-wider uppercase">
                         [ {service.callout.label} ]
                       </span>
                       {service.callout.beforeAfter ? (
                         <div className="space-y-2 font-sans text-xs">
-                          <p className="text-muted-stone">
-                            <strong className="text-red-400/90 font-mono text-[11px] block mb-0.5">
+                          <p className="text-red-200">
+                            <strong className="text-red-400 font-mono text-[11px] block mb-0.5 font-bold">
                               BEFORE:
                             </strong>
                             {service.callout.beforeAfter.before}
                           </p>
-                          <p className="text-stone-light">
-                            <strong className="text-[#E4DBFF] font-mono text-[11px] block mb-0.5">
+                          <p className="text-[#D0D4DC]">
+                            <strong className="text-[#E8E2FF] font-mono text-[11px] block mb-0.5 font-bold">
                               AFTER:
                             </strong>
                             {service.callout.beforeAfter.after}
                           </p>
                         </div>
                       ) : (
-                        <p className="text-stone-light font-sans text-xs leading-relaxed">
+                        <p className="text-[#D0D4DC] font-sans text-xs leading-relaxed">
                           {service.callout.text}
                         </p>
                       )}
@@ -308,7 +308,7 @@ export function MainServicesSection() {
                     <a
                       href="#contact"
                       onClick={() => handleSelectService(service.title)}
-                      className="inline-flex items-center space-x-2 px-6 py-3 bg-white text-graphite-950 hover:bg-[#8B6CFF] hover:text-[#07080B] transition-all duration-200 font-mono text-xs uppercase font-bold tracking-wider shadow-md"
+                      className="inline-flex items-center space-x-2 px-6 py-3.5 bg-white text-[#07080C] hover:bg-[#9D85FF] hover:text-[#07080C] transition-all duration-200 font-mono text-xs uppercase font-bold tracking-wider shadow-md"
                     >
                       <span>{service.ctaText}</span>
                       <span>→</span>
@@ -317,8 +317,8 @@ export function MainServicesSection() {
                 </div>
 
                 {/* Right Deliverables Column */}
-                <div className="lg:col-span-7 bg-[#07080B]/50 p-6 sm:p-8 border border-white/[0.06]">
-                  <span className="text-xs font-mono tracking-wider uppercase text-muted-stone block mb-4 font-semibold">
+                <div className="lg:col-span-7 bg-[#090B10] p-6 sm:p-8 border border-white/[0.14] shadow-inner">
+                  <span className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] block mb-4 font-bold">
                     WHAT WE CAN BUILD &amp; DELIVER:
                   </span>
 
@@ -326,20 +326,20 @@ export function MainServicesSection() {
                     {service.deliverables.map((item, idx) => (
                       <li
                         key={idx}
-                        className="flex items-start space-x-2 text-xs font-sans text-stone-light p-2 bg-white/[0.02] border border-white/[0.03]"
+                        className="flex items-start space-x-2.5 text-xs font-sans text-[#D0D4DC] p-2.5 bg-white/[0.04] border border-white/[0.08]"
                       >
-                        <span className="text-[#8B6CFF] font-mono select-none">›</span>
+                        <span className="text-[#9D85FF] font-mono select-none font-bold">›</span>
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
 
-                  <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-muted-stone">
+                  <div className="mt-6 pt-4 border-t border-white/[0.1] flex items-center justify-between text-xs font-mono text-[#9DA3AE]">
                     <span>STATUS // AVAILABLE FOR PROJECT SCOPING</span>
                     <a
                       href="#contact"
                       onClick={() => handleSelectService(service.title)}
-                      className="text-[#8B6CFF] hover:text-white transition-colors"
+                      className="text-[#9D85FF] hover:text-white transition-colors font-semibold"
                     >
                       Inquire regarding this scope →
                     </a>

@@ -194,17 +194,17 @@ export function FinalCtaSection() {
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-12">
         {/* Section Marker */}
-        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-muted-stone uppercase mb-10">
-          <span className="text-[#8B6CFF] font-bold">10 //</span>
-          <span>START A PROJECT</span>
+        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase mb-10">
+          <span className="text-[#9D85FF] font-bold">10 //</span>
+          <span className="text-[#F8F9FA] font-medium">START A PROJECT</span>
         </div>
 
         {/* Large Editorial Headline */}
         <div className="mb-14 max-w-3xl">
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1] text-warm-white uppercase">
+          <h2 className="font-display font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1] text-[#F8F9FA] uppercase">
             TELL US WHAT YOU WANT YOUR BUSINESS TO DO BETTER.
           </h2>
-          <p className="text-stone-light text-base sm:text-lg font-sans mt-4 leading-relaxed">
+          <p className="text-[#D0D4DC] text-base sm:text-lg font-sans mt-4 leading-relaxed">
             You can come to us with a clear project brief or just a problem that needs solving.
             Share a few details and we will help you work out the next step.
           </p>
@@ -215,58 +215,58 @@ export function FinalCtaSection() {
           {/* Sidebar */}
           <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <span className="text-[10px] font-mono tracking-wider uppercase text-muted-stone block font-bold">
+              <span className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] block font-bold">
                 WHAT HAPPENS NEXT?
               </span>
 
-              <div className="space-y-3 text-xs text-stone-light font-sans">
-                <div className="p-3 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08]">
-                  <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
+              <div className="space-y-3.5 text-xs text-[#D0D4DC] font-sans">
+                <div className="p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
+                  <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
                     1. REVIEW WITHIN ONE BUSINESS DAY
                   </strong>
-                  <p className="text-muted-stone text-xs">
+                  <p className="text-[#D0D4DC] text-xs leading-relaxed">
                     Our team reviews your project brief, tools in place, and practical business goals.
                   </p>
                 </div>
 
-                <div className="p-3 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08]">
-                  <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
+                <div className="p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
+                  <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
                     2. CONSULTATION &amp; SCOPING
                   </strong>
-                  <p className="text-muted-stone text-xs">
+                  <p className="text-[#D0D4DC] text-xs leading-relaxed">
                     We reply via your preferred contact method with clear clarification questions or an initial scope outline.
                   </p>
                 </div>
 
-                <div className="p-3 bg-[#101116]/60 backdrop-blur-md border border-white/[0.08]">
-                  <strong className="text-warm-white block font-medium mb-1 font-mono text-[11px]">
+                <div className="p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
+                  <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
                     3. WRITTEN PLAN &amp; QUOTE
                   </strong>
-                  <p className="text-muted-stone text-xs">
+                  <p className="text-[#D0D4DC] text-xs leading-relaxed">
                     We provide a written summary of deliverables, estimated timeline, and fixed project pricing.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 border border-white/[0.08] bg-[#101116]/40 backdrop-blur-sm space-y-2">
-              <span className="text-[10px] font-mono tracking-wider uppercase text-warm-white block font-bold">
+            <div className="p-5 border border-white/[0.14] bg-[#090B10] shadow-inner space-y-2.5">
+              <span className="text-xs font-mono tracking-wider uppercase text-[#F8F9FA] block font-bold">
                 DIRECT CONTACT DETAILS
               </span>
-              <div className="text-xs font-mono text-muted-stone">
+              <div className="text-xs font-mono text-[#D0D4DC]">
                 <span>General inquiries: </span>
                 <a
                   href="mailto:studio@hopepitome.com"
-                  className="text-warm-white hover:text-[#8B6CFF] transition-colors underline underline-offset-4"
+                  className="text-[#E8E2FF] hover:text-[#9D85FF] transition-colors underline underline-offset-4 font-semibold"
                 >
                   studio@hopepitome.com
                 </a>
               </div>
-              <div className="text-xs font-mono text-muted-stone">
+              <div className="text-xs font-mono text-[#D0D4DC]">
                 <span>Project support: </span>
                 <a
                   href="mailto:connect.hopepitome@gmail.com"
-                  className="text-warm-white hover:text-[#8B6CFF] transition-colors"
+                  className="text-[#E8E2FF] hover:text-[#9D85FF] transition-colors underline underline-offset-4 font-semibold"
                 >
                   connect.hopepitome@gmail.com
                 </a>
@@ -275,52 +275,52 @@ export function FinalCtaSection() {
           </div>
 
           {/* Form Container */}
-          <div className="lg:col-span-7 bg-[#101116]/70 backdrop-blur-md border border-white/[0.08] p-6 sm:p-8">
+          <div className="lg:col-span-7 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] p-6 sm:p-8 shadow-2xl">
             {submissionReceipt ? (
               <div className="py-8 text-center space-y-5 animate-in fade-in duration-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#8B6CFF]/50 bg-[#8B6CFF]/10 text-[#8B6CFF] font-mono font-bold text-lg shadow-[0_0_15px_#8B6CFF]/30">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#34D399] bg-[#34D399]/15 text-[#34D399] font-mono font-bold text-xl shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                   ✓
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-mono tracking-wider uppercase text-[#8B6CFF] block font-semibold">
+                  <span className="text-xs font-mono tracking-wider uppercase text-[#34D399] block font-semibold">
                     PROJECT INQUIRY RECEIVED
                   </span>
-                  <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-warm-white">
+                  <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-[#F8F9FA]">
                     THANK YOU FOR REACHING OUT
                   </h3>
                 </div>
 
                 {/* Receipt Details Box */}
-                <div className="p-5 bg-[#07080B]/80 border border-white/10 text-left font-mono text-xs space-y-2 max-w-lg mx-auto">
-                  <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
+                <div className="p-5 bg-[#090B10] border border-white/[0.14] text-left font-mono text-xs space-y-2.5 max-w-lg mx-auto shadow-inner">
+                  <div className="flex justify-between border-b border-white/[0.08] pb-2 text-[#9DA3AE]">
                     <span>REFERENCE ID:</span>
-                    <span className="text-warm-white font-bold">{submissionReceipt.referenceCode}</span>
+                    <span className="text-[#34D399] font-bold">{submissionReceipt.referenceCode}</span>
                   </div>
-                  <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
+                  <div className="flex justify-between border-b border-white/[0.08] pb-2 text-[#9DA3AE]">
                     <span>NAME:</span>
-                    <span className="text-warm-white">{submissionReceipt.fullName}</span>
+                    <span className="text-[#F8F9FA] font-medium">{submissionReceipt.fullName}</span>
                   </div>
-                  <div className="flex justify-between border-b border-white/[0.06] pb-2 text-muted-stone">
+                  <div className="flex justify-between border-b border-white/[0.08] pb-2 text-[#9DA3AE]">
                     <span>BUSINESS:</span>
-                    <span className="text-warm-white">{submissionReceipt.businessName}</span>
+                    <span className="text-[#F8F9FA] font-medium">{submissionReceipt.businessName}</span>
                   </div>
-                  <div className="flex justify-between text-muted-stone pt-1">
+                  <div className="flex justify-between text-[#9DA3AE] pt-1">
                     <span>SERVICE INTEREST:</span>
-                    <span className="text-[#8B6CFF] truncate max-w-[200px]">
+                    <span className="text-[#9D85FF] font-semibold truncate max-w-[200px]">
                       {submissionReceipt.serviceCategory}
                     </span>
                   </div>
                 </div>
 
-                <p className="text-stone-light text-xs font-sans max-w-md mx-auto leading-relaxed">
+                <p className="text-[#D0D4DC] text-xs font-sans max-w-md mx-auto leading-relaxed">
                   We have received your enquiry. A member of our studio will review your requirements and respond via your preferred contact channel within one business day.
                 </p>
 
                 <button
                   type="button"
                   onClick={() => setSubmissionReceipt(null)}
-                  className="inline-block mt-2 text-xs font-mono tracking-wider uppercase text-[#8B6CFF] hover:text-[#E4DBFF] transition-colors"
+                  className="inline-block mt-2 text-xs font-mono tracking-wider uppercase text-[#9D85FF] hover:text-white font-bold transition-colors"
                 >
                   ← Submit another enquiry
                 </button>
@@ -341,7 +341,7 @@ export function FinalCtaSection() {
 
                 {/* Form Error Notice */}
                 {errors.form && (
-                  <div className="p-3 bg-red-950/40 border border-red-500/40 text-red-200 text-xs font-mono">
+                  <div className="p-3.5 bg-red-950/40 border border-red-500/50 text-red-200 text-xs font-mono">
                     {errors.form}
                   </div>
                 )}
@@ -350,7 +350,7 @@ export function FinalCtaSection() {
                 <div>
                   <label
                     htmlFor="service-category"
-                    className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                    className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                   >
                     WHAT DO YOU NEED? *
                   </label>
@@ -358,10 +358,10 @@ export function FinalCtaSection() {
                     id="service-category"
                     value={formData.serviceCategory}
                     onChange={(e) => handleInputChange('serviceCategory', e.target.value)}
-                    className="w-full bg-[#07080B]/80 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs uppercase focus:outline-none focus:border-[#8B6CFF]"
+                    className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs uppercase focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
                   >
                     {serviceOptions.map((opt) => (
-                      <option key={opt} value={opt} className="bg-[#07080B] text-white">
+                      <option key={opt} value={opt} className="bg-[#090B10] text-[#F8F9FA]">
                         {opt}
                       </option>
                     ))}
@@ -373,7 +373,7 @@ export function FinalCtaSection() {
                   <div>
                     <label
                       htmlFor="full-name"
-                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                     >
                       YOUR NAME *
                     </label>
@@ -384,19 +384,21 @@ export function FinalCtaSection() {
                       value={formData.fullName}
                       onChange={(e) => handleInputChange('fullName', e.target.value)}
                       placeholder="e.g. Alex Morgan"
-                      className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
-                        errors.fullName ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
+                      className={`w-full bg-[#090B10] border px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none transition-colors ${
+                        errors.fullName
+                          ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/40'
+                          : 'border-white/25 focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10]'
                       }`}
                     />
                     {errors.fullName && (
-                      <p className="text-red-400 text-[10px] font-mono mt-1">{errors.fullName}</p>
+                      <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.fullName}</p>
                     )}
                   </div>
 
                   <div>
                     <label
                       htmlFor="business-name"
-                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                     >
                       BUSINESS OR COMPANY NAME
                     </label>
@@ -406,7 +408,7 @@ export function FinalCtaSection() {
                       value={formData.businessName}
                       onChange={(e) => handleInputChange('businessName', e.target.value)}
                       placeholder="e.g. Apex Logistics or Morgan Retail"
-                      className="w-full bg-[#07080B]/80 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none focus:border-[#8B6CFF]"
+                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
                     />
                   </div>
                 </div>
@@ -416,7 +418,7 @@ export function FinalCtaSection() {
                   <div>
                     <label
                       htmlFor="client-email"
-                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                     >
                       EMAIL ADDRESS *
                     </label>
@@ -427,19 +429,21 @@ export function FinalCtaSection() {
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       placeholder="e.g. alex@example.com"
-                      className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none ${
-                        errors.email ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
+                      className={`w-full bg-[#090B10] border px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none transition-colors ${
+                        errors.email
+                          ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/40'
+                          : 'border-white/25 focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10]'
                       }`}
                     />
                     {errors.email && (
-                      <p className="text-red-400 text-[10px] font-mono mt-1">{errors.email}</p>
+                      <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.email}</p>
                     )}
                   </div>
 
                   <div>
                     <label
                       htmlFor="phone-whatsapp"
-                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                     >
                       WHATSAPP OR CONTACT NUMBER
                     </label>
@@ -449,21 +453,21 @@ export function FinalCtaSection() {
                       value={formData.phoneWhatsapp}
                       onChange={(e) => handleInputChange('phoneWhatsapp', e.target.value)}
                       placeholder="e.g. +1 555-0123"
-                      className="w-full bg-[#07080B]/80 border border-white/10 px-3.5 py-2.5 text-warm-white font-mono text-xs placeholder:text-muted-stone/40 focus:outline-none focus:border-[#8B6CFF]"
+                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
                     />
                   </div>
                 </div>
 
                 {/* 4. Requirements Textarea */}
                 <div>
-                  <div className="flex justify-between items-center mb-1.5">
+                  <div className="flex justify-between items-center mb-2">
                     <label
                       htmlFor="client-requirements"
-                      className="text-xs font-mono tracking-wider uppercase text-muted-stone"
+                      className="text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold"
                     >
                       BRIEFLY DESCRIBE YOUR REQUIREMENT *
                     </label>
-                    <span className="text-[10px] font-mono text-muted-stone">
+                    <span className="text-xs font-mono text-[#9DA3AE]">
                       {formData.requirements.length} chars (min 15)
                     </span>
                   </div>
@@ -474,12 +478,14 @@ export function FinalCtaSection() {
                     value={formData.requirements}
                     onChange={(e) => handleInputChange('requirements', e.target.value)}
                     placeholder="Tell us about what you want to build, the everyday bottlenecks your business is facing, or what systems you want to connect..."
-                    className={`w-full bg-[#07080B]/80 border px-3.5 py-2.5 text-warm-white font-sans text-xs sm:text-sm placeholder:text-muted-stone/40 focus:outline-none resize-none ${
-                      errors.requirements ? 'border-red-500' : 'border-white/10 focus:border-[#8B6CFF]'
+                    className={`w-full bg-[#090B10] border px-4 py-3 text-[#F8F9FA] font-sans text-xs sm:text-sm placeholder:text-[#727885] focus:outline-none resize-none transition-colors ${
+                      errors.requirements
+                        ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/40'
+                        : 'border-white/25 focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10]'
                     }`}
                   />
                   {errors.requirements && (
-                    <p className="text-red-400 text-[10px] font-mono mt-1">{errors.requirements}</p>
+                    <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.requirements}</p>
                   )}
                 </div>
 
@@ -488,7 +494,7 @@ export function FinalCtaSection() {
                   <div>
                     <label
                       htmlFor="budget-range"
-                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                     >
                       OPTIONAL BUDGET RANGE
                     </label>
@@ -496,21 +502,21 @@ export function FinalCtaSection() {
                       id="budget-range"
                       value={formData.budgetRange}
                       onChange={(e) => handleInputChange('budgetRange', e.target.value)}
-                      className="w-full bg-[#07080B]/80 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-[#8B6CFF]"
+                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
                     >
-                      <option className="bg-[#07080B]" value="Under $1,500 (Lean website or focused tool)">
+                      <option className="bg-[#090B10]" value="Under $1,500 (Lean website or focused tool)">
                         Under $1,500 (Lean website or focused tool)
                       </option>
-                      <option className="bg-[#07080B]" value="$1,500 – $4,000 (Complete website or standard store)">
+                      <option className="bg-[#090B10]" value="$1,500 – $4,000 (Complete website or standard store)">
                         $1,500 – $4,000 (Complete website or standard store)
                       </option>
-                      <option className="bg-[#07080B]" value="$4,000 – $10,000 (Custom web app or integration suite)">
+                      <option className="bg-[#090B10]" value="$4,000 – $10,000 (Custom web app or integration suite)">
                         $4,000 – $10,000 (Custom web app or integration suite)
                       </option>
-                      <option className="bg-[#07080B]" value="$10,000+ (Full ERP, CRM or multi-system software)">
+                      <option className="bg-[#090B10]" value="$10,000+ (Full ERP, CRM or multi-system software)">
                         $10,000+ (Full ERP, CRM or multi-system software)
                       </option>
-                      <option className="bg-[#07080B]" value="Need guidance / Let's discuss">
+                      <option className="bg-[#090B10]" value="Need guidance / Let's discuss">
                         Need guidance / Let&apos;s discuss
                       </option>
                     </select>
@@ -519,7 +525,7 @@ export function FinalCtaSection() {
                   <div>
                     <label
                       htmlFor="preferred-contact"
-                      className="block text-xs font-mono tracking-wider uppercase text-muted-stone mb-1.5"
+                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
                     >
                       PREFERRED CONTACT METHOD
                     </label>
@@ -529,15 +535,15 @@ export function FinalCtaSection() {
                       onChange={(e) =>
                         handleInputChange('preferredContact', e.target.value as FormState['preferredContact'])
                       }
-                      className="w-full bg-[#07080B]/80 border border-white/10 px-3 py-2.5 text-warm-white font-mono text-xs focus:outline-none focus:border-[#8B6CFF]"
+                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
                     >
-                      <option className="bg-[#07080B]" value="Email">
+                      <option className="bg-[#090B10]" value="Email">
                         Email
                       </option>
-                      <option className="bg-[#07080B]" value="WhatsApp">
+                      <option className="bg-[#090B10]" value="WhatsApp">
                         WhatsApp message
                       </option>
-                      <option className="bg-[#07080B]" value="Phone call">
+                      <option className="bg-[#090B10]" value="Phone call">
                         Phone call
                       </option>
                     </select>
@@ -551,14 +557,14 @@ export function FinalCtaSection() {
                       type="checkbox"
                       checked={formData.consent}
                       onChange={(e) => handleInputChange('consent', e.target.checked)}
-                      className="mt-0.5 rounded-none border-white/20 bg-[#07080B] text-[#8B6CFF] focus:ring-0"
+                      className="mt-0.5 rounded-none border-white/30 bg-[#090B10] text-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]"
                     />
-                    <span className="text-[11px] font-mono text-muted-stone group-hover:text-warm-white transition-colors leading-relaxed">
+                    <span className="text-xs font-mono text-[#D0D4DC] group-hover:text-white transition-colors leading-relaxed">
                       I agree to share these details with Hopepitome for project consultation and quotation purposes.
                     </span>
                   </label>
                   {errors.consent && (
-                    <p className="text-red-400 text-[10px] font-mono mt-1">{errors.consent}</p>
+                    <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.consent}</p>
                   )}
                 </div>
 
@@ -566,7 +572,7 @@ export function FinalCtaSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-[#8B6CFF] text-[#07080B] hover:bg-white hover:text-[#07080B] transition-colors duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50 shadow-[0_0_20px_rgba(139,108,255,0.25)]"
+                  className="w-full py-4 bg-[#9D85FF] text-[#07080C] hover:bg-[#B4A2FF] transition-all duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50 shadow-xl shadow-[#9D85FF]/25"
                 >
                   <span>{isSubmitting ? 'Sending your details...' : 'Discuss My Project'}</span>
                   <span>→</span>
