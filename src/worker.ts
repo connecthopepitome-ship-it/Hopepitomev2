@@ -1,4 +1,5 @@
 import { validateEnquiry, SanitizedEnquiry } from './lib/enquiry';
+import { validateCareerEnquiry, SanitizedCareerEnquiry } from './lib/career-enquiry';
 
 interface Env {
   ASSETS: {
@@ -179,7 +180,145 @@ export default {
       }
     }
 
-    // 3. Fallback: Serve static Next.js export assets from ./out
+    // 3. Career Services Consultation Enquiry endpoint
+    if (url.pathname === '/api/career-enquiry') {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+          },
+        });
+      }
+
+      if (request.method !== 'POST') {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Method Not Allowed' }),
+          { status: 405, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      try {
+        const body = await request.json().catch(() => null);
+        const validation = validateCareerEnquiry(body);
+
+        if (!validation.valid || !validation.sanitized) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              errors: validation.errors,
+            }),
+            {
+              status: 400,
+              headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+              },
+            }
+          );
+        }
+
+        const enquiry: SanitizedCareerEnquiry = validation.sanitized;
+
+        // Persist to Cloudflare D1 if configured
+        if (env.DB) {
+          try {
+            await env.DB.prepare(
+              `INSERT INTO career_enquiries (
+                id, reference_code, full_name, email, phone_whatsapp,
+                career_stage, service_required, target_role, target_country,
+                requirements, preferred_contact_method, resume_file_name,
+                consent_given, created_at, status
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            )
+              .bind(
+                enquiry.id,
+                enquiry.referenceCode,
+                enquiry.fullName,
+                enquiry.email,
+                enquiry.phoneWhatsapp,
+                enquiry.careerStage,
+                enquiry.serviceRequired,
+                enquiry.targetRole,
+                enquiry.targetCountry,
+                enquiry.requirements,
+                enquiry.preferredContactMethod,
+                enquiry.resumeFileName,
+                enquiry.consentGiven ? 1 : 0,
+                enquiry.createdAt,
+                enquiry.status
+              )
+              .run();
+          } catch (dbErr) {
+            console.error('[D1 CAREER INSERT ERROR]:', dbErr);
+          }
+        }
+
+        // Persist to KV for resilient lookup
+        if (env.ENQUIRIES_KV) {
+          try {
+            await env.ENQUIRIES_KV.put(
+              `career_enquiry:${enquiry.referenceCode}`,
+              JSON.stringify(enquiry)
+            );
+          } catch (kvErr) {
+            console.error('[KV CAREER INSERT ERROR]:', kvErr);
+          }
+        }
+
+        const adminRecipient = env.ADMIN_EMAIL || 'careers@hopepitome.com';
+        console.log(`[CAREER INTAKE DISPATCH] New career consultation brief:`, {
+          recipient: adminRecipient,
+          reference: enquiry.referenceCode,
+          client: enquiry.fullName,
+          email: enquiry.email,
+          service: enquiry.serviceRequired,
+          stage: enquiry.careerStage,
+          timestamp: enquiry.createdAt,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            referenceCode: enquiry.referenceCode,
+            message: 'Your career consultation enquiry has been registered successfully. Our specialist team will review your background and get in touch shortly.',
+            sanitized: {
+              referenceCode: enquiry.referenceCode,
+              fullName: enquiry.fullName,
+              serviceRequired: enquiry.serviceRequired,
+              careerStage: enquiry.careerStage,
+              createdAt: enquiry.createdAt,
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      } catch (err: any) {
+        console.error('[API CAREER ENQUIRY EXCEPTION]:', err);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Internal server error processing career enquiry.',
+          }),
+          {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      }
+    }
+
+    // 4. Fallback: Serve static Next.js export assets from ./out
     return env.ASSETS.fetch(request);
   },
 };

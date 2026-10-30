@@ -68,6 +68,24 @@ const config: Config = {
           'info-bg': 'rgba(96, 165, 250, 0.12)',
         },
 
+        // Career Services Editorial Design System Tokens
+        career: {
+          ivory: '#F7F5F0',
+          'ivory-deep': '#EFECE4',
+          white: '#FFFFFF',
+          navy: '#17243B',
+          'navy-deep': '#0F1827',
+          charcoal: '#292D36',
+          lavender: '#8172A8',
+          'lavender-light': '#F2EFF7',
+          'lavender-subtle': '#FAF8FC',
+          violet: '#A69ACB',
+          grey: '#777781',
+          'grey-light': '#F0EFEA',
+          border: '#E6E2DC',
+          'border-subtle': '#EDE9E3',
+        },
+
         // Backward compatibility
         graphite: {
           950: '#07080C',

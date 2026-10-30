@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 
 // Dynamically import SpectralDrape to prevent any SSR / WebGL context evaluation in Node/Worker environments
 const SpectralDrape = dynamic(
@@ -28,6 +29,7 @@ function checkWebGLSupport(): boolean {
  * with global pointer wake tracking and atmospheric depth vignette.
  */
 export function SpectralBackground() {
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -42,6 +44,11 @@ export function SpectralBackground() {
     window.addEventListener('resize', checkMobile, { passive: true });
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Isolate Career Services landing page from dark Spectral Drape WebGL background
+  if (pathname?.startsWith('/career-services')) {
+    return null;
+  }
 
   return (
     <div
