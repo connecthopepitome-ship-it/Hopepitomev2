@@ -8,6 +8,13 @@
   "assets": {
     "directory": "./out"
   },
+  "vars": {
+    "GAS_WEB_APP_URL": "https://script.google.com/macros/s/AKfycbz61tNOR6lBBmsImKdEHiPdVEk2kZ5dYL0-T-qRCmtg3NEzBDwMZ9Pl3dGqBPzNKg/exec",
+    "GAS_SHARED_SECRET": "hp_gas_sec_8f94e2a1b7c3d05e6fa982c417e",
+    "FIREBASE_PROJECT_ID": "hopepitome",
+    "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hopepitome.iam.gserviceaccount.com",
+    "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDM4Y2ZZD6jr3r0\nYr11lcusM6Ozdq4Ws+TC/h+Sr8vH+vIO/ks6PwriE2+hqo9wgNVgu1Bw3eT7ZQW5\n2upfxTADTpE5JrKM89DznFKI+Dm0tTxJLP2w2SoG6Xqg6b+VLmw7reXDw+rScgPQ\nK9BbJFwXJJ855eDfN4vd40wSGcgdx17vfDrAVxMntoL0Pyf7zoKNSb61YBYZ+414\nbiQp+FKBfYyZbaQB4iTNXleLztDXH4KU4SRhHY4yjhT5AdW2JeFXwYGjOKeatUEl\n4wp+tna9FDbG682bQWWxozRd9nUIlrGy+sYhdsyLv3wRqx9SXpV6SKdcr7Tx03ub\nNadubF81AgMBAAECggEAAl0p3pa3Avl6hYkBdEgIWRIhdefNJhWTnU0EUpN1BPeC\nxSSEUVrlMRWV/ftd+1IpOXFVLMWKp6c96Svln2RC47mLgxQiDu6d6b791CG/vLOI\noLQvBdQuSsp1L+0dLkdNArqaF5JSSnT7+/ISzd0TXkWoZqkd2UV793vwu+wQkIi1\nPlEG0LUB/9mkQ3l+Jc3f9gPzUOBaMQPHQKgu4QxdqWoa3k8zz+vdCHfBrgLjoPQt\nH5IUKsXzrhu036zHguFIp+BQ5gcDvQT4zOcZgEwHXpYBL9hnX5k4eLy8Tbn0e3Ip\neeWt8cX3K7RqFyzmvCoZ3T14kcrdv4Hbph4oG234AQKBgQDpyXjMalf7ti0AXO/4\nl9q5XGj8iCa1Wptdi+UMxuzvozPVD9JEBZHwU4iR7Llir94rtttXSJXyYYYlOQsW\n8E6qxfizuHp4v6RAKVI5JLRRYpSbBF+kqXLPN1YOYzNdj9Ma1/fWxBDwlQt9HESB\nJlUYa9QFS/8F1QM0Gb0QXNxkAQKBgQDgWPyPGJwNZDrCQWZyffThjBc1kWC9VFkL\nKCRcUPZEwV1QQKAhQW5Lf34Jorpek6g7eVk6x5N5Q5ytxdYucLVYmJCf+9AJQ+Ok\njG0/BTEI/UVJF34mH13TtoyrRKXK/jd0wTqfpwGq321dYjDgDdlKuQcQV90iF8/x\nv33RYf+rNQKBgDJhW2nZxOoWgS4h2QjeWKE3W9yHzqeoRfDr08lkGO0vY10X0r0b\n4i5DIhwoQm8U7TDIcA4oM0APaiQdXdlsoddFYGoCaEobKl81SGXOFhmvv8yELcRD\nS92B1Ea3c/tGojyXq+4ZRHlD9TzZ2Z1nUFE582/Mx8FO/Si+HzMmf8wBAoGANGcU\ntyf8a3RZ9T3pfBzHsldSpISMoCyvj9eUhquymmTAMxqlTJ9H8AKbogyMk8LRrPKv\nUPeFDvIoCr8HRFm3QjaAsZ3T/hYJekoCypGf3oWqRWRjZuw0slsViHvEbiHrOi5Y\nTypnTU5a8VEaMXuKodWOPNcJJAmD3Ofpr5rAaXECgYEAhj8jM/gOs6FqiHKWSXmP\nkGIThBo8NzoBkony+fYnSdvsyPMXljrrZVtWBo8vQhwqGOT9+iv6EaFXEWnZiMkU\nssKNumCdzjnQRN2mhRrR9MZJZq06CrAWoUwNeUaHZARGuYTp58X9LO7VH5K//RUp\ny1zDwqOYtRg0dc/y/mNyfgc=\n-----END PRIVATE KEY-----\n"
+  },
   "observability": {
     "enabled": true
   }

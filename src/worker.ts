@@ -370,12 +370,7 @@ export default {
         const clientId = workOrderDoc.clientId;
         let clientDoc = await firestore.getDocument('clients', clientId);
         if (!clientDoc) {
-          for (const c of inMemoryClients.values()) {
-            if (c.clientId === clientId) {
-              clientDoc = c;
-              break;
-            }
-          }
+          clientDoc = Array.from(inMemoryClients.values()).find((c) => c.clientId === clientId) || null;
         }
 
         if (!clientDoc) {

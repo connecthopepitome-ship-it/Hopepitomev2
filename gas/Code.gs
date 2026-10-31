@@ -318,3 +318,4 @@ function handleDeleteFile(fileId) {
     message: 'File moved to trash',
   };
 }
+
