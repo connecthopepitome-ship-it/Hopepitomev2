@@ -6,6 +6,7 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithCustomToken,
   signOut,
   sendPasswordResetEmail,
   GoogleAuthProvider,
@@ -48,6 +49,79 @@ export function getFriendlyAuthErrorMessage(error: any): string {
     default:
       return message || 'Authentication failed. Please try again.';
   }
+}
+
+export async function loginWithCustomToken(customToken: string): Promise<FirebaseUser> {
+  if (!auth) throw new Error('Authentication is initializing. Please retry in a moment.');
+  const credential = await signInWithCustomToken(auth, customToken.trim());
+  return credential.user;
+}
+
+/**
+ * Passwordless Client Registration API caller
+ * Calls Cloudflare Worker backend to register client with Name & Mobile
+ */
+export async function registerPasswordlessClient(name: string, mobile: string): Promise<{
+  success: boolean;
+  clientId: string;
+  workOrderId: string;
+  name: string;
+  isExisting?: boolean;
+  message?: string;
+}> {
+  const res = await fetch('/api/career/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: name.trim(), mobile: mobile.trim() }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Failed to complete registration');
+  }
+  return data;
+}
+
+/**
+ * Passwordless Client Login API caller
+ * Verifies Mobile + Work Order ID on Cloudflare Worker backend,
+ * receives Firebase Custom Token, and signs in with Firebase
+ */
+export async function loginPasswordlessClient(mobile: string, workOrderId: string): Promise<{
+  user: FirebaseUser;
+  clientId: string;
+  workOrderId: string;
+  name: string;
+}> {
+  const res = await fetch('/api/career/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mobile: mobile.trim(),
+      workOrderId: workOrderId.trim().toUpperCase(),
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || 'Invalid mobile number or work order ID');
+  }
+
+  // Sign into Firebase SDK using the custom token returned by backend
+  const user = await loginWithCustomToken(data.customToken);
+
+  // Store active work order ID in session storage for immediate UI access
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('hp_active_work_order', data.workOrderId);
+    sessionStorage.setItem('hp_active_client_id', data.clientId);
+  }
+
+  return {
+    user,
+    clientId: data.clientId,
+    workOrderId: data.workOrderId,
+    name: data.name,
+  };
 }
 
 export async function loginWithEmail(email: string, pass: string): Promise<FirebaseUser> {

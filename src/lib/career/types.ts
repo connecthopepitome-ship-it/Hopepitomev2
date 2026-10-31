@@ -12,7 +12,41 @@ export type UserRole =
   | 'writer'
   | 'job_search_exec'
   | 'portfolio_dev'
-  | 'finance';
+  | 'finance'
+  | 'Super Admin'
+  | 'Admin'
+  | 'Career Consultant'
+  | 'Resume Writer'
+  | 'Job Search Executive'
+  | 'Portfolio Developer'
+  | 'Finance'
+  | 'Read-only Manager';
+
+export type AdminRole =
+  | 'Super Admin'
+  | 'Admin'
+  | 'Career Consultant'
+  | 'Resume Writer'
+  | 'Job Search Executive'
+  | 'Portfolio Developer'
+  | 'Finance'
+  | 'Read-only Manager';
+
+export type WorkOrderStatus =
+  | 'Registered'
+  | 'Information Pending'
+  | 'Documents Received'
+  | 'Requirements Review'
+  | 'Quotation Sent'
+  | 'Awaiting Payment'
+  | 'Confirmed'
+  | 'In Progress'
+  | 'Internal Review'
+  | 'Client Review'
+  | 'Revision Requested'
+  | 'Final Delivery'
+  | 'Completed'
+  | 'Cancelled';
 
 export type CareerServiceType =
   | 'RESUME_WRITING'
@@ -97,6 +131,7 @@ export interface CareerClient {
   targetRole?: string;
   onboardingCompleted: boolean;
   notes?: string;
+  currentWorkOrderId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -210,6 +245,7 @@ export interface ServiceOrder {
   // Specific requirements captured during order creation
   serviceRequirements: Record<string, any>;
   notes?: string;
+  currentWorkOrderId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -333,6 +369,7 @@ export interface CareerInvoice {
   paymentMethod?: string;
   transactionReference?: string;
   notes?: string;
+  currentWorkOrderId?: string;
   createdAt: string;
 }
 
@@ -359,4 +396,88 @@ export interface CareerActivityLog {
   summary: string;
   timestamp: string;
 }
+
+// Phase 5 Exact Collection Models
+export interface ClientRecord {
+  clientId: string;
+  name: string;
+  mobile: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+  currentWorkOrderId?: string;
+}
+
+export interface WorkOrderRecord {
+  workOrderId: string; // e.g. HP-2026-00001
+  clientId: string;
+  serviceType: CareerServiceType | string;
+  status: WorkOrderStatus;
+  createdAt: string;
+  updatedAt: string;
+  assignedTo?: string;
+  driveFolderId?: string;
+  driveFolderPath?: string;
+  notes?: string;
+}
+
+export interface DocumentRecord {
+  documentId: string;
+  clientId: string;
+  workOrderId: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+  category: 'Original Resume' | 'Client Documents' | 'Certificates' | 'Photos' | 'Working Files' | 'Final Deliverables' | DocumentCategory;
+  driveFileId?: string;
+  driveFolderId?: string;
+  downloadUrl?: string;
+  viewUrl?: string;
+  uploadedAt: string;
+  uploadedBy: 'CLIENT' | 'STAFF';
+  status: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+}
+
+export interface ServiceOrderRecord {
+  serviceOrderId: string;
+  clientId: string;
+  workOrderId: string;
+  serviceName: string;
+  requirements?: string;
+  status: string;
+  assignedTo?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessageRecord {
+  messageId: string;
+  clientId: string;
+  workOrderId: string;
+  senderId: string;
+  senderRole: string;
+  message: string;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface ActivityLogRecord {
+  activityId: string;
+  clientId?: string;
+  workOrderId?: string;
+  activityType: string;
+  description: string;
+  performedBy: string;
+  timestamp: string;
+}
+
+export interface AdminRecord {
+  adminId: string;
+  email: string;
+  name: string;
+  role: AdminRole;
+  createdAt: string;
+  status: 'ACTIVE' | 'SUSPENDED';
+}
+
 
