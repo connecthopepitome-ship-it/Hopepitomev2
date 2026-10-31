@@ -1,27 +1,7 @@
 import type { Metadata } from 'next';
-import { Syne, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
-const syne = Syne({
-  subsets: ['latin'],
-  variable: '--font-display',
-  weight: ['400', '600', '700', '800'],
-  display: 'swap',
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  weight: ['400', '500'],
-  display: 'swap',
-});
+const fontClasses = 'font-sans antialiased';
 
 export const metadata: Metadata = {
   title: 'Hopepitome | Websites, Custom Software & Business Automation',
@@ -65,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} dark`}
+      className="dark"
     >
       <body className="bg-[#07080C] text-[#F8F9FA] font-sans antialiased selection:bg-[#9D85FF] selection:text-[#07080C] overflow-x-hidden min-h-screen relative">
         {/* Persistent 3D Spectral Drape Living Background */}

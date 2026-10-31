@@ -64,14 +64,13 @@ export function CareerNavigation() {
             ))}
           </nav>
 
-          {/* Primary CTA & Back to Main Studio */}
-          <div className="hidden lg:flex items-center space-x-4">
+          {/* Primary CTA & Client Portal Entry */}
+          <div className="hidden lg:flex items-center space-x-3">
             <Link
-              href="/"
-              className="text-xs font-mono font-medium text-[#777781] hover:text-[#17243B] transition-colors inline-flex items-center gap-1"
+              href="/career-services/portal/login"
+              className="text-xs font-semibold text-[#17243B] hover:text-[#8172A8] px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white transition shadow-sm"
             >
-              Business Tech Studio
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              Client Portal
             </Link>
 
             <a
@@ -121,6 +120,14 @@ export function CareerNavigation() {
           </div>
 
           <div className="pt-4 flex flex-col space-y-3">
+            <Link
+              href="/career-services/portal/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-2.5 rounded-xl text-xs font-semibold text-[#17243B] bg-white border border-[#E6E2DC] shadow-sm"
+            >
+              Sign In to Client Portal
+            </Link>
+
             <a
               href="#contact"
               onClick={() => setMobileMenuOpen(false)}

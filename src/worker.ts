@@ -318,7 +318,27 @@ export default {
       }
     }
 
-    // 4. Fallback: Serve static Next.js export assets from ./out
+    // 4. Career Portal Bridge API
+    if (url.pathname === '/api/career/portal-status') {
+      return new Response(
+        JSON.stringify({
+          status: 'online',
+          portalVersion: '2.0-career-portal',
+          authProvider: 'firebase-auth-v10',
+          storageBridge: 'google-drive-vault',
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    // 5. Fallback: Serve static Next.js export assets from ./out
     return env.ASSETS.fetch(request);
   },
 };

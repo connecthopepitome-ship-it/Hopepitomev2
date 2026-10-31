@@ -1,0 +1,88 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isStaff() {
+      return isAuthenticated() && (
+        request.auth.token.role in ['super_admin', 'admin', 'consultant', 'writer', 'job_search_exec', 'portfolio_dev', 'finance'] ||
+        request.auth.token.admin == true ||
+        request.auth.token.email in ['connect.hopepitome@gmail.com', 'admin@hopepitome.com', 'ramsaltvc@gmail.com']
+      );
+    }
+
+    // 1. Users & RBAC
+    match /career_users/{userId} {
+      allow read, write: if isOwner(userId) || isStaff();
+    }
+
+    // 2. Client Records
+    match /career_clients/{clientId} {
+      allow read, write: if isOwner(clientId) || isStaff();
+    }
+
+    // 3. Comprehensive Career Profiles
+    match /career_profiles/{clientId} {
+      allow read, write: if isOwner(clientId) || isStaff();
+    }
+
+    // 4. Service Orders
+    match /career_service_orders/{orderId} {
+      allow read: if isOwner(resource.data.clientId) || isStaff();
+      allow create: if isAuthenticated();
+      allow update, delete: if isStaff() || isOwner(resource.data.clientId);
+    }
+
+    // 5. Staff Tasks
+    match /career_tasks/{taskId} {
+      allow read, write: if isStaff();
+    }
+
+    // 6. Deliverables & Version Control
+    match /career_deliverables/{deliverableId} {
+      allow read: if isOwner(resource.data.clientId) || isStaff();
+      allow create, update, delete: if isStaff() || isOwner(resource.data.clientId);
+    }
+
+    // 7. Revision Requests
+    match /career_revisions/{revId} {
+      allow read: if isOwner(resource.data.clientId) || isStaff();
+      allow create, update: if isAuthenticated();
+      allow delete: if isStaff();
+    }
+
+    // 8. Communication & Messages
+    match /career_messages/{messageId} {
+      allow read: if isOwner(resource.data.clientId) || isStaff();
+      allow create: if isAuthenticated();
+      allow update, delete: if isStaff();
+    }
+
+    // 9. Document Vault
+    match /career_documents/{documentId} {
+      allow read: if isOwner(resource.data.clientId) || isStaff();
+      allow create, update, delete: if isOwner(resource.data.clientId) || isStaff();
+    }
+
+    // 10. Financial Invoices & Billing
+    match /career_invoices/{invoiceId} {
+      allow read: if isOwner(resource.data.clientId) || isStaff();
+      allow write: if isStaff();
+    }
+
+    // 11. Activity & Audit Trail
+    match /career_activity_logs/{logId} {
+      allow read: if isStaff();
+      allow create: if isAuthenticated();
+    }
+  }
+}
+
