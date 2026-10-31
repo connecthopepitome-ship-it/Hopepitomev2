@@ -292,14 +292,27 @@ export default function NewServiceOrderPage() {
               {serviceType === 'RESUME_WRITING' && (
                 <div className="space-y-3">
                   <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#17243B]">
+                        Primary Target Position Title
+                      </label>
+                      <span className="text-[10px] text-[#777781]">Optional</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="e.g. Senior Director of Operations"
+                      onChange={(e) => setRequirements({ ...requirements, targetRole: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Primary Target Position Title
+                      Target Industry or Country <span className="font-normal text-[#777781]">(Optional)</span>
                     </label>
                     <input
                       type="text"
-                      required
-                      placeholder="e.g. Senior Director of Operations"
-                      onChange={(e) => setRequirements({ ...requirements, targetRole: e.target.value })}
+                      placeholder="e.g. Technology / Australia"
+                      onChange={(e) => setRequirements({ ...requirements, targetCountry: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
                     />
                   </div>
@@ -318,7 +331,7 @@ export default function NewServiceOrderPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Key Highlights to Spotlight
+                      Key Highlights to Spotlight <span className="font-normal text-[#777781]">(Optional)</span>
                     </label>
                     <textarea
                       rows={3}
@@ -333,24 +346,26 @@ export default function NewServiceOrderPage() {
               {serviceType === 'ATS_OPTIMISATION' && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Target Job Descriptions or Job Postings Text
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#17243B]">
+                        Target Job Descriptions or Job Postings Text
+                      </label>
+                      <span className="text-[10px] text-[#777781]">Optional</span>
+                    </div>
                     <textarea
                       rows={4}
-                      required
-                      placeholder="Paste the full job description or key responsibilities from the job postings you want to target..."
+                      placeholder="Paste the target job description or leave blank to provide later..."
                       onChange={(e) => setRequirements({ ...requirements, jobDescriptionText: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Target Applicant Tracking System (if known)
+                      Target Applicant Tracking System <span className="font-normal text-[#777781]">(if known, optional)</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Workday, Greenhouse, Taleo, Lever (or leave blank if unknown)"
+                      placeholder="e.g. Workday, Greenhouse, Taleo, Lever"
                       onChange={(e) => setRequirements({ ...requirements, atsSystem: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
                     />
@@ -361,12 +376,14 @@ export default function NewServiceOrderPage() {
               {serviceType === 'LINKEDIN_MAKEOVER' && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Current LinkedIn URL
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#17243B]">
+                        Current LinkedIn URL
+                      </label>
+                      <span className="text-[10px] text-[#777781]">Optional</span>
+                    </div>
                     <input
                       type="url"
-                      required
                       placeholder="https://linkedin.com/in/yourname"
                       onChange={(e) => setRequirements({ ...requirements, linkedinUrl: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
@@ -374,7 +391,7 @@ export default function NewServiceOrderPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Target Audience
+                      Target Audience / Goals <span className="font-normal text-[#777781]">(Optional)</span>
                     </label>
                     <select
                       onChange={(e) => setRequirements({ ...requirements, targetAudience: e.target.value })}
@@ -393,7 +410,7 @@ export default function NewServiceOrderPage() {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Domain or Name Preference
+                      Domain or Name Preference <span className="font-normal text-[#777781]">(Optional)</span>
                     </label>
                     <input
                       type="text"
@@ -404,11 +421,11 @@ export default function NewServiceOrderPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Desired Website Sections
+                      Desired Website Sections <span className="font-normal text-[#777781]">(Optional)</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. About Biography, Featured Case Studies, Speaking Engagements, Contact"
+                      placeholder="e.g. About Biography, Featured Case Studies, Contact"
                       onChange={(e) => setRequirements({ ...requirements, desiredSections: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
                     />
@@ -419,12 +436,14 @@ export default function NewServiceOrderPage() {
               {serviceType === 'MANAGED_JOB_SEARCH' && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Target Countries or Metropolitan Markets
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#17243B]">
+                        Target Countries or Metropolitan Markets
+                      </label>
+                      <span className="text-[10px] text-[#777781]">Optional</span>
+                    </div>
                     <input
                       type="text"
-                      required
                       placeholder="e.g. Sydney, Melbourne, Singapore, Global Remote"
                       onChange={(e) => setRequirements({ ...requirements, targetLocations: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
@@ -432,7 +451,7 @@ export default function NewServiceOrderPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Excluded Companies or Industries
+                      Excluded Companies or Industries <span className="font-normal text-[#777781]">(Optional)</span>
                     </label>
                     <input
                       type="text"

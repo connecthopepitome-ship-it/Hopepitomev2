@@ -97,19 +97,17 @@ export default function ClientDashboardPage() {
           </div>
         </div>
 
-        {/* Profile Status Alert if incomplete */}
-        {profile?.status !== 'APPROVED' && (
-          <div className="bg-amber-50/80 border border-amber-200 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        {/* Reassuring Profile Status Card */}
+        {profile?.status === 'ADDITIONAL_INFO_REQUESTED' ? (
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-amber-700 shrink-0" />
               <div>
                 <h4 className="text-xs font-bold text-amber-900">
-                  Career Profile Intake is {profile?.status === 'SUBMITTED' ? 'Under Review' : 'Incomplete'}
+                  Action Requested by Consultant
                 </h4>
                 <p className="text-[11px] text-amber-800 mt-0.5">
-                  {profile?.status === 'SUBMITTED'
-                    ? 'Our career specialists are evaluating your career history to tailor your documents.'
-                    : 'Providing your complete employment history and target roles guarantees higher document precision.'}
+                  {profile.requestedNotes || 'Our specialist team has requested additional clarification or files.'}
                 </p>
               </div>
             </div>
@@ -117,7 +115,47 @@ export default function ClientDashboardPage() {
               href="/career-services/portal/onboarding"
               className="px-3.5 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-medium shrink-0 transition"
             >
-              {profile?.status === 'SUBMITTED' ? 'View Profile' : 'Complete Intake'}
+              Respond to Request
+            </Link>
+          </div>
+        ) : profile?.resumeFileName || profile?.status === 'RESUME_RECEIVED' ? (
+          <div className="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-emerald-950">
+                  Resume Received: {profile.resumeFileName}
+                </h4>
+                <p className="text-[11px] text-emerald-800 mt-0.5">
+                  Your existing resume is securely on file. Our team can work directly from your document without requiring you to re-enter employment history.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/career-services/portal/onboarding"
+              className="px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium shrink-0 transition"
+            >
+              Manage Resume File
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-[#FAF8FC] border border-[#E6E2DC] p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-[#8172A8] shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-[#17243B]">
+                  Share your career information your way
+                </h4>
+                <p className="text-[11px] text-[#777781] mt-0.5">
+                  “You don’t need to have everything ready. Start with what you have, and add the rest whenever you’re ready.”
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/career-services/portal/onboarding"
+              className="px-3.5 py-1.5 rounded-lg bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-medium shrink-0 transition"
+            >
+              Upload Resume or Fill Form
             </Link>
           </div>
         )}
@@ -139,14 +177,22 @@ export default function ClientDashboardPage() {
 
           <div className="bg-[#FFFFFF] p-4 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.02)]">
             <div className="flex items-center justify-between text-[#777781] mb-2">
-              <span className="text-xs font-medium">Profile Status</span>
+              <span className="text-xs font-medium">Career Information</span>
               <FileText className="w-4 h-4 text-[#8172A8]" />
             </div>
-            <div className="text-base font-bold text-[#17243B] truncate">
-              {profile?.status || 'Draft'}
+            <div className="text-sm font-bold text-[#17243B] truncate">
+              {profile?.status === 'RESUME_RECEIVED'
+                ? 'Resume Received'
+                : profile?.status === 'ADDITIONAL_INFO_REQUESTED'
+                ? 'Info Requested'
+                : profile?.status === 'APPROVED' || profile?.status === 'READY_FOR_SERVICE'
+                ? 'Approved'
+                : profile?.status === 'PARTIALLY_COMPLETED' || profile?.status === 'IN_PROGRESS'
+                ? 'Partially Saved'
+                : 'Not started'}
             </div>
             <span className="text-[11px] text-[#777781] mt-0.5 block">
-              Intake completeness
+              {profile?.resumeFileName ? profile.resumeFileName : 'Flexible progress'}
             </span>
           </div>
 

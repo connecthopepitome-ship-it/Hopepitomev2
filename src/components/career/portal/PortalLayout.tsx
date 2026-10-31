@@ -81,26 +81,28 @@ export function PortalLayout({ children }: PortalLayoutProps) {
               </div>
             </div>
 
-            {/* Profile Completeness preview */}
+            {/* Profile Status Badge */}
             <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60">
               <div className="flex items-center justify-between text-[11px] mb-1.5">
-                <span className="text-[#777781] font-medium">Profile Status</span>
+                <span className="text-[#777781] font-medium">Profile Method</span>
                 <span className="font-semibold text-[#17243B]">
-                  {profile?.status || 'Draft'}
+                  {profile?.inputMethod === 'RESUME_UPLOAD'
+                    ? 'Resume Upload'
+                    : profile?.inputMethod === 'MANUAL_ENTRY'
+                    ? 'Manual Form'
+                    : 'Flexible'}
                 </span>
               </div>
-              <div className="w-full bg-[#F7F5F0] rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="bg-[#8172A8] h-full rounded-full transition-all duration-500"
-                  style={{
-                    width:
-                      profile?.status === 'APPROVED'
-                        ? '100%'
-                        : profile?.status === 'SUBMITTED'
-                        ? '85%'
-                        : '45%',
-                  }}
-                />
+              <div className="text-[11px] px-2.5 py-1 rounded-lg bg-[#FAF8FC] border border-[#E6E2DC] text-[#17243B] font-medium">
+                {profile?.status === 'RESUME_RECEIVED'
+                  ? 'Resume Received ✓'
+                  : profile?.status === 'ADDITIONAL_INFO_REQUESTED'
+                  ? 'Action Requested ⚠️'
+                  : profile?.status === 'APPROVED' || profile?.status === 'READY_FOR_SERVICE'
+                  ? 'Profile Approved ✓'
+                  : profile?.status === 'PARTIALLY_COMPLETED' || profile?.status === 'IN_PROGRESS'
+                  ? 'Partially Saved'
+                  : 'Start at your pace'}
               </div>
             </div>
           </div>

@@ -94,7 +94,7 @@ export async function getCareerProfile(clientId: string): Promise<CareerProfileD
   }
 }
 
-export async function saveCareerProfile(profile: CareerProfileData): Promise<void> {
+export async function saveCareerProfile(profile: Partial<CareerProfileData> & { clientId: string }): Promise<void> {
   if (!db) return;
   await setDoc(doc(db, 'career_profiles', profile.clientId), cleanData(profile), { merge: true });
 }

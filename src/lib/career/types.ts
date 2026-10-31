@@ -33,11 +33,21 @@ export type ServiceOrderStatus =
   | 'CANCELLED';
 
 export type ProfileStatus =
+  | 'NOT_STARTED'
+  | 'RESUME_RECEIVED'
+  | 'IN_PROGRESS'
+  | 'PARTIALLY_COMPLETED'
+  | 'INFORMATION_SUBMITTED'
+  | 'ADMIN_REVIEW'
+  | 'ADDITIONAL_INFO_REQUESTED'
+  | 'READY_FOR_SERVICE'
   | 'DRAFT'
   | 'SUBMITTED'
   | 'UNDER_REVIEW'
   | 'APPROVED'
   | 'REVISION_REQUESTED';
+
+export type ProfileInputMethod = 'RESUME_UPLOAD' | 'MANUAL_ENTRY' | 'BOTH' | 'UNDECIDED';
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'COMPLETED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -94,77 +104,86 @@ export interface CareerClient {
 // 2. Comprehensive Career Profile
 export interface EmploymentRecord {
   id: string;
-  company: string;
-  jobTitle: string;
+  company?: string;
+  jobTitle?: string;
   location?: string;
-  startDate: string; // YYYY-MM
+  startDate?: string; // YYYY-MM
   endDate?: string; // YYYY-MM
-  isCurrent: boolean;
-  responsibilities: string;
-  keyAchievements: string;
+  isCurrent?: boolean;
+  responsibilities?: string;
+  keyAchievements?: string;
   technologiesUsed?: string;
 }
 
 export interface EducationRecord {
   id: string;
-  institution: string;
-  degree: string;
-  fieldOfStudy: string;
-  graduationYear: string;
+  institution?: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  graduationYear?: string;
   honours?: string;
 }
 
 export interface CertificationRecord {
   id: string;
-  title: string;
-  issuingOrganization: string;
-  issueDate: string;
+  title?: string;
+  issuingOrganization?: string;
+  issueDate?: string;
   credentialUrl?: string;
 }
 
 export interface SkillItem {
   name: string;
-  level: 'Fundamental' | 'Intermediate' | 'Advanced' | 'Expert';
+  level?: 'Fundamental' | 'Intermediate' | 'Advanced' | 'Expert';
 }
 
 export interface SkillsMatrix {
-  technical: SkillItem[];
-  functional: SkillItem[];
-  leadership: SkillItem[];
-  toolsAndPlatforms: SkillItem[];
+  technical?: SkillItem[];
+  functional?: SkillItem[];
+  leadership?: SkillItem[];
+  toolsAndPlatforms?: SkillItem[];
 }
 
 export interface ProjectRecord {
   id: string;
-  title: string;
-  description: string;
-  role: string;
+  title?: string;
+  description?: string;
+  role?: string;
   impactMetrics?: string;
   projectUrl?: string;
 }
 
 export interface CareerProfileData {
   clientId: string;
-  fullName: string;
-  email: string;
+  fullName?: string;
+  email?: string;
   phone?: string;
   location?: string;
   linkedInUrl?: string;
   portfolioUrl?: string;
   githubUrl?: string;
-  careerStage: string;
-  targetRoleTitles: string[];
-  targetIndustries: string[];
-  targetGeographies: string[];
+  careerStage?: string;
+  targetRoleTitles?: string[];
+  targetIndustries?: string[];
+  targetGeographies?: string[];
   targetSalaryExpectation?: string;
-  preferredWorkType: 'Remote' | 'Hybrid' | 'On-site' | 'Flexible';
-  employmentHistory: EmploymentRecord[];
-  education: EducationRecord[];
-  certifications: CertificationRecord[];
-  skills: SkillsMatrix;
-  projects: ProjectRecord[];
+  preferredWorkType?: 'Remote' | 'Hybrid' | 'On-site' | 'Flexible';
+  employmentHistory?: EmploymentRecord[];
+  education?: EducationRecord[];
+  certifications?: CertificationRecord[];
+  skills?: SkillsMatrix;
+  projects?: ProjectRecord[];
+  additionalInformation?: string;
   personalStatement?: string;
   status: ProfileStatus;
+  inputMethod?: ProfileInputMethod;
+  resumeDocumentId?: string;
+  resumeFileName?: string;
+  resumeFileUrl?: string;
+  resumeUploadedAt?: string;
+  requestedItems?: string[];
+  requestedNotes?: string;
+  requestedAt?: string;
   adminReviewNotes?: string;
   updatedAt: string;
 }

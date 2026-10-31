@@ -10,6 +10,7 @@ import {
   subscribeDocuments,
   subscribeClientInvoices,
   logActivity,
+  sendMessage,
 } from '@/lib/firebase/firestore';
 import type {
   CareerClient,
@@ -43,6 +44,9 @@ import {
   ChevronRight,
   Edit,
   Save,
+  Send,
+  UploadCloud,
+  Download,
 } from 'lucide-react';
 
 export default function AdminClients360Page() {
@@ -63,10 +67,23 @@ export default function AdminClients360Page() {
   const [adminNotes, setAdminNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
 
+  // Request Additional Information Modal State
+  const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
+  const [requestedItems, setRequestedItems] = useState<string[]>([]);
+  const [customRequestNote, setCustomRequestNote] = useState('');
+  const [sendingRequest, setSendingRequest] = useState(false);
+
+  const standardInfoChecklist = [
+    'Please upload your latest resume.',
+    'Please confirm your employment dates.',
+    'Please share your LinkedIn profile.',
+    'Please provide your target job description.',
+    'Please share your project details.',
+  ];
+
   useEffect(() => {
     // Subscribe to all orders to build active client directory
     const unsub = subscribeAllOrders((orders) => {
-      // Deduplicate unique clients from orders
       const clientMap = new Map<string, CareerClient>();
       orders.forEach((o) => {
         if (!clientMap.has(o.clientId)) {
@@ -133,6 +150,89 @@ export default function AdminClients360Page() {
     }
   };
 
+  const handleSendInfoRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedClient || (!requestedItems.length && !customRequestNote.trim())) return;
+
+    setSendingRequest(true);
+    const allItems = [...requestedItems];
+    if (customRequestNote.trim()) {
+      allItems.push(customRequestNote.trim());
+    }
+
+    try {
+      // 1. Update Career Profile
+      await saveCareerProfile({
+        clientId: selectedClient.id,
+        status: 'ADDITIONAL_INFO_REQUESTED',
+        requestedItems: allItems,
+        requestedNotes: customRequestNote.trim() || undefined,
+        requestedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      // 2. Dispatch a message to the client's direct message stream
+      const msgId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `msg_${Date.now()}`;
+      await sendMessage({
+        id: msgId,
+        clientId: selectedClient.id,
+        senderUid: adminProfile?.uid || 'staff',
+        senderName: adminProfile?.displayName || 'Lead Consultant',
+        senderRole: 'ADMIN',
+        content: `Hello ${selectedClient.fullName}, our review team needs additional details to proceed with your deliverables:\n${allItems.map((item) => `• ${item}`).join('\n')}`,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      });
+
+      // 3. Log Activity
+      await logActivity({
+        actorId: adminProfile?.uid || 'staff',
+        actorName: adminProfile?.displayName || 'Lead Consultant',
+        actorRole: role,
+        action: 'ADDITIONAL_INFO_REQUESTED',
+        entityType: 'PROFILE',
+        entityId: selectedClient.id,
+        summary: `Requested additional information from ${selectedClient.fullName}: ${allItems.join(', ')}`,
+      });
+
+      // Refresh local profile
+      const updatedProf = await getCareerProfile(selectedClient.id);
+      setSelectedProfile(updatedProf);
+
+      setShowRequestInfoModal(false);
+      setRequestedItems([]);
+      setCustomRequestNote('');
+      alert('Request dispatched to client portal and message thread.');
+    } catch (err) {
+      console.error('Error sending info request:', err);
+      alert('Failed to send request.');
+    } finally {
+      setSendingRequest(false);
+    }
+  };
+
+  const getProfileStatusBadge = (prof: CareerProfileData | null) => {
+    if (!prof || prof.status === 'NOT_STARTED') {
+      return { label: 'No career information submitted', bg: 'bg-slate-100 text-slate-700 border-slate-200' };
+    }
+    if (prof.status === 'RESUME_RECEIVED') {
+      return { label: 'Resume Uploaded (Ready for review)', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold' };
+    }
+    if (prof.status === 'ADDITIONAL_INFO_REQUESTED') {
+      return { label: 'Additional Information Requested', bg: 'bg-amber-50 text-amber-900 border-amber-300 font-bold' };
+    }
+    if (prof.status === 'PARTIALLY_COMPLETED' || prof.status === 'IN_PROGRESS') {
+      return { label: 'Partially Completed Profile', bg: 'bg-blue-50 text-blue-800 border-blue-200' };
+    }
+    if (prof.status === 'INFORMATION_SUBMITTED' || prof.status === 'SUBMITTED') {
+      return { label: 'Manual Information Submitted', bg: 'bg-purple-50 text-purple-800 border-purple-200 font-bold' };
+    }
+    if (prof.status === 'APPROVED' || prof.status === 'READY_FOR_SERVICE') {
+      return { label: 'Approved & Ready for Service', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold' };
+    }
+    return { label: prof.status.replace(/_/g, ' '), bg: 'bg-[#F7F5F0] text-[#17243B] border-[#E6E2DC]' };
+  };
+
   const filteredClients = clients.filter((c) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -173,7 +273,7 @@ export default function AdminClients360Page() {
               Client Management Directory
             </h1>
             <p className="text-xs text-[#777781] mt-1">
-              Deep inspection of client career profiles, work history, skill taxonomy, active orders, and consultant annotations.
+              Deep inspection of client career profiles, resume uploads, skill taxonomy, active orders, and consultant follow-ups.
             </p>
           </div>
 
@@ -260,16 +360,24 @@ export default function AdminClients360Page() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                        selectedProfile?.status === 'APPROVED'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-amber-50 text-amber-800 border-amber-200'
-                      }`}
+                  {/* Status & Request Additional Info Button */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {(() => {
+                      const badge = getProfileStatusBadge(selectedProfile);
+                      return (
+                        <span className={`px-3 py-1 rounded-full text-xs border ${badge.bg}`}>
+                          {badge.label}
+                        </span>
+                      );
+                    })()}
+
+                    <button
+                      onClick={() => setShowRequestInfoModal(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold shadow-sm transition"
                     >
-                      Status: {selectedProfile?.status || 'Draft'}
-                    </span>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Request Additional Information</span>
+                    </button>
                   </div>
                 </div>
 
@@ -297,9 +405,41 @@ export default function AdminClients360Page() {
                   {/* TAB 1: Basic Info */}
                   {activeTab === 1 && (
                     <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Personal & Contact Identification
-                      </h4>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
+                          Personal & Contact Identification
+                        </h4>
+                        <span className="text-[11px] text-[#777781]">
+                          Intake Method: <strong>{selectedProfile?.inputMethod || 'Undecided'}</strong>
+                        </span>
+                      </div>
+
+                      {/* Resume Highlight if received */}
+                      {selectedProfile?.resumeFileName && (
+                        <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2.5">
+                            <FileCheck className="w-5 h-5 text-emerald-700" />
+                            <div>
+                              <span className="font-bold text-[#17243B] block">
+                                Resume Uploaded: {selectedProfile.resumeFileName}
+                              </span>
+                              <span className="text-[11px] text-emerald-800">
+                                Client chose fast document upload over manual entry.
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={selectedProfile.resumeFileUrl || '#'}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-xs font-semibold text-emerald-900 hover:bg-emerald-50 transition"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download Resume</span>
+                          </a>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-4 text-xs">
                         <div>
                           <span className="text-[#777781] block">Full Legal Name</span>
@@ -369,9 +509,9 @@ export default function AdminClients360Page() {
                           <span className="font-semibold text-[#17243B]">{selectedProfile?.preferredWorkType || 'Remote'}</span>
                         </div>
                         <div>
-                          <span className="text-[#777781] block">Personal Statement / Context</span>
+                          <span className="text-[#777781] block">Client Additional Notes / Instructions</span>
                           <p className="text-[#292D36] mt-1 leading-relaxed">
-                            {selectedProfile?.personalStatement || 'No personal statement provided.'}
+                            {selectedProfile?.additionalInformation || selectedProfile?.personalStatement || 'No special notes provided.'}
                           </p>
                         </div>
                       </div>
@@ -392,7 +532,7 @@ export default function AdminClients360Page() {
                               <span key={i} className="px-2.5 py-1 rounded-full bg-[#F7F5F0] border border-[#E6E2DC] font-semibold text-[#17243B]">
                                 {r}
                               </span>
-                            )) || <span className="text-[#777781]">None specified</span>}
+                            )) || <span className="text-[#777781]">None specified (or present in resume)</span>}
                           </div>
                         </div>
 
@@ -427,6 +567,11 @@ export default function AdminClients360Page() {
                       <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
                         Employment History ({selectedProfile?.employmentHistory?.length || 0} Positions)
                       </h4>
+                      {selectedProfile?.resumeFileName && (!selectedProfile?.employmentHistory || selectedProfile.employmentHistory.length === 0) && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
+                          ℹ️ The client uploaded an existing resume ({selectedProfile.resumeFileName}) rather than typing individual positions. Refer to their document file.
+                        </div>
+                      )}
                       <div className="space-y-3">
                         {selectedProfile?.employmentHistory?.map((job) => (
                           <div key={job.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 space-y-2 text-xs">
@@ -440,13 +585,8 @@ export default function AdminClients360Page() {
                             <p className="text-[#292D36] leading-relaxed">
                               <strong>Key Achievements:</strong> {job.keyAchievements}
                             </p>
-                            {job.technologiesUsed && (
-                              <p className="text-[11px] text-[#777781]">
-                                <strong>Tools:</strong> {job.technologiesUsed}
-                              </p>
-                            )}
                           </div>
-                        )) || <div className="text-xs text-[#777781]">No employment entries recorded.</div>}
+                        )) || <div className="text-xs text-[#777781]">No employment entries recorded manually.</div>}
                       </div>
                     </div>
                   )}
@@ -462,7 +602,7 @@ export default function AdminClients360Page() {
                           <span className="font-bold text-[#17243B] block">{edu.degree} in {edu.fieldOfStudy}</span>
                           <span className="text-[#777781]">{edu.institution} • Class of {edu.graduationYear}</span>
                         </div>
-                      )) || <div className="text-xs text-[#777781]">No academic degrees listed.</div>}
+                      )) || <div className="text-xs text-[#777781]">No academic degrees entered manually.</div>}
                     </div>
                   )}
 
@@ -477,7 +617,7 @@ export default function AdminClients360Page() {
                           <span className="font-bold text-[#17243B] block">{c.title}</span>
                           <span className="text-[#777781]">{c.issuingOrganization} ({c.issueDate})</span>
                         </div>
-                      )) || <div className="text-xs text-[#777781]">No certifications listed.</div>}
+                      )) || <div className="text-xs text-[#777781]">No certifications entered manually.</div>}
                     </div>
                   )}
 
@@ -489,7 +629,7 @@ export default function AdminClients360Page() {
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                         <div className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-2">
-                          <span className="font-bold text-[#17243B] block">Technical & Engineering</span>
+                          <span className="font-bold text-[#17243B] block">Technical & Tools</span>
                           <div className="flex flex-wrap gap-1">
                             {selectedProfile?.skills?.technical?.map((s, i) => (
                               <span key={i} className="px-2 py-0.5 rounded bg-white border border-[#E6E2DC] text-[11px]">
@@ -503,28 +643,6 @@ export default function AdminClients360Page() {
                           <span className="font-bold text-[#17243B] block">Functional & Domain</span>
                           <div className="flex flex-wrap gap-1">
                             {selectedProfile?.skills?.functional?.map((s, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded bg-white border border-[#E6E2DC] text-[11px]">
-                                {s.name}
-                              </span>
-                            )) || <span className="text-[#777781]">None</span>}
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-2">
-                          <span className="font-bold text-[#17243B] block">Leadership & Strategy</span>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedProfile?.skills?.leadership?.map((s, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded bg-white border border-[#E6E2DC] text-[11px]">
-                                {s.name}
-                              </span>
-                            )) || <span className="text-[#777781]">None</span>}
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-2">
-                          <span className="font-bold text-[#17243B] block">Tools & Platforms</span>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedProfile?.skills?.toolsAndPlatforms?.map((s, i) => (
                               <span key={i} className="px-2 py-0.5 rounded bg-white border border-[#E6E2DC] text-[11px]">
                                 {s.name}
                               </span>
@@ -549,19 +667,39 @@ export default function AdminClients360Page() {
                             Impact: {proj.impactMetrics}
                           </span>
                         </div>
-                      )) || <div className="text-xs text-[#777781]">No projects listed.</div>}
+                      )) || <div className="text-xs text-[#777781]">No projects listed manually.</div>}
                     </div>
                   )}
 
                   {/* TAB 9: Vault Documents */}
                   {activeTab === 9 && (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
                         Uploaded Resumes & Files
                       </h4>
-                      <p className="text-xs text-[#777781]">
-                        Files uploaded to the private vault by the client are inspectable here.
-                      </p>
+                      {selectedProfile?.resumeFileName ? (
+                        <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <FileCheck className="w-5 h-5 text-emerald-700" />
+                            <div>
+                              <span className="font-bold text-[#17243B]">{selectedProfile.resumeFileName}</span>
+                              <span className="text-[11px] text-[#777781] block">
+                                Uploaded {selectedProfile.resumeUploadedAt ? new Date(selectedProfile.resumeUploadedAt).toLocaleDateString() : 'recently'}
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={selectedProfile.resumeFileUrl || '#'}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3 py-1.5 rounded-lg bg-white border border-[#E6E2DC] text-xs font-medium text-[#17243B] hover:bg-[#F7F5F0]"
+                          >
+                            Download
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-[#777781]">No resume uploaded in vault.</div>
+                      )}
                     </div>
                   )}
 
@@ -666,8 +804,92 @@ export default function AdminClients360Page() {
             )}
           </div>
         </div>
+
+        {/* Modal: Request Additional Information */}
+        {showRequestInfoModal && selectedClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <div className="bg-[#FFFFFF] rounded-2xl max-w-lg w-full p-6 border border-[#E6E2DC] shadow-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#E6E2DC]">
+                <h3 className="text-sm font-bold text-[#17243B]">
+                  Request Additional Information from {selectedClient.fullName}
+                </h3>
+                <button
+                  onClick={() => setShowRequestInfoModal(false)}
+                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              <p className="text-xs text-[#777781]">
+                Select the missing information required to advance this client's service order. This will post a notification in their portal and client chat.
+              </p>
+
+              <form onSubmit={handleSendInfoRequest} className="space-y-4">
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-[#17243B] block">
+                    Common Requirements:
+                  </span>
+                  {standardInfoChecklist.map((item, idx) => {
+                    const isChecked = requestedItems.includes(item);
+                    return (
+                      <label
+                        key={idx}
+                        className="flex items-start gap-2 text-xs text-[#292D36] p-2 rounded-lg border border-[#E6E2DC] hover:bg-[#F7F5F0] cursor-pointer transition"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setRequestedItems(requestedItems.filter((i) => i !== item));
+                            } else {
+                              setRequestedItems([...requestedItems, item]);
+                            }
+                          }}
+                          className="mt-0.5 rounded text-[#8172A8] focus:ring-[#8172A8]"
+                        />
+                        <span>{item}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
+                    Specific Consultant Notes / Custom Request
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={customRequestNote}
+                    onChange={(e) => setCustomRequestNote(e.target.value)}
+                    placeholder="e.g. Please clarify the revenue figures in your 2022 Senior Consultant role..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRequestInfoModal(false)}
+                    className="px-4 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium text-[#777781]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={sendingRequest || (!requestedItems.length && !customRequestNote.trim())}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold transition disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{sendingRequest ? 'Dispatching...' : 'Dispatch Request to Client'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
 }
-

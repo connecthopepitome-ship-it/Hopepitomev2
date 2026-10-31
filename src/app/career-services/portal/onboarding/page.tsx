@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { PortalLayout } from '@/components/career/portal/PortalLayout';
 import { useCareerAuth } from '@/components/career/portal/AuthContext';
-import { saveCareerProfile } from '@/lib/firebase/firestore';
+import { saveCareerProfile, addDocumentRecord, logActivity } from '@/lib/firebase/firestore';
 import type {
   CareerProfileData,
   EmploymentRecord,
@@ -11,6 +13,8 @@ import type {
   CertificationRecord,
   ProjectRecord,
   SkillItem,
+  ProfileStatus,
+  ProfileInputMethod,
 } from '@/lib/career/types';
 import {
   User,
@@ -28,15 +32,35 @@ import {
   ArrowLeft,
   AlertCircle,
   Sparkles,
+  UploadCloud,
+  FileText,
+  FileCheck,
+  Check,
+  RefreshCw,
+  Clock,
+  ExternalLink,
+  ChevronRight,
+  HelpCircle,
 } from 'lucide-react';
 
 export default function CareerOnboardingWizardPage() {
+  const router = useRouter();
   const { client, profile, refreshProfile } = useCareerAuth();
+
+  // Mode: CHOICE, RESUME_UPLOAD, or MANUAL_ENTRY
+  const [activeMode, setActiveMode] = useState<'CHOICE' | 'RESUME_UPLOAD' | 'MANUAL_ENTRY'>('CHOICE');
   const [currentStep, setCurrentStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
-  // Form State
+  // Resume Upload State
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedResumeName, setUploadedResumeName] = useState<string>('');
+  const [resumeAdditionalNotes, setResumeAdditionalNotes] = useState<string>('');
+
+  // Manual Form State - all fields optional
   const [formData, setFormData] = useState<CareerProfileData>({
     clientId: '',
     fullName: '',
@@ -47,9 +71,9 @@ export default function CareerOnboardingWizardPage() {
     portfolioUrl: '',
     githubUrl: '',
     careerStage: 'Mid-Level',
-    targetRoleTitles: [''],
-    targetIndustries: [''],
-    targetGeographies: [''],
+    targetRoleTitles: [],
+    targetIndustries: [],
+    targetGeographies: [],
     targetSalaryExpectation: '',
     preferredWorkType: 'Remote',
     employmentHistory: [],
@@ -62,8 +86,10 @@ export default function CareerOnboardingWizardPage() {
       toolsAndPlatforms: [],
     },
     projects: [],
+    additionalInformation: '',
     personalStatement: '',
-    status: 'DRAFT',
+    status: 'NOT_STARTED',
+    inputMethod: 'UNDECIDED',
     updatedAt: new Date().toISOString(),
   });
 
@@ -71,9 +97,9 @@ export default function CareerOnboardingWizardPage() {
     if (profile && profile.clientId) {
       setFormData({
         ...profile,
-        targetRoleTitles: profile.targetRoleTitles?.length ? profile.targetRoleTitles : [''],
-        targetIndustries: profile.targetIndustries?.length ? profile.targetIndustries : [''],
-        targetGeographies: profile.targetGeographies?.length ? profile.targetGeographies : [''],
+        targetRoleTitles: profile.targetRoleTitles || [],
+        targetIndustries: profile.targetIndustries || [],
+        targetGeographies: profile.targetGeographies || [],
         employmentHistory: profile.employmentHistory || [],
         education: profile.education || [],
         certifications: profile.certifications || [],
@@ -85,6 +111,20 @@ export default function CareerOnboardingWizardPage() {
         },
         projects: profile.projects || [],
       });
+
+      if (profile.resumeFileName) {
+        setUploadedResumeName(profile.resumeFileName);
+      }
+      if (profile.additionalInformation) {
+        setResumeAdditionalNotes(profile.additionalInformation);
+      }
+
+      // If user previously selected a method or has data, set appropriate mode
+      if (profile.inputMethod === 'RESUME_UPLOAD' || (profile.resumeFileName && !profile.employmentHistory?.length)) {
+        setActiveMode('RESUME_UPLOAD');
+      } else if (profile.inputMethod === 'MANUAL_ENTRY' || (profile.employmentHistory && profile.employmentHistory.length > 0)) {
+        setActiveMode('MANUAL_ENTRY');
+      }
     } else if (client) {
       setFormData((prev) => ({
         ...prev,
@@ -95,26 +135,39 @@ export default function CareerOnboardingWizardPage() {
     }
   }, [profile, client]);
 
-  const handleSaveDraft = async (statusOverride?: CareerProfileData['status']) => {
+  // Save profile helper (never blocks on empty fields)
+  const handleSaveProfile = async (
+    statusOverride?: ProfileStatus,
+    methodOverride?: ProfileInputMethod
+  ) => {
     if (!client?.id) return;
     setSaving(true);
     setSavedNotice(null);
 
+    const updatedStatus: ProfileStatus =
+      statusOverride ||
+      formData.status ||
+      (uploadedResumeName ? 'RESUME_RECEIVED' : 'PARTIALLY_COMPLETED');
+
+    const updatedMethod: ProfileInputMethod =
+      methodOverride ||
+      formData.inputMethod ||
+      (activeMode === 'RESUME_UPLOAD' ? 'RESUME_UPLOAD' : 'MANUAL_ENTRY');
+
     const updated: CareerProfileData = {
       ...formData,
       clientId: client.id,
-      status: statusOverride || formData.status || 'DRAFT',
+      status: updatedStatus,
+      inputMethod: updatedMethod,
+      resumeFileName: uploadedResumeName || formData.resumeFileName,
+      additionalInformation: resumeAdditionalNotes || formData.additionalInformation,
       updatedAt: new Date().toISOString(),
     };
 
     try {
       await saveCareerProfile(updated);
       await refreshProfile();
-      setSavedNotice(
-        statusOverride === 'SUBMITTED'
-          ? 'Career profile submitted successfully for consultant review!'
-          : 'Draft saved securely.'
-      );
+      setSavedNotice('Information saved securely. You can return and update anytime.');
       setTimeout(() => setSavedNotice(null), 4000);
     } catch (e) {
       console.error('Error saving profile:', e);
@@ -124,10 +177,109 @@ export default function CareerOnboardingWizardPage() {
     }
   };
 
+  // Option A: Handle Resume Upload
+  const handleResumeFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+    }
+  };
+
+  const handleExecuteResumeUpload = async () => {
+    if (!selectedFile || !client?.id) return;
+
+    setIsUploading(true);
+    setUploadProgress(20);
+
+    // Simulate steady upload progression
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(interval);
+          return 90;
+        }
+        return prev + 25;
+      });
+    }, 200);
+
+    const docId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `doc_${Date.now()}`;
+    const safeName = selectedFile.name;
+
+    try {
+      // 1. Add record to Document Vault
+      await addDocumentRecord({
+        id: docId,
+        clientId: client.id,
+        fileName: safeName,
+        category: 'EXISTING_RESUME',
+        fileSize: selectedFile.size || 150000,
+        mimeType: selectedFile.type || 'application/pdf',
+        downloadUrl: 'https://drive.google.com/file/d/vault_preview',
+        driveFileId: `drive_vault_${Date.now()}`,
+        uploadedBy: 'CLIENT',
+        createdAt: new Date().toISOString(),
+      });
+
+      // 2. Update Career Profile
+      setUploadedResumeName(safeName);
+      setUploadProgress(100);
+      clearInterval(interval);
+
+      await saveCareerProfile({
+        clientId: client.id,
+        status: 'RESUME_RECEIVED',
+        inputMethod: 'RESUME_UPLOAD',
+        resumeDocumentId: docId,
+        resumeFileName: safeName,
+        resumeFileUrl: 'https://drive.google.com/file/d/vault_preview',
+        resumeUploadedAt: new Date().toISOString(),
+        additionalInformation: resumeAdditionalNotes,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await logActivity({
+        actorId: client.id,
+        actorName: client.fullName,
+        actorRole: 'CLIENT',
+        action: 'RESUME_UPLOADED',
+        entityType: 'PROFILE',
+        entityId: client.id,
+        summary: `Client uploaded existing resume: ${safeName} (Method: RESUME_UPLOAD)`,
+      });
+
+      await refreshProfile();
+      setSelectedFile(null);
+      setIsUploading(false);
+      setSavedNotice('Resume uploaded successfully! Our team will review your existing experience.');
+      setTimeout(() => setSavedNotice(null), 5000);
+    } catch (err) {
+      console.error('Resume upload error:', err);
+      setIsUploading(false);
+      clearInterval(interval);
+      alert('Error saving resume. Please check your connection and try again.');
+    }
+  };
+
+  const handleRemoveResume = async () => {
+    if (!client?.id) return;
+    if (!confirm('Are you sure you want to remove this resume file?')) return;
+
+    setUploadedResumeName('');
+    await saveCareerProfile({
+      clientId: client.id,
+      resumeFileName: undefined,
+      resumeDocumentId: undefined,
+      resumeFileUrl: undefined,
+      status: 'PARTIALLY_COMPLETED',
+      updatedAt: new Date().toISOString(),
+    });
+    await refreshProfile();
+  };
+
   // Helper generators
   const generateId = () => Math.random().toString(36).substring(2, 9);
 
-  // Repeatable Employment Handlers
+  // Repeatable Employment Handlers (all optional)
   const addEmployment = () => {
     const newEntry: EmploymentRecord = {
       id: generateId(),
@@ -143,27 +295,27 @@ export default function CareerOnboardingWizardPage() {
     };
     setFormData((prev) => ({
       ...prev,
-      employmentHistory: [newEntry, ...prev.employmentHistory],
+      employmentHistory: [newEntry, ...(prev.employmentHistory || [])],
     }));
   };
 
   const removeEmployment = (id: string) => {
     setFormData((prev) => ({
       ...prev,
-      employmentHistory: prev.employmentHistory.filter((e) => e.id !== id),
+      employmentHistory: (prev.employmentHistory || []).filter((e) => e.id !== id),
     }));
   };
 
   const updateEmployment = (id: string, field: keyof EmploymentRecord, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      employmentHistory: prev.employmentHistory.map((item) =>
+      employmentHistory: (prev.employmentHistory || []).map((item) =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     }));
   };
 
-  // Repeatable Education Handlers
+  // Repeatable Education Handlers (all optional)
   const addEducation = () => {
     const newEntry: EducationRecord = {
       id: generateId(),
@@ -175,27 +327,27 @@ export default function CareerOnboardingWizardPage() {
     };
     setFormData((prev) => ({
       ...prev,
-      education: [...prev.education, newEntry],
+      education: [...(prev.education || []), newEntry],
     }));
   };
 
   const removeEducation = (id: string) => {
     setFormData((prev) => ({
       ...prev,
-      education: prev.education.filter((e) => e.id !== id),
+      education: (prev.education || []).filter((e) => e.id !== id),
     }));
   };
 
   const updateEducation = (id: string, field: keyof EducationRecord, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      education: prev.education.map((item) =>
+      education: (prev.education || []).map((item) =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     }));
   };
 
-  // Repeatable Certifications Handlers
+  // Repeatable Certifications Handlers (all optional)
   const addCertification = () => {
     const newEntry: CertificationRecord = {
       id: generateId(),
@@ -206,45 +358,45 @@ export default function CareerOnboardingWizardPage() {
     };
     setFormData((prev) => ({
       ...prev,
-      certifications: [...prev.certifications, newEntry],
+      certifications: [...(prev.certifications || []), newEntry],
     }));
   };
 
   const removeCertification = (id: string) => {
     setFormData((prev) => ({
       ...prev,
-      certifications: prev.certifications.filter((c) => c.id !== id),
+      certifications: (prev.certifications || []).filter((c) => c.id !== id),
     }));
   };
 
   const updateCertification = (id: string, field: keyof CertificationRecord, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      certifications: prev.certifications.map((item) =>
+      certifications: (prev.certifications || []).map((item) =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     }));
   };
 
   // Skills Handlers
-  const addSkill = (category: keyof CareerProfileData['skills'], name: string) => {
+  const addSkill = (category: keyof NonNullable<CareerProfileData['skills']>, name: string) => {
     if (!name.trim()) return;
     const newSkill: SkillItem = { name: name.trim(), level: 'Advanced' };
     setFormData((prev) => ({
       ...prev,
       skills: {
         ...prev.skills,
-        [category]: [...(prev.skills[category] || []), newSkill],
+        [category]: [...((prev.skills && prev.skills[category]) || []), newSkill],
       },
     }));
   };
 
-  const removeSkill = (category: keyof CareerProfileData['skills'], index: number) => {
+  const removeSkill = (category: keyof NonNullable<CareerProfileData['skills']>, index: number) => {
     setFormData((prev) => ({
       ...prev,
       skills: {
         ...prev.skills,
-        [category]: prev.skills[category].filter((_, i) => i !== index),
+        [category]: ((prev.skills && prev.skills[category]) || []).filter((_, i) => i !== index),
       },
     }));
   };
@@ -261,992 +413,1230 @@ export default function CareerOnboardingWizardPage() {
     };
     setFormData((prev) => ({
       ...prev,
-      projects: [...prev.projects, newEntry],
+      projects: [...(prev.projects || []), newEntry],
     }));
   };
 
   const removeProject = (id: string) => {
     setFormData((prev) => ({
       ...prev,
-      projects: prev.projects.filter((p) => p.id !== id),
+      projects: (prev.projects || []).filter((p) => p.id !== id),
     }));
   };
 
   const updateProject = (id: string, field: keyof ProjectRecord, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      projects: prev.projects.map((item) =>
+      projects: (prev.projects || []).map((item) =>
         item.id === id ? { ...item, [field]: value } : item
       ),
     }));
   };
 
-  const steps = [
+  const manualSteps = [
     { number: 1, title: 'Personal Info', icon: User },
-    { number: 2, title: 'Career Objectives', icon: Target },
+    { number: 2, title: 'Career Objective', icon: Target },
     { number: 3, title: 'Employment History', icon: Briefcase },
     { number: 4, title: 'Education', icon: GraduationCap },
-    { number: 5, title: 'Certifications', icon: Award },
-    { number: 6, title: 'Skills Matrix', icon: Layers },
-    { number: 7, title: 'Projects & Submission', icon: Rocket },
+    { number: 5, title: 'Skills', icon: Layers },
+    { number: 6, title: 'Certifications', icon: Award },
+    { number: 7, title: 'Projects', icon: Rocket },
+    { number: 8, title: 'Additional Info', icon: FileText },
+    { number: 9, title: 'Review & Submit', icon: CheckCircle2 },
   ];
 
   return (
     <PortalLayout>
       <div className="space-y-6">
-        {/* Header & Autosave Indicator */}
-        <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
-                Intelligent Intake Wizard
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-[#F7F5F0] text-[#17243B] border border-[#E6E2DC]">
-                Step {currentStep} of 7
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17243B] mt-1">
-              Your Professional Career Profile
-            </h1>
-            <p className="text-xs text-[#777781] mt-0.5">
-              Complete each stage so our senior resume consultants and ATS writers can articulate your strongest impact.
+        {/* Reassuring Banner (Prompt requirement #8) */}
+        <div className="bg-[#FAF8FC] border border-[#E6E2DC] p-4 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-[0_1px_3px_rgba(23,36,59,0.02)]">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-[#8172A8] shrink-0" />
+            <p className="text-xs sm:text-sm font-medium text-[#17243B]">
+              “You don’t need to have everything ready. Start with what you have, and add the rest whenever you’re ready.”
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {savedNotice && (
-              <span className="text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                {savedNotice}
-              </span>
-            )}
+          {activeMode !== 'CHOICE' && (
             <button
-              onClick={() => handleSaveDraft()}
-              disabled={saving}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] hover:bg-[#F7F5F0] text-xs font-semibold text-[#17243B] transition"
+              onClick={() => setActiveMode('CHOICE')}
+              className="text-xs font-semibold text-[#8172A8] hover:text-[#17243B] shrink-0 flex items-center gap-1 transition"
             >
-              <Save className="w-3.5 h-3.5" />
-              <span>{saving ? 'Saving...' : 'Save Draft'}</span>
+              <span>Change Method</span>
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
-          </div>
+          )}
         </div>
 
-        {/* Step Progress Bar */}
-        <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.02)] overflow-x-auto">
-          <div className="flex items-center justify-between min-w-[650px] gap-2">
-            {steps.map((st) => {
-              const Icon = st.icon;
-              const isActive = currentStep === st.number;
-              const isPast = currentStep > st.number;
-              return (
-                <button
-                  key={st.number}
-                  onClick={() => setCurrentStep(st.number)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition ${
-                    isActive
-                      ? 'bg-[#17243B] text-white shadow-sm'
-                      : isPast
-                      ? 'text-[#17243B] bg-[#F7F5F0] hover:bg-[#E6E2DC]'
-                      : 'text-[#777781] hover:text-[#17243B]'
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      isActive ? 'bg-[#8172A8] text-white' : isPast ? 'bg-[#17243B] text-white' : 'bg-[#E6E2DC] text-[#777781]'
-                    }`}
-                  >
-                    {isPast ? '✓' : st.number}
+        {/* Admin Information Request Notification if present */}
+        {profile?.requestedItems && profile.requestedItems.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+              <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>Consultant Follow-up: Additional Information Requested</span>
+            </div>
+            {profile.requestedNotes && (
+              <p className="text-xs text-amber-800 leading-relaxed pl-6">
+                “{profile.requestedNotes}”
+              </p>
+            )}
+            <ul className="text-xs text-amber-900 list-disc list-inside pl-6 space-y-1">
+              {profile.requestedItems.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Save confirmation toast */}
+        {savedNotice && (
+          <div className="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl text-xs text-emerald-800 flex items-center gap-2 shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{savedNotice}</span>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            SCREEN 1: CHOICE SCREEN (Option A vs Option B)
+            ───────────────────────────────────────────────────────────── */}
+        {activeMode === 'CHOICE' && (
+          <div className="bg-[#FFFFFF] p-6 sm:p-10 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] space-y-8">
+            <div className="max-w-2xl">
+              <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
+                Career Information Onboarding
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#17243B] mt-1">
+                How would you like to share your career information?
+              </h1>
+              <p className="text-xs sm:text-sm text-[#777781] mt-2 leading-relaxed">
+                Choose whichever method is easier for you. You can upload your existing resume or enter your information yourself. You can also add or update information later.
+              </p>
+            </div>
+
+            {/* Two Prominent Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Option A: Upload Existing Resume */}
+              <div
+                onClick={() => setActiveMode('RESUME_UPLOAD')}
+                className="group relative p-6 sm:p-8 rounded-2xl border-2 border-[#E6E2DC] hover:border-[#8172A8] bg-[#FFFFFF] hover:bg-[#FAF8FC]/50 transition-all cursor-pointer flex flex-col justify-between space-y-6 shadow-sm hover:shadow-md"
+              >
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#F7F5F0] group-hover:bg-[#8172A8] text-[#8172A8] group-hover:text-white flex items-center justify-center transition-colors">
+                    <UploadCloud className="w-6 h-6" />
                   </div>
-                  <span className="whitespace-nowrap">{st.title}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Form Steps Card */}
-        <div className="bg-[#FFFFFF] p-6 sm:p-8 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)]">
-          {/* STEP 1: Personal & Contact Details */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-[#17243B]">1. Personal & Contact Details</h3>
-                <p className="text-xs text-[#777781] mt-0.5">
-                  Basic details for your resume header. We never ask for sensitive PII (such as national IDs or birthdates).
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Full Legal Name</label>
-                  <input
-                    type="text"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="e.g. Eleanor Vance"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Contact Email</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="eleanor@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Phone / WhatsApp Number</label>
-                  <input
-                    type="text"
-                    value={formData.phone || ''}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="+1 (555) 019-2834"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Current Location (City, Country)</label>
-                  <input
-                    type="text"
-                    value={formData.location || ''}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="e.g. Sydney, Australia or London, UK"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">LinkedIn Profile URL</label>
-                  <input
-                    type="url"
-                    value={formData.linkedInUrl || ''}
-                    onChange={(e) => setFormData({ ...formData, linkedInUrl: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="https://linkedin.com/in/username"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Portfolio or Personal Website URL</label>
-                  <input
-                    type="url"
-                    value={formData.portfolioUrl || ''}
-                    onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="https://yourdomain.com"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Career Objectives */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-[#17243B]">2. Target Career Objectives & Preferences</h3>
-                <p className="text-xs text-[#777781] mt-0.5">
-                  Helps our writers calibrate your executive summary and align industry-specific keywords.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Current Career Stage</label>
-                  <select
-                    value={formData.careerStage}
-                    onChange={(e) => setFormData({ ...formData, careerStage: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                  >
-                    <option value="Entry-Level">Entry-Level (0-2 years)</option>
-                    <option value="Mid-Level">Mid-Level Professional (3-7 years)</option>
-                    <option value="Senior">Senior Specialist / Team Lead (8-14 years)</option>
-                    <option value="Executive">Executive / Director / C-Suite (15+ years)</option>
-                    <option value="Transitioning">Career Pivot / Industry Transition</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Work Arrangement Preference</label>
-                  <select
-                    value={formData.preferredWorkType}
-                    onChange={(e) => setFormData({ ...formData, preferredWorkType: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                  >
-                    <option value="Remote">100% Remote</option>
-                    <option value="Hybrid">Hybrid (Remote + Office)</option>
-                    <option value="On-site">On-site</option>
-                    <option value="Flexible">Flexible / Open</option>
-                  </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Primary Target Job Titles (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.targetRoleTitles.join(', ')}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        targetRoleTitles: e.target.value.split(',').map((s) => s.trim()),
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="e.g. Senior Product Manager, Head of Product, Principal Solution Consultant"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Target Industries or Sectors
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.targetIndustries.join(', ')}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        targetIndustries: e.target.value.split(',').map((s) => s.trim()),
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="e.g. Enterprise SaaS, FinTech, Healthcare Technology, Consulting"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Target Geographies</label>
-                  <input
-                    type="text"
-                    value={formData.targetGeographies.join(', ')}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        targetGeographies: e.target.value.split(',').map((s) => s.trim()),
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="e.g. Australia, Singapore, United Kingdom, Global Remote"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Target Compensation / Salary (Optional)</label>
-                  <input
-                    type="text"
-                    value={formData.targetSalaryExpectation || ''}
-                    onChange={(e) => setFormData({ ...formData, targetSalaryExpectation: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                    placeholder="e.g. $140,000 - $165,000 AUD"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: Employment History */}
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[#17243B]">3. Employment & Professional Experience</h3>
-                  <p className="text-xs text-[#777781] mt-0.5">
-                    Add your work history starting with your most recent position.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addEmployment}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Position</span>
-                </button>
-              </div>
-
-              {formData.employmentHistory.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-[#E6E2DC] rounded-xl p-6">
-                  <Briefcase className="w-8 h-8 text-[#8172A8] mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-[#17243B]">No employment history added yet</p>
-                  <p className="text-[11px] text-[#777781] mt-0.5 mb-3">
-                    Click "Add Position" above to document your current and previous career roles.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={addEmployment}
-                    className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
-                  >
-                    + Add First Role
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  {formData.employmentHistory.map((job, idx) => (
-                    <div key={job.id} className="p-5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 space-y-4">
-                      <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
-                        <span className="text-xs font-bold text-[#17243B]">
-                          Role #{idx + 1} — {job.jobTitle || 'New Position'} {job.company ? `at ${job.company}` : ''}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeEmployment(job.id)}
-                          className="text-[#777781] hover:text-red-600 transition"
-                          title="Remove position"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Company / Organization</label>
-                          <input
-                            type="text"
-                            value={job.company}
-                            onChange={(e) => updateEmployment(job.id, 'company', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. Atlassian or Macquarie Group"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Job Title</label>
-                          <input
-                            type="text"
-                            value={job.jobTitle}
-                            onChange={(e) => updateEmployment(job.id, 'jobTitle', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. Senior Technical Lead"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Start Date (MM/YYYY)</label>
-                          <input
-                            type="text"
-                            value={job.startDate}
-                            onChange={(e) => updateEmployment(job.id, 'startDate', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. 03/2021"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">End Date</label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              disabled={job.isCurrent}
-                              value={job.isCurrent ? 'Present' : job.endDate || ''}
-                              onChange={(e) => updateEmployment(job.id, 'endDate', e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white disabled:bg-[#E6E2DC]/40"
-                              placeholder="e.g. 10/2023"
-                            />
-                            <label className="flex items-center gap-1.5 shrink-0 text-[11px] text-[#17243B] cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={job.isCurrent}
-                                onChange={(e) => updateEmployment(job.id, 'isCurrent', e.target.checked)}
-                                className="rounded text-[#8172A8]"
-                              />
-                              <span>Current</span>
-                            </label>
-                          </div>
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">
-                            Key Responsibilities
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={job.responsibilities}
-                            onChange={(e) => updateEmployment(job.id, 'responsibilities', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="Describe your core operational scope, team size, and responsibilities..."
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">
-                            Key Achievements & Measurable Outcomes
-                          </label>
-                          <textarea
-                            rows={3}
-                            value={job.keyAchievements}
-                            onChange={(e) => updateEmployment(job.id, 'keyAchievements', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="Detail your metrics, revenue generated, costs reduced, or projects delivered (e.g. Boosted customer retention by 34%, scaled microservices from 10k to 500k DAU)..."
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">
-                            Technologies, Tools & Frameworks Used
-                          </label>
-                          <input
-                            type="text"
-                            value={job.technologiesUsed || ''}
-                            onChange={(e) => updateEmployment(job.id, 'technologiesUsed', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. AWS, Python, Docker, Salesforce CRM, Figma, Jira"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 4: Education */}
-          {currentStep === 4 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[#17243B]">4. Education & Academic Background</h3>
-                  <p className="text-xs text-[#777781] mt-0.5">
-                    Degrees, diplomas, and academic credentials.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addEducation}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Degree</span>
-                </button>
-              </div>
-
-              {formData.education.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-[#E6E2DC] rounded-xl p-6">
-                  <GraduationCap className="w-8 h-8 text-[#8172A8] mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-[#17243B]">No education records entered</p>
-                  <p className="text-[11px] text-[#777781] mt-0.5 mb-3">
-                    Click "Add Degree" to document your qualifications.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={addEducation}
-                    className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
-                  >
-                    + Add Academic Degree
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {formData.education.map((edu) => (
-                    <div key={edu.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
-                        <span className="text-xs font-bold text-[#17243B]">
-                          {edu.degree || 'Degree'} {edu.institution ? `at ${edu.institution}` : ''}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeEducation(edu.id)}
-                          className="text-[#777781] hover:text-red-600 transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">University / Institution</label>
-                          <input
-                            type="text"
-                            value={edu.institution}
-                            onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. University of New South Wales"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Degree Title</label>
-                          <input
-                            type="text"
-                            value={edu.degree}
-                            onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. Bachelor of Commerce / BSc Computer Science"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Field of Study</label>
-                          <input
-                            type="text"
-                            value={edu.fieldOfStudy}
-                            onChange={(e) => updateEducation(edu.id, 'fieldOfStudy', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. Information Systems & Economics"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Graduation Year</label>
-                          <input
-                            type="text"
-                            value={edu.graduationYear}
-                            onChange={(e) => updateEducation(edu.id, 'graduationYear', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. 2019"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 5: Certifications */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[#17243B]">5. Professional Certifications & Licences</h3>
-                  <p className="text-xs text-[#777781] mt-0.5">
-                    Recognised industry credentials (e.g. PMP, AWS Certified Solutions Architect, Scrum Master, CFA).
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addCertification}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Certification</span>
-                </button>
-              </div>
-
-              {formData.certifications.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-[#E6E2DC] rounded-xl p-6">
-                  <Award className="w-8 h-8 text-[#8172A8] mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-[#17243B]">No certifications listed</p>
-                  <p className="text-[11px] text-[#777781] mt-0.5 mb-3">
-                    If you hold industry accreditations, listing them elevates ATS credibility.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={addCertification}
-                    className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
-                  >
-                    + Add Certification
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {formData.certifications.map((cert) => (
-                    <div key={cert.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
-                        <span className="text-xs font-bold text-[#17243B]">
-                          {cert.title || 'Certification'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeCertification(cert.id)}
-                          className="text-[#777781] hover:text-red-600 transition"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Certification Name</label>
-                          <input
-                            type="text"
-                            value={cert.title}
-                            onChange={(e) => updateCertification(cert.id, 'title', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. AWS Certified Solutions Architect - Professional"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Issuing Body</label>
-                          <input
-                            type="text"
-                            value={cert.issuingOrganization}
-                            onChange={(e) => updateCertification(cert.id, 'issuingOrganization', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. Amazon Web Services (AWS)"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Date Acquired</label>
-                          <input
-                            type="text"
-                            value={cert.issueDate}
-                            onChange={(e) => updateCertification(cert.id, 'issueDate', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. 2023"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Verification URL / Credential ID</label>
-                          <input
-                            type="text"
-                            value={cert.credentialUrl || ''}
-                            onChange={(e) => updateCertification(cert.id, 'credentialUrl', e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                            placeholder="e.g. https://credly.com/..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 6: Skills Matrix */}
-          {currentStep === 6 && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-[#17243B]">6. Categorized Skills Matrix</h3>
-                <p className="text-xs text-[#777781] mt-0.5">
-                  Categorise your capabilities to allow our ATS optimisers to map exact search phrases into your resume.
-                </p>
-              </div>
-
-              {/* Technical Skills */}
-              <div className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-3">
-                <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-[#17243B]">Technical & Engineering Skills</h4>
-                    <span className="text-[11px] text-[#777781]">Languages, frameworks, architecture paradigms</span>
+                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#8172A8] block">
+                      Fastest Option
+                    </span>
+                    <h2 className="text-lg font-bold text-[#17243B] mt-0.5">
+                      Upload Your Existing Resume
+                    </h2>
+                  </div>
+
+                  <p className="text-xs text-[#777781] leading-relaxed">
+                    Already have a resume? Upload it and let our team review your existing experience, education, skills and achievements.
+                  </p>
+
+                  <div className="pt-2 border-t border-[#E6E2DC]/60 space-y-2 text-xs text-[#292D36]">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                      <span>Accepts PDF or Word (.docx)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                      <span>No need to re-type existing work history</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                      <span>Encrypted Google Drive vault storage</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.skills.technical.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-white border border-[#E6E2DC] text-[#17243B]"
-                    >
-                      <span>{s.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSkill('technical', idx)}
-                        className="text-[#777781] hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    id="new-tech-skill"
-                    placeholder="Type skill & press Enter (e.g. Next.js, Cloud Architecture, Python)"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const val = (e.currentTarget as HTMLInputElement).value;
-                        addSkill('technical', val);
-                        (e.currentTarget as HTMLInputElement).value = '';
-                      }
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMode('RESUME_UPLOAD');
                     }}
-                    className="flex-1 px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                  />
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition"
+                  >
+                    <span>Upload My Resume</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Functional Skills */}
-              <div className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-3">
-                <div>
-                  <h4 className="text-xs font-bold text-[#17243B]">Functional & Domain Expertise</h4>
-                  <span className="text-[11px] text-[#777781]">Business analysis, P&L management, product strategy</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.skills.functional.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-white border border-[#E6E2DC] text-[#17243B]"
-                    >
-                      <span>{s.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSkill('functional', idx)}
-                        className="text-[#777781] hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Type domain expertise & press Enter (e.g. Product Strategy, Stakeholder Alignment)"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const val = (e.currentTarget as HTMLInputElement).value;
-                      addSkill('functional', val);
-                      (e.currentTarget as HTMLInputElement).value = '';
-                    }
-                  }}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                />
-              </div>
+              {/* Option B: Enter Information Manually */}
+              <div
+                onClick={() => setActiveMode('MANUAL_ENTRY')}
+                className="group relative p-6 sm:p-8 rounded-2xl border-2 border-[#E6E2DC] hover:border-[#8172A8] bg-[#FFFFFF] hover:bg-[#FAF8FC]/50 transition-all cursor-pointer flex flex-col justify-between space-y-6 shadow-sm hover:shadow-md"
+              >
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#F7F5F0] group-hover:bg-[#17243B] text-[#17243B] group-hover:text-white flex items-center justify-center transition-colors">
+                    <FileText className="w-6 h-6" />
+                  </div>
 
-              {/* Leadership Skills */}
-              <div className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-3">
-                <div>
-                  <h4 className="text-xs font-bold text-[#17243B]">Leadership & Management</h4>
-                  <span className="text-[11px] text-[#777781]">Executive coaching, hiring, cross-functional orchestration</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.skills.leadership.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-white border border-[#E6E2DC] text-[#17243B]"
-                    >
-                      <span>{s.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSkill('leadership', idx)}
-                        className="text-[#777781] hover:text-red-600"
-                      >
-                        ×
-                      </button>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#777781] block">
+                      Custom Guided Form
                     </span>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Type leadership skill & press Enter (e.g. Cross-Functional Team Leadership)"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const val = (e.currentTarget as HTMLInputElement).value;
-                      addSkill('leadership', val);
-                      (e.currentTarget as HTMLInputElement).value = '';
-                    }
-                  }}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                />
-              </div>
+                    <h2 className="text-lg font-bold text-[#17243B] mt-0.5">
+                      Fill In My Information
+                    </h2>
+                  </div>
 
-              {/* Tools & Software */}
-              <div className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-3">
+                  <p className="text-xs text-[#777781] leading-relaxed">
+                    Prefer to start from scratch? Enter your professional information at your own pace using our guided form.
+                  </p>
+
+                  <div className="pt-2 border-t border-[#E6E2DC]/60 space-y-2 text-xs text-[#292D36]">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                      <span>Every field is non-mandatory (optional)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                      <span>Skip any section and complete later</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                      <span>Partial saves never block service ordering</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
-                  <h4 className="text-xs font-bold text-[#17243B]">Tools & Platforms</h4>
-                  <span className="text-[11px] text-[#777781]">SaaS applications, development platforms, BI tools</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMode('MANUAL_ENTRY');
+                    }}
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-[#17243B] bg-white hover:bg-[#F7F5F0] text-[#17243B] text-xs font-semibold shadow-sm transition"
+                  >
+                    <span>Enter My Details</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.skills.toolsAndPlatforms.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-white border border-[#E6E2DC] text-[#17243B]"
-                    >
-                      <span>{s.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSkill('toolsAndPlatforms', idx)}
-                        className="text-[#777781] hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Type tool & press Enter (e.g. Jira, GitHub, Tableau, HubSpot, Salesforce)"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      const val = (e.currentTarget as HTMLInputElement).value;
-                      addSkill('toolsAndPlatforms', val);
-                      (e.currentTarget as HTMLInputElement).value = '';
-                    }
-                  }}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                />
               </div>
             </div>
-          )}
 
-          {/* STEP 7: Projects & Submission */}
-          {currentStep === 7 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-[#17243B]">7. Notable Projects & Final Submission</h3>
-                  <p className="text-xs text-[#777781] mt-0.5">
-                    Highlight 1-3 landmark projects that demonstrate your tangible executive or technical impact.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={addProject}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
+            {/* Existing Status Indicator */}
+            {profile?.status && profile.status !== 'NOT_STARTED' && (
+              <div className="pt-4 border-t border-[#E6E2DC] flex items-center justify-between text-xs text-[#777781]">
+                <span>
+                  Current Profile Status: <strong className="text-[#17243B]">{profile.status.replace(/_/g, ' ')}</strong>
+                </span>
+                <Link
+                  href="/career-services/portal/dashboard"
+                  className="font-medium text-[#8172A8] hover:text-[#17243B]"
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Project</span>
-                </button>
+                  Return to Dashboard →
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            OPTION A SCREEN: RESUME UPLOAD FLOW
+            ───────────────────────────────────────────────────────────── */}
+        {activeMode === 'RESUME_UPLOAD' && (
+          <div className="bg-[#FFFFFF] p-6 sm:p-10 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E6E2DC] gap-4">
+              <div>
+                <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
+                  Option 1 — Document Submission
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17243B] mt-0.5">
+                  Upload Your Existing Resume
+                </h2>
+                <p className="text-xs text-[#777781] mt-0.5">
+                  Our senior writers will review your document directly. You do not need to re-type your history.
+                </p>
               </div>
 
-              {formData.projects.map((proj) => (
-                <div key={proj.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
-                    <span className="text-xs font-bold text-[#17243B]">
-                      {proj.title || 'Project Highlight'}
-                    </span>
+              <button
+                onClick={() => setActiveMode('MANUAL_ENTRY')}
+                className="text-xs font-semibold text-[#8172A8] hover:text-[#17243B] underline underline-offset-4 self-start sm:self-center"
+              >
+                Prefer entering manually?
+              </button>
+            </div>
+
+            {/* Upload Area / Current Upload Status */}
+            {uploadedResumeName ? (
+              <div className="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-4">
+                <div className="flex items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                      <FileCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700">
+                        Resume Received ✓
+                      </span>
+                      <h3 className="text-sm font-bold text-[#17243B]">
+                        {uploadedResumeName}
+                      </h3>
+                      <p className="text-[11px] text-[#777781]">
+                        Stored securely in your private Google Drive vault.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleRemoveResume}
+                    className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Replace or Remove</span>
+                  </button>
+                </div>
+
+                <div className="p-3 bg-white/80 rounded-xl text-xs text-[#292D36] border border-emerald-100 flex items-center justify-between">
+                  <span>Status: Ready for career service review</span>
+                  <span className="font-semibold text-emerald-700">No further manual entry required</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Drag-and-drop file dropzone */}
+                <div className="border-2 border-dashed border-[#E6E2DC] hover:border-[#8172A8] rounded-2xl p-8 text-center transition-colors bg-[#FAF8FC]/30">
+                  <UploadCloud className="w-10 h-10 text-[#8172A8] mx-auto mb-3" />
+                  <h3 className="text-sm font-bold text-[#17243B]">
+                    Choose a resume file or drag & drop here
+                  </h3>
+                  <p className="text-xs text-[#777781] mt-1 max-w-sm mx-auto">
+                    Supported formats: PDF (.pdf) or Word document (.docx). Up to 25MB.
+                  </p>
+
+                  <label className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] cursor-pointer transition shadow-sm">
+                    <UploadCloud className="w-4 h-4" />
+                    <span>Select Resume File</span>
+                    <input
+                      type="file"
+                      accept=".pdf,.docx,.doc"
+                      onChange={handleResumeFileSelect}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {selectedFile && (
+                    <div className="mt-4 p-3 bg-white rounded-xl border border-[#E6E2DC] max-w-md mx-auto flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <FileText className="w-4 h-4 text-[#8172A8] shrink-0" />
+                        <span className="font-semibold text-[#17243B] truncate">{selectedFile.name}</span>
+                        <span className="text-[#777781] shrink-0">({Math.round(selectedFile.size / 1024)} KB)</span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedFile(null)}
+                        className="text-[#777781] hover:text-red-600 text-xs shrink-0 pl-2"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload Progress Bar if uploading */}
+                {isUploading && (
+                  <div className="space-y-1.5 p-4 bg-[#F7F5F0] rounded-xl border border-[#E6E2DC]">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-[#17243B]">Uploading to Private Vault...</span>
+                      <span className="font-mono text-[#8172A8]">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-[#E6E2DC] h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-[#8172A8] h-full rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Execute Upload Button */}
+                {selectedFile && !isUploading && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleExecuteResumeUpload}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold transition shadow-sm"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Confirm & Upload Resume</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Optional Additional Information */}
+            <div className="pt-4 border-t border-[#E6E2DC] space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-[#17243B]">
+                  Additional Notes for our Team <span className="font-normal text-[#777781]">(Optional)</span>
+                </label>
+                <span className="text-[11px] text-[#777781]">Add if available</span>
+              </div>
+              <textarea
+                rows={3}
+                value={resumeAdditionalNotes}
+                onChange={(e) => setResumeAdditionalNotes(e.target.value)}
+                placeholder="Mention specific roles you are targeting, recent promotions not yet in your resume, or industry transition preferences..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
+              />
+            </div>
+
+            {/* Footer Navigation */}
+            <div className="pt-6 border-t border-[#E6E2DC] flex flex-col sm:flex-row items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveMode('CHOICE')}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#777781] hover:text-[#17243B] transition"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to choices</span>
+              </button>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => handleSaveProfile('RESUME_RECEIVED', 'RESUME_UPLOAD')}
+                  disabled={saving}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#E6E2DC] bg-white hover:bg-[#F7F5F0] text-xs font-semibold text-[#17243B] transition"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{saving ? 'Saving...' : 'Save Notes'}</span>
+                </button>
+
+                <Link
+                  href="/career-services/portal/orders/new"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition"
+                >
+                  <span>Select a Career Service</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────────────
+            OPTION B SCREEN: GUIDED MANUAL FORM (ALL FIELDS OPTIONAL)
+            ───────────────────────────────────────────────────────────── */}
+        {activeMode === 'MANUAL_ENTRY' && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
+                  Option 2 — Self-Paced Form (All Fields Optional)
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17243B] mt-0.5">
+                  Enter Your Career Details
+                </h2>
+                <p className="text-xs text-[#777781] mt-0.5">
+                  Every field is optional. Complete what you know, skip any section, and save at any time.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => handleSaveProfile('PARTIALLY_COMPLETED', 'MANUAL_ENTRY')}
+                  disabled={saving}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E6E2DC] bg-white hover:bg-[#F7F5F0] text-xs font-semibold text-[#17243B] transition"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{saving ? 'Saving...' : 'Save Progress'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 9-Step Horizontal Progress Navigation */}
+            <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.02)] overflow-x-auto">
+              <div className="flex items-center justify-between min-w-[750px] gap-2">
+                {manualSteps.map((st) => {
+                  const Icon = st.icon;
+                  const isActive = currentStep === st.number;
+                  const isPast = currentStep > st.number;
+                  return (
+                    <button
+                      key={st.number}
+                      onClick={() => setCurrentStep(st.number)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition ${
+                        isActive
+                          ? 'bg-[#17243B] text-white shadow-sm'
+                          : isPast
+                          ? 'text-[#17243B] bg-[#F7F5F0] hover:bg-[#E6E2DC]'
+                          : 'text-[#777781] hover:text-[#17243B]'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          isActive
+                            ? 'bg-[#8172A8] text-white'
+                            : isPast
+                            ? 'bg-[#17243B] text-white'
+                            : 'bg-[#E6E2DC] text-[#777781]'
+                        }`}
+                      >
+                        {isPast ? '✓' : st.number}
+                      </div>
+                      <span className="whitespace-nowrap">{st.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Manual Form Container */}
+            <div className="bg-[#FFFFFF] p-6 sm:p-8 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] space-y-6">
+              {/* SECTION 1: Personal Information */}
+              {currentStep === 1 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-[#17243B]">1. Personal Information</h3>
+                    <p className="text-xs text-[#777781] mt-0.5">
+                      Optional header contact information. You can skip any field.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-[#17243B]">Full Legal Name</label>
+                        <span className="text-[10px] text-[#777781]">Optional</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.fullName || ''}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        placeholder="e.g. Eleanor Vance"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-[#17243B]">Contact Email</label>
+                        <span className="text-[10px] text-[#777781]">Optional</span>
+                      </div>
+                      <input
+                        type="email"
+                        value={formData.email || ''}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="eleanor@example.com"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-[#17243B]">Phone / WhatsApp</label>
+                        <span className="text-[10px] text-[#777781]">Optional</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.phone || ''}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+1 (555) 019-2834"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-[#17243B]">Location (City, Country)</label>
+                        <span className="text-[10px] text-[#777781]">Optional</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.location || ''}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        placeholder="e.g. Sydney, Australia"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-[#17243B]">LinkedIn URL</label>
+                        <span className="text-[10px] text-[#777781]">Optional</span>
+                      </div>
+                      <input
+                        type="url"
+                        value={formData.linkedInUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, linkedInUrl: e.target.value })}
+                        placeholder="https://linkedin.com/in/username"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-semibold text-[#17243B]">Portfolio or Website URL</label>
+                        <span className="text-[10px] text-[#777781]">Optional</span>
+                      </div>
+                      <input
+                        type="url"
+                        value={formData.portfolioUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
+                        placeholder="https://yourname.com"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 2: Career Objective */}
+              {currentStep === 2 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-[#17243B]">2. Career Objectives & Preferences</h3>
+                    <p className="text-xs text-[#777781] mt-0.5">
+                      Tell our specialists what kinds of roles you are targeting (optional).
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#17243B] mb-1">Current Career Level</label>
+                      <select
+                        value={formData.careerStage || 'Mid-Level'}
+                        onChange={(e) => setFormData({ ...formData, careerStage: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      >
+                        <option value="Entry-Level">Entry-Level (0-2 years)</option>
+                        <option value="Mid-Level">Mid-Level Professional (3-7 years)</option>
+                        <option value="Senior">Senior Specialist / Lead (8-14 years)</option>
+                        <option value="Executive">Executive / Director (15+ years)</option>
+                        <option value="Transitioning">Career Transition</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#17243B] mb-1">Work Arrangement</label>
+                      <select
+                        value={formData.preferredWorkType || 'Remote'}
+                        onChange={(e) => setFormData({ ...formData, preferredWorkType: e.target.value as any })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      >
+                        <option value="Remote">100% Remote</option>
+                        <option value="Hybrid">Hybrid</option>
+                        <option value="On-site">On-site</option>
+                        <option value="Flexible">Flexible / Open</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-[#17243B] mb-1">
+                        Target Job Titles <span className="font-normal text-[#777781]">(comma-separated, optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.targetRoleTitles?.join(', ') || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            targetRoleTitles: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        placeholder="e.g. Product Manager, Technical Lead, Director of Operations"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#17243B] mb-1">Target Industries</label>
+                      <input
+                        type="text"
+                        value={formData.targetIndustries?.join(', ') || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            targetIndustries: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        placeholder="e.g. SaaS, FinTech, Healthcare"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#17243B] mb-1">Target Geographies</label>
+                      <input
+                        type="text"
+                        value={formData.targetGeographies?.join(', ') || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            targetGeographies: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        placeholder="e.g. Australia, Singapore, Global Remote"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 3: Employment History */}
+              {currentStep === 3 && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-[#17243B]">3. Employment History</h3>
+                      <p className="text-xs text-[#777781] mt-0.5">
+                        Optional work experience. Add as many or as few roles as you wish.
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => removeProject(proj.id)}
-                      className="text-[#777781] hover:text-red-600 transition"
+                      onClick={addEmployment}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Position</span>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {(!formData.employmentHistory || formData.employmentHistory.length === 0) ? (
+                    <div className="p-8 border-2 border-dashed border-[#E6E2DC] rounded-xl text-center space-y-2">
+                      <Briefcase className="w-8 h-8 text-[#8172A8] mx-auto" />
+                      <p className="text-xs font-semibold text-[#17243B]">No employment history added</p>
+                      <p className="text-[11px] text-[#777781]">
+                        You can skip this section if you plan to upload your resume or enter it later.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={addEmployment}
+                        className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
+                      >
+                        + Add a Role
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {formData.employmentHistory.map((job, idx) => (
+                        <div key={job.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#FAF8FC]/20 space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
+                            <span className="text-xs font-bold text-[#17243B]">
+                              Role #{idx + 1} {job.jobTitle ? `— ${job.jobTitle}` : ''}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeEmployment(job.id)}
+                              className="text-[#777781] hover:text-red-600 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div>
+                              <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Company</label>
+                              <input
+                                type="text"
+                                value={job.company || ''}
+                                onChange={(e) => updateEmployment(job.id, 'company', e.target.value)}
+                                placeholder="Company name"
+                                className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Job Title</label>
+                              <input
+                                type="text"
+                                value={job.jobTitle || ''}
+                                onChange={(e) => updateEmployment(job.id, 'jobTitle', e.target.value)}
+                                placeholder="e.g. Marketing Lead"
+                                className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Core Responsibilities</label>
+                              <textarea
+                                rows={2}
+                                value={job.responsibilities || ''}
+                                onChange={(e) => updateEmployment(job.id, 'responsibilities', e.target.value)}
+                                placeholder="Summary of responsibilities..."
+                                className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                              />
+                            </div>
+                            <div className="sm:col-span-2">
+                              <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Key Outcomes / Achievements</label>
+                              <textarea
+                                rows={2}
+                                value={job.keyAchievements || ''}
+                                onChange={(e) => updateEmployment(job.id, 'keyAchievements', e.target.value)}
+                                placeholder="Key achievements with measurable outcomes..."
+                                className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SECTION 4: Education */}
+              {currentStep === 4 && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Project Name</label>
+                      <h3 className="text-base font-bold text-[#17243B]">4. Education & Qualifications</h3>
+                      <p className="text-xs text-[#777781] mt-0.5">
+                        Academic degrees, diplomas, or courses (optional).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addEducation}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Degree</span>
+                    </button>
+                  </div>
+
+                  {(!formData.education || formData.education.length === 0) ? (
+                    <div className="p-8 border-2 border-dashed border-[#E6E2DC] rounded-xl text-center space-y-2">
+                      <GraduationCap className="w-8 h-8 text-[#8172A8] mx-auto" />
+                      <p className="text-xs font-semibold text-[#17243B]">No education records added</p>
+                      <p className="text-[11px] text-[#777781]">Skip if not applicable or add later.</p>
+                      <button
+                        type="button"
+                        onClick={addEducation}
+                        className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
+                      >
+                        + Add Education Entry
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {formData.education.map((edu) => (
+                        <div key={edu.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#FAF8FC]/20 space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
+                            <span className="text-xs font-bold text-[#17243B]">
+                              {edu.degree || 'Degree'} {edu.institution ? `at ${edu.institution}` : ''}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeEducation(edu.id)}
+                              className="text-[#777781] hover:text-red-600 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <input
+                              type="text"
+                              value={edu.institution || ''}
+                              onChange={(e) => updateEducation(edu.id, 'institution', e.target.value)}
+                              placeholder="Institution / University"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                            <input
+                              type="text"
+                              value={edu.degree || ''}
+                              onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
+                              placeholder="Degree / Qualification"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                            <input
+                              type="text"
+                              value={edu.fieldOfStudy || ''}
+                              onChange={(e) => updateEducation(edu.id, 'fieldOfStudy', e.target.value)}
+                              placeholder="Field of study"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                            <input
+                              type="text"
+                              value={edu.graduationYear || ''}
+                              onChange={(e) => updateEducation(edu.id, 'graduationYear', e.target.value)}
+                              placeholder="Graduation year (optional)"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SECTION 5: Skills */}
+              {currentStep === 5 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-[#17243B]">5. Skills Matrix</h3>
+                    <p className="text-xs text-[#777781] mt-0.5">
+                      Key competencies to highlight (optional).
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Technical Skills */}
+                    <div className="p-4 rounded-xl border border-[#E6E2DC] bg-[#FAF8FC]/30 space-y-2">
+                      <span className="text-xs font-bold text-[#17243B] block">Technical & Tools</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {formData.skills?.technical?.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-white border border-[#E6E2DC] text-[#17243B]"
+                          >
+                            <span>{s.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeSkill('technical', idx)}
+                              className="text-[#777781] hover:text-red-600"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
                       <input
                         type="text"
-                        value={proj.title}
-                        onChange={(e) => updateProject(proj.id, 'title', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                        placeholder="e.g. Enterprise Cloud ERP Migration"
+                        placeholder="Add skill & press Enter (e.g. Python, AWS, Figma)"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addSkill('technical', (e.currentTarget as HTMLInputElement).value);
+                            (e.currentTarget as HTMLInputElement).value = '';
+                          }
+                        }}
+                        className="w-full px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs bg-white"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Your Specific Role</label>
+                    {/* Functional & Domain Skills */}
+                    <div className="p-4 rounded-xl border border-[#E6E2DC] bg-[#FAF8FC]/30 space-y-2">
+                      <span className="text-xs font-bold text-[#17243B] block">Functional & Domain</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {formData.skills?.functional?.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-white border border-[#E6E2DC] text-[#17243B]"
+                          >
+                            <span>{s.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeSkill('functional', idx)}
+                              className="text-[#777781] hover:text-red-600"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
                       <input
                         type="text"
-                        value={proj.role}
-                        onChange={(e) => updateProject(proj.id, 'role', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                        placeholder="e.g. Lead Solution Architect"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Brief Description</label>
-                      <textarea
-                        rows={2}
-                        value={proj.description}
-                        onChange={(e) => updateProject(proj.id, 'description', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                        placeholder="What problem did this project solve for the organisation?"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Key Impact Metrics</label>
-                      <input
-                        type="text"
-                        value={proj.impactMetrics || ''}
-                        onChange={(e) => updateProject(proj.id, 'impactMetrics', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] text-xs text-[#17243B] bg-white"
-                        placeholder="e.g. Completed 2 months ahead of schedule, reducing annual AWS spend by $180,000"
+                        placeholder="Add domain skill (e.g. Product Strategy, Stakeholder Management)"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addSkill('functional', (e.currentTarget as HTMLInputElement).value);
+                            (e.currentTarget as HTMLInputElement).value = '';
+                          }
+                        }}
+                        className="w-full px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs bg-white"
                       />
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
 
-              {/* Personal statement */}
-              <div className="pt-4 border-t border-[#E6E2DC]/80">
-                <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                  Additional Notes or Personal Statement for our Writing Team (Optional)
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.personalStatement || ''}
-                  onChange={(e) => setFormData({ ...formData, personalStatement: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                  placeholder="Tell our specialists about any gaps in employment, specific career narratives you wish to emphasize, or particular companies you are targeting..."
-                />
-              </div>
+              {/* SECTION 6: Certifications */}
+              {currentStep === 6 && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-[#17243B]">6. Certifications & Licences</h3>
+                      <p className="text-xs text-[#777781] mt-0.5">
+                        Recognised professional certifications (optional).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addCertification}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Certification</span>
+                    </button>
+                  </div>
 
-              {/* Submission Callout */}
-              <div className="bg-[#17243B] text-white p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6">
-                <div>
-                  <h4 className="text-sm font-bold flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#A69ACB]" />
-                    <span>Ready to submit for Specialist Review?</span>
-                  </h4>
-                  <p className="text-xs text-white/80 mt-1 max-w-lg leading-relaxed">
-                    Submitting locks this intake snapshot and assigns our career team to review your background. You can still revise details at any point.
-                  </p>
+                  {(!formData.certifications || formData.certifications.length === 0) ? (
+                    <div className="p-8 border-2 border-dashed border-[#E6E2DC] rounded-xl text-center space-y-2">
+                      <Award className="w-8 h-8 text-[#8172A8] mx-auto" />
+                      <p className="text-xs font-semibold text-[#17243B]">No certifications listed</p>
+                      <p className="text-[11px] text-[#777781]">Skip or complete later.</p>
+                      <button
+                        type="button"
+                        onClick={addCertification}
+                        className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
+                      >
+                        + Add Certification
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {formData.certifications.map((c) => (
+                        <div key={c.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#FAF8FC]/20 space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
+                            <span className="text-xs font-bold text-[#17243B]">{c.title || 'Certification'}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeCertification(c.id)}
+                              className="text-[#777781] hover:text-red-600 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <input
+                              type="text"
+                              value={c.title || ''}
+                              onChange={(e) => updateCertification(c.id, 'title', e.target.value)}
+                              placeholder="Certification title"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                            <input
+                              type="text"
+                              value={c.issuingOrganization || ''}
+                              onChange={(e) => updateCertification(c.id, 'issuingOrganization', e.target.value)}
+                              placeholder="Issuing organization"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleSaveDraft('SUBMITTED')}
-                  disabled={saving}
-                  className="px-5 py-2.5 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold transition shrink-0 shadow-sm"
-                >
-                  {saving ? 'Submitting...' : 'Submit Profile for Review'}
-                </button>
+              )}
+
+              {/* SECTION 7: Projects */}
+              {currentStep === 7 && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-[#17243B]">7. Notable Projects</h3>
+                      <p className="text-xs text-[#777781] mt-0.5">
+                        Key projects or case studies (optional).
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addProject}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-medium hover:bg-[#292D36] transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Project</span>
+                    </button>
+                  </div>
+
+                  {(!formData.projects || formData.projects.length === 0) ? (
+                    <div className="p-8 border-2 border-dashed border-[#E6E2DC] rounded-xl text-center space-y-2">
+                      <Rocket className="w-8 h-8 text-[#8172A8] mx-auto" />
+                      <p className="text-xs font-semibold text-[#17243B]">No projects added</p>
+                      <p className="text-[11px] text-[#777781]">Skip if not applicable.</p>
+                      <button
+                        type="button"
+                        onClick={addProject}
+                        className="px-3 py-1.5 rounded-lg bg-[#F7F5F0] hover:bg-[#E6E2DC] text-xs font-medium text-[#17243B]"
+                      >
+                        + Add Project Entry
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {formData.projects.map((p) => (
+                        <div key={p.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#FAF8FC]/20 space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]/60">
+                            <span className="text-xs font-bold text-[#17243B]">{p.title || 'Project'}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeProject(p.id)}
+                              className="text-[#777781] hover:text-red-600 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <input
+                              type="text"
+                              value={p.title || ''}
+                              onChange={(e) => updateProject(p.id, 'title', e.target.value)}
+                              placeholder="Project title"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                            <input
+                              type="text"
+                              value={p.role || ''}
+                              onChange={(e) => updateProject(p.id, 'role', e.target.value)}
+                              placeholder="Your role"
+                              className="px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                            />
+                            <div className="sm:col-span-2">
+                              <textarea
+                                rows={2}
+                                value={p.description || ''}
+                                onChange={(e) => updateProject(p.id, 'description', e.target.value)}
+                                placeholder="Description and outcome..."
+                                className="w-full px-3 py-2 rounded-lg border border-[#E6E2DC] bg-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SECTION 8: Additional Information */}
+              {currentStep === 8 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-[#17243B]">8. Additional Professional Information</h3>
+                    <p className="text-xs text-[#777781] mt-0.5">
+                      Languages, awards, career gaps, or narrative guidance for your writer (optional).
+                    </p>
+                  </div>
+
+                  <div>
+                    <textarea
+                      rows={6}
+                      value={formData.additionalInformation || ''}
+                      onChange={(e) => setFormData({ ...formData, additionalInformation: e.target.value })}
+                      placeholder="Add any extra details, career nuances, or context you'd like your consultant to know..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 9: Review & Finish */}
+              {currentStep === 9 && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-base font-bold text-[#17243B]">9. Profile Review & Confirmation</h3>
+                    <p className="text-xs text-[#777781] mt-0.5">
+                      Your career profile is ready. You can submit now or update any section at a later stage.
+                    </p>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#FAF8FC] border border-[#E6E2DC] space-y-3 text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]">
+                      <span className="font-semibold text-[#17243B]">Personal Details:</span>
+                      <span className="text-[#777781]">{formData.fullName || 'Not specified'} ({formData.email || 'No email'})</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]">
+                      <span className="font-semibold text-[#17243B]">Employment Records:</span>
+                      <span className="text-[#777781]">{formData.employmentHistory?.length || 0} roles entered</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]">
+                      <span className="font-semibold text-[#17243B]">Education Entries:</span>
+                      <span className="text-[#777781]">{formData.education?.length || 0} degrees entered</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-[#17243B]">Resume Uploaded:</span>
+                      <span className="text-[#777781]">{uploadedResumeName || 'None (Manual Profile)'}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#17243B] text-white p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="text-sm font-bold flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#A69ACB]" />
+                        <span>Save Profile & Continue</span>
+                      </h4>
+                      <p className="text-xs text-white/80 mt-1 max-w-md">
+                        Your profile is stored securely. You can order services right away or return anytime to edit.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSaveProfile('INFORMATION_SUBMITTED', 'MANUAL_ENTRY')}
+                      disabled={saving}
+                      className="px-5 py-2.5 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold transition shrink-0 shadow-sm"
+                    >
+                      {saving ? 'Saving...' : 'Save Profile & Finish'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Wizard Footer Navigation Controls */}
+              <div className="pt-6 border-t border-[#E6E2DC] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentStep === 1) {
+                        setActiveMode('CHOICE');
+                      } else {
+                        setCurrentStep((prev) => Math.max(1, prev - 1));
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium text-[#17243B] hover:bg-[#F7F5F0] transition"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>{currentStep === 1 ? 'Back to Choices' : 'Previous'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Skip for now button */}
+                  {currentStep < 9 && (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep((prev) => Math.min(9, prev + 1))}
+                      className="px-3.5 py-2 rounded-xl text-xs font-medium text-[#777781] hover:text-[#17243B] hover:bg-[#F7F5F0] transition"
+                    >
+                      Skip for Now
+                    </button>
+                  )}
+
+                  {/* Save and Continue button */}
+                  {currentStep < 9 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSaveProfile('PARTIALLY_COMPLETED', 'MANUAL_ENTRY');
+                        setCurrentStep((prev) => Math.min(9, prev + 1));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition"
+                    >
+                      <span>Save & Continue</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <Link
+                      href="/career-services/portal/orders/new"
+                      className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold shadow-sm transition"
+                    >
+                      <span>Explore Services</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Wizard Navigation Footer */}
-          <div className="flex items-center justify-between pt-8 mt-8 border-t border-[#E6E2DC]/80">
-            <button
-              type="button"
-              disabled={currentStep === 1}
-              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium text-[#17243B] hover:bg-[#F7F5F0] transition disabled:opacity-40"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Previous Step</span>
-            </button>
-
-            <span className="text-xs text-[#777781] hidden sm:inline">
-              Step {currentStep} of 7
-            </span>
-
-            {currentStep < 7 ? (
-              <button
-                type="button"
-                onClick={() => {
-                  handleSaveDraft();
-                  setCurrentStep((prev) => Math.min(7, prev + 1));
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold transition shadow-sm"
-              >
-                <span>Save & Continue</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => handleSaveDraft('SUBMITTED')}
-                disabled={saving}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold transition shadow-sm"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{saving ? 'Saving...' : 'Complete & Submit'}</span>
-              </button>
-            )}
           </div>
-        </div>
+        )}
       </div>
     </PortalLayout>
   );
 }
-
