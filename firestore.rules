@@ -22,9 +22,11 @@ service cloud.firestore {
         ] ||
         request.auth.token.admin == true ||
         request.auth.token.email in [
-          'connect.hopepitome@gmail.com',
+          'hopeadmin@hopepitome.com',
           'admin@hopepitome.com',
-          'ramsaltvc@gmail.com'
+          'connect.hopepitome@gmail.com',
+          'ramsaltvc@gmail.com',
+          'lead@hopepitome.com'
         ]
       );
     }
@@ -114,9 +116,8 @@ service cloud.firestore {
     // =========================================================================
 
     match /staffUsers/{userId} {
-      allow read: if isStaff() || isOwner(userId);
-      // Changes to role, permissions, and account status require authorized backend or staff
-      allow write: if isStaff();
+      allow read: if isAuthenticated();
+      allow write: if isStaff() || isOwner(userId);
     }
 
     match /staffRoles/{roleId} {

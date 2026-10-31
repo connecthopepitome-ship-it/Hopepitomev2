@@ -49,10 +49,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [passError, setPassError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && (!user || !isAuthorized)) {
+    if (!loading && !user) {
       router.push('/career-services/admin/login');
     }
-  }, [user, loading, isAuthorized, router]);
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -67,8 +67,32 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  if (!user || !isAuthorized) {
+  if (!user) {
     return null;
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-4 font-sans">
+        <div className="bg-white p-8 rounded-2xl border border-[#E6E2DC] shadow-xl max-w-md w-full text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-700 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-[#17243B]">Access Restricted</h2>
+          <p className="text-xs text-[#777781] leading-relaxed">
+            Your account ({user.email}) does not have active staff permissions. Please contact your system administrator or log in with corporate credentials.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/career-services/admin/login"
+              className="inline-flex px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36]"
+            >
+              Return to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Handle mandatory first login password change

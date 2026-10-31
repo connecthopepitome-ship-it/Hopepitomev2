@@ -1,19 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { loginWithEmail, sendPasswordReset, getFriendlyAuthErrorMessage } from '@/lib/firebase/auth';
+import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import { ArrowLeft, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff, KeyRound, CheckCircle2, Shield } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { user, isAuthorized, loading: authLoading, authError } = useAdminAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-redirect if already authorized
+  useEffect(() => {
+    if (!authLoading && user && isAuthorized) {
+      window.location.href = '/career-services/admin/dashboard';
+    }
+  }, [user, isAuthorized, authLoading]);
 
   // Forgot password modal state
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -35,11 +45,9 @@ export default function AdminLoginPage() {
       }
 
       await loginWithEmail(cleanEmail, password);
-      // AdminAuthProvider will automatically verify staffUsers status and accountStatus
-      router.push('/career-services/admin/dashboard');
+      window.location.href = '/career-services/admin/dashboard';
     } catch (err: any) {
       setError(getFriendlyAuthErrorMessage(err));
-    } finally {
       setLoading(false);
     }
   };
@@ -99,10 +107,10 @@ export default function AdminLoginPage() {
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-[#FFFFFF] py-8 px-6 sm:px-10 rounded-2xl border border-[#E6E2DC] shadow-[0_4px_20px_rgba(23,36,59,0.04)]">
-          {error && (
+          {(error || authError) && (
             <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/80 flex items-start gap-2.5 text-xs text-red-700 leading-relaxed">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span>{error || authError}</span>
             </div>
           )}
 

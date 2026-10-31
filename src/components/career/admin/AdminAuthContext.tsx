@@ -66,19 +66,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       const email = currentUser.email?.toLowerCase() || '';
       const isMasterAdmin = allowedAdminEmails.some((adm) => adm.toLowerCase() === email);
 
-      // 1. Fetch Staff User Profile
-      let staff = await getStaffUser(currentUser.uid);
-
-      // Auto-bootstrap master admin into staffUsers if not present
-      if (!staff && isMasterAdmin) {
-        staff = {
+      // If master administrator, unconditionally grant Super Admin access immediately
+      if (isMasterAdmin) {
+        const masterStaff: StaffUser = {
           uid: currentUser.uid,
           employeeId: 'HP-EMP-00001',
-          fullName: currentUser.displayName || 'Super Admin',
-          email: currentUser.email || '',
+          fullName: 'Hopeadmin',
+          email: currentUser.email || 'hopeadmin@hopepitome.com',
           departmentId: 'dept_admin',
           departmentName: 'Administration',
-          designation: 'Managing Director / Super Admin',
+          designation: 'Super Admin',
           roleId: 'super_admin',
           roleName: 'Super Admin',
           employmentType: 'Full Time',
@@ -89,8 +86,26 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        await saveStaffUser(staff);
+
+        setStaffProfile(masterStaff);
+        setAdminProfile({
+          uid: currentUser.uid,
+          email: currentUser.email || 'hopeadmin@hopepitome.com',
+          displayName: 'Hopeadmin',
+          role: 'super_admin',
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        });
+        setMustChangePassword(false);
+        setAuthError(null);
+
+        // Background sync to Firestore without blocking authorization
+        saveStaffUser(masterStaff).catch(() => {});
+        return;
       }
+
+      // 1. Fetch Staff User Profile for ordinary staff
+      let staff = await getStaffUser(currentUser.uid);
 
       // 2. Reject deactivated or unauthorized accounts
       if (staff) {
@@ -104,12 +119,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setStaffProfile(staff);
-        // Hardcoded Super Admin is exempt from first-login password change
-        if (email === 'hopeadmin@hopepitome.com' || staff.email === 'hopeadmin@hopepitome.com') {
-          setMustChangePassword(false);
-        } else {
-          setMustChangePassword(Boolean(staff.mustChangePassword));
-        }
+        setMustChangePassword(Boolean(staff.mustChangePassword));
 
         // Maintain legacy CareerUser compatibility
         setAdminProfile({
@@ -129,16 +139,6 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
           eventType: 'LOGIN_SUCCESS',
           result: 'SUCCESS',
         }).catch(() => {});
-      } else if (isMasterAdmin) {
-        // Fallback for bootstrap
-        setAdminProfile({
-          uid: currentUser.uid,
-          email: currentUser.email || '',
-          displayName: currentUser.displayName || 'Operations Lead',
-          role: 'super_admin',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-        });
       } else {
         // Not a staff user and not master admin -> Ordinary client account attempting staff portal
         setAuthError('Access Denied. You do not have employee credentials to access the internal staff portal.');
