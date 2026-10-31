@@ -9,84 +9,96 @@ import {
   ArrowRight,
   ShieldCheck,
   CreditCard,
+  FileCode,
 } from 'lucide-react';
 
 const packages = [
   {
     name: 'Resume Essentials',
-    tagline: 'Ideal for updating or refactoring your core document.',
+    tagline: 'Ideal for updating or restructuring your professional resume.',
     tier: 'Core Document',
     turnaround: '3–5 Business Days',
-    revisions: '2 Rounds of Revisions',
+    revisions: '2 Structured Rounds (within 14 days)',
+    formats: 'Editable DOCX + Print PDF',
     featured: false,
     deliverables: [
-      'Professional resume writing from intake notes',
-      'Impact metric extraction & narrative structuring',
-      'Clean executive typographic layout',
-      'Industry-tailored presentation',
-      'Delivery in editable DOCX + print-ready PDF',
-      'Post-delivery 14-day revision window',
+      'Professional resume writing based on your background',
+      'Clear section structure and achievement formatting',
+      'Clean typography and layout',
+      'Editable Word format (DOCX) + print-ready PDF',
+      '14-day post-delivery revision window',
     ],
-    ctaText: 'Discuss Resume Essentials',
-    serviceKey: 'Resume Crafting',
+    serviceKey: 'Professional Resume Writing',
   },
   {
     name: 'Career Presence',
-    tagline: 'The recommended suite for active job search readiness.',
+    tagline: 'Our recommended package for active job seekers.',
     tier: 'Most Popular',
     turnaround: '5–7 Business Days',
-    revisions: '3 Rounds of Revisions',
+    revisions: '3 Structured Rounds (within 21 days)',
+    formats: 'DOCX, PDF & LinkedIn Text Assets',
     featured: true,
     deliverables: [
-      'Full Professional Resume Crafting (DOCX + PDF)',
-      'ATS Resume Optimisation & keyword relevance alignment',
+      'Complete Professional Resume Writing (DOCX + PDF)',
+      'ATS Resume Optimisation & keyword alignment',
       'LinkedIn Profile Makeover (Headline, About & Experience)',
-      'Skills matrix indexing & search visibility guidance',
-      'Target role alignment strategy review',
-      'Post-delivery 21-day revision window',
+      'Skills section organization and profile checklist',
+      '21-day post-delivery revision window',
     ],
-    ctaText: 'Discuss Career Presence',
-    serviceKey: 'Multiple Services',
+    serviceKey: 'Multiple Services / Package Discussion',
   },
   {
     name: 'Complete Professional Presence',
-    tagline: 'Comprehensive personal branding with a custom website.',
-    tier: 'Executive & Senior',
+    tagline: 'Full professional presentation including your personal website.',
+    tier: 'Executive & Comprehensive',
     turnaround: '8–12 Business Days',
-    revisions: 'Unlimited within 30-Day Window',
+    revisions: '3 Structured Rounds (within 30 days)',
+    formats: 'DOCX, PDF, Live Website & Handover',
     featured: false,
     deliverables: [
-      'Full Professional Resume Crafting & ATS Optimisation',
-      'LinkedIn Profile Makeover & network positioning',
+      'Professional Resume Writing & ATS Optimisation',
+      'LinkedIn Profile Makeover & headline calibration',
       'Custom Personal Portfolio Website development',
-      'Responsive design with project case studies gallery',
-      'Contact bridge integration with domain setup assistance',
-      'Full handover with self-management documentation',
+      'Responsive mobile and desktop layout',
+      'Project showcase and achievements section',
+      'Deployment setup and complete website handover',
+      '30-day post-delivery revision window',
     ],
-    ctaText: 'Discuss Complete Presence',
-    serviceKey: 'Personal Portfolio Development',
+    serviceKey: 'Personal Portfolio Websites',
   },
   {
     name: 'Job Search Assistance',
-    tagline: 'Hands-on operational support for your active search.',
-    tier: 'Active Search Operations',
-    turnaround: 'Agreed Weekly Sprint Cycle',
-    revisions: 'Continuous Active Collaboration',
+    tagline: 'Practical hands-on assistance managing your job search.',
+    tier: 'Active Search Support',
+    turnaround: 'Agreed Weekly Sprints (4-Week Cycle or Monthly)',
+    revisions: 'Ongoing coordination during active cycle',
+    formats: 'Cloud Spreadsheet Tracker & Packaging',
     featured: false,
     deliverables: [
-      'Job portal profiles setup & optimization',
-      'Targeted vacancy identification & suitability screening',
-      'Application preparation assistance & packaging',
-      'Centralized application activity & status tracker',
-      'Follow-up schedule tracking & cadence guidance',
-      'Consent-driven submissions — candidate maintains full control',
+      'Job portal profile setup and content review',
+      'Identifying vacancies matching your criteria',
+      'Application preparation assistance',
+      'Centralized application activity tracker',
+      'Status tracking and follow-up reminders',
+      'Candidate approval required before any submission',
     ],
-    ctaText: 'Discuss Job Search Support',
     serviceKey: 'Managed Job Search & Applications',
   },
 ];
 
 export function CareerPackagesSection() {
+  const handleSelectPackage = (serviceKey: string) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('select-career-service', { detail: { service: serviceKey } })
+      );
+      const contactEl = document.getElementById('contact');
+      if (contactEl) {
+        contactEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <section id="packages" className="py-24 bg-white border-y border-[#E6E2DC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -94,7 +106,7 @@ export function CareerPackagesSection() {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
             <Sparkles className="w-3 h-3 text-[#8172A8]" />
-            TRANSPARENT SCOPING
+            PACKAGES & PRICING
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
             Choose the support that fits your next step.
@@ -140,31 +152,37 @@ export function CareerPackagesSection() {
                   {pkg.tagline}
                 </p>
 
-                {/* Scoping Basis / Quotation Callout */}
+                {/* Quotation / Pricing Box */}
                 <div className="py-3 px-3.5 bg-white rounded-xl border border-[#E6E2DC] mb-5">
                   <div className="text-[11px] font-mono uppercase tracking-wider text-[#777781]">
                     Pricing Model
                   </div>
                   <div className="text-sm font-bold text-[#17243B] mt-0.5">
-                    Request a Custom Quote
+                    Custom Quote Provided
                   </div>
                   <p className="text-[10px] text-[#777781] mt-0.5">
-                    Tailored to your career level & specific scope
+                    Itemized quotation after reviewing requirements
                   </p>
                 </div>
 
                 {/* Timelines and Revisions */}
                 <div className="space-y-2 py-3 border-y border-[#E6E2DC]/80 mb-5 text-xs text-[#292D36]">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                  <div className="flex items-start space-x-2">
+                    <Clock className="w-3.5 h-3.5 text-[#8172A8] shrink-0 mt-0.5" />
                     <span>
-                      Turnaround: <strong>{pkg.turnaround}</strong>
+                      Timeline: <strong>{pkg.turnaround}</strong>
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RotateCcw className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                  <div className="flex items-start space-x-2">
+                    <RotateCcw className="w-3.5 h-3.5 text-[#8172A8] shrink-0 mt-0.5" />
                     <span>
                       Revisions: <strong>{pkg.revisions}</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <FileCode className="w-3.5 h-3.5 text-[#8172A8] shrink-0 mt-0.5" />
+                    <span>
+                      Formats: <strong>{pkg.formats}</strong>
                     </span>
                   </div>
                 </div>
@@ -185,32 +203,33 @@ export function CareerPackagesSection() {
 
               {/* Action Button */}
               <div className="pt-2">
-                <a
-                  href="#contact"
+                <button
+                  type="button"
+                  onClick={() => handleSelectPackage(pkg.serviceKey)}
                   className={`w-full text-center py-3 rounded-full text-xs font-semibold uppercase tracking-wider transition-all inline-flex items-center justify-center gap-1.5 ${
                     pkg.featured
                       ? 'bg-[#17243B] text-white hover:bg-[#292D36] shadow-sm'
                       : 'bg-white text-[#17243B] border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#FAF8FC]'
                   }`}
                 >
-                  <span>{pkg.ctaText}</span>
+                  <span>Request a Quote</span>
                   <ArrowRight className="w-3 h-3" />
-                </a>
+                </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Commercial Clarifications & Policy Notice */}
+        {/* Policy Clarifications Notice */}
         <div className="mt-14 max-w-4xl mx-auto bg-[#FAF8FC] border border-[#E6E2DC] rounded-2xl p-6 sm:p-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[#777781]">
             <div className="flex items-start space-x-3">
               <ShieldCheck className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-[#17243B] mb-1">Defined Revision Policy</h3>
+                <h3 className="font-semibold text-[#17243B] mb-1">Defined Revision Windows</h3>
                 <p>
-                  Every engagement includes dedicated revision rounds to review typography, narrative
-                  framing, and factual emphasis before final sign-off.
+                  Every engagement includes structured revision rounds within an agreed window (14
+                  to 30 days) to review phrasing, structure, and details.
                 </p>
               </div>
             </div>
@@ -218,10 +237,10 @@ export function CareerPackagesSection() {
             <div className="flex items-start space-x-3">
               <CreditCard className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-[#17243B] mb-1">Transparent Quotations</h3>
+                <h3 className="font-semibold text-[#17243B] mb-1">Clear Quotations</h3>
                 <p>
-                  No hidden fees or unexpected charges. You receive a complete written scope of
-                  deliverables, timelines, and payment terms upfront.
+                  We provide a transparent written quotation detailing scope, timelines, and payment
+                  terms before any work begins. No unexpected costs.
                 </p>
               </div>
             </div>
@@ -229,10 +248,10 @@ export function CareerPackagesSection() {
             <div className="flex items-start space-x-3">
               <Sparkles className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-[#17243B] mb-1">Custom Add-On Services</h3>
+                <h3 className="font-semibold text-[#17243B] mb-1">Flexible Scoping</h3>
                 <p>
-                  Need an urgent 48-hour rush turnaround, extra targeted role variations, or custom
-                  domain setup? Add-ons can be integrated during intake.
+                  Need an expedited turnaround, a specific cover letter draft, or additional role
+                  variations? Custom requirements can be agreed during consultation.
                 </p>
               </div>
             </div>
@@ -242,4 +261,3 @@ export function CareerPackagesSection() {
     </section>
   );
 }
-

@@ -6,9 +6,7 @@ import {
   Award,
   Compass,
   Zap,
-  ArrowRight,
   Sparkles,
-  Check,
 } from 'lucide-react';
 
 const audiences = [
@@ -18,9 +16,9 @@ const audiences = [
     icon: GraduationCap,
     quote: 'Present your education, projects, internships and emerging skills with confidence.',
     description:
-      'Bridge the gap between academic qualifications and workforce readiness. We highlight coursework projects, leadership initiatives, technical tools, and internship impact to craft a compelling early-career narrative.',
-    recommended: ['Resume Crafting', 'LinkedIn Makeover', 'Portfolio Starter'],
-    highlight: 'Turn academic projects into commercial proof',
+      'Starting your career requires showing your potential clearly. We highlight your academic projects, internships, technical coursework, and leadership activities to demonstrate practical capability.',
+    recommended: ['Professional Resume Writing', 'LinkedIn Profile Makeover', 'Personal Portfolio Websites'],
+    highlight: 'Highlight coursework & practical projects',
   },
   {
     category: 'Stage 02',
@@ -28,9 +26,9 @@ const audiences = [
     icon: Award,
     quote: 'Communicate your achievements, responsibilities and professional growth clearly.',
     description:
-      'Move beyond task-oriented summaries. We quantify leadership wins, budgetary stewardship, operational velocity, and architectural impact so senior recruiters immediately grasp your executive value.',
-    recommended: ['Executive Resume', 'ATS Calibration', 'Executive LinkedIn'],
-    highlight: 'Distill 5–15+ years into high-impact metrics',
+      'Move beyond simple task lists. We structure your years of experience around responsibilities, leadership, and notable achievements so recruiters understand your value right away.',
+    recommended: ['Professional Resume Writing', 'ATS Resume Optimisation', 'LinkedIn Profile Makeover'],
+    highlight: 'Structure responsibilities & key achievements',
   },
   {
     category: 'Stage 03',
@@ -38,9 +36,9 @@ const audiences = [
     icon: Compass,
     quote: 'Reposition your transferable skills and experience for a new professional direction.',
     description:
-      'Transitioning to product, tech, strategy, or operations? We restructure your career story to emphasize domain-agnostic competencies, stakeholder orchestration, and accelerated adaptability.',
-    recommended: ['Pivotal Resume Framing', 'Targeted Rebranding', 'Case Study Site'],
-    highlight: 'Bridge background gaps with transferable mastery',
+      'Moving into a new industry or discipline? We help reframe your previous background to showcase transferable skills, problem-solving ability, and relevant accomplishments.',
+    recommended: ['Targeted Resume Writing', 'ATS Resume Optimisation', 'LinkedIn Profile Makeover'],
+    highlight: 'Showcase transferable skills for new roles',
   },
   {
     category: 'Stage 04',
@@ -48,9 +46,9 @@ const audiences = [
     icon: Zap,
     quote: 'Get organised support with your professional profiles, relevant opportunities and applications.',
     description:
-      'Cut through the noise of relentless job boards. We provide structured application management, vacancy screening against your criteria, and coordinated tracking so your pipeline stays proactive.',
-    recommended: ['Managed Job Search', 'Application Tracking', 'Full Ecosystem'],
-    highlight: 'Regain time and stay focused on interviews',
+      'Stay organized and responsive during your search. We provide structured application tracking, job portal profile setup, and assistance preparing application materials.',
+    recommended: ['Managed Job Search & Applications', 'ATS Resume Optimisation', 'Complete Presence Package'],
+    highlight: 'Organise applications & track vacancies',
   },
 ];
 
@@ -68,8 +66,8 @@ export function CareerAudienceSection() {
             Support for every stage of your professional journey.
           </h2>
           <p className="text-base sm:text-lg text-[#292D36]/80 leading-relaxed font-sans">
-            Every career chapter brings distinct strategic challenges. We adapt our document
-            craftsmanship and branding approach to your exact career inflection point.
+            Every career phase brings different priorities. We adapt our document preparation and
+            profile presentation to fit your current career step.
           </p>
         </div>
 
@@ -97,7 +95,7 @@ export function CareerAudienceSection() {
                     {aud.title}
                   </h3>
 
-                  {/* Editorial Quote */}
+                  {/* Quote */}
                   <blockquote className="text-sm font-medium text-[#17243B] italic border-l-2 border-[#8172A8] pl-3 py-1 mb-4 bg-white/60 rounded-r">
                     &ldquo;{aud.quote}&rdquo;
                   </blockquote>
@@ -109,7 +107,7 @@ export function CareerAudienceSection() {
 
                 <div className="pt-4 border-t border-[#E6E2DC]/80 space-y-3">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-[#777781] uppercase tracking-wider">Key Focus:</span>
+                    <span className="text-[#777781] uppercase tracking-wider">Focus Area:</span>
                     <span className="font-semibold text-[#17243B]">{aud.highlight}</span>
                   </div>
 
@@ -132,4 +130,3 @@ export function CareerAudienceSection() {
     </section>
   );
 }
-

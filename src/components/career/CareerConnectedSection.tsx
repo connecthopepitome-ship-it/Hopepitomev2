@@ -9,65 +9,76 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle2,
-  GitCommit,
 } from 'lucide-react';
 
 const touchpoints = [
   {
     step: '01',
     title: 'Resume',
-    subtitle: 'Communicate your experience',
+    subtitle: 'Communicate your experience.',
     icon: FileText,
-    accent: '#8172A8',
     description:
-      'The foundational document. Engineered with narrative precision, impact metrics, and clean typography that captures attention in seconds.',
-    meta: 'Precision Storytelling · PDF & DOCX',
-    features: ['Impact-oriented bullet points', 'Clean executive typography', 'ATS-calibrated layout'],
+      'A clearly structured document that summarizes your career background, skills, qualifications, and key accomplishments in a format easy for hiring teams to read.',
+    meta: 'Core Document · PDF & Word Formats',
+    features: [
+      'Clear formatting and typography',
+      'Role-relevant experience structure',
+      'Delivered in editable DOCX & print PDF',
+    ],
   },
   {
     step: '02',
-    title: 'LinkedIn',
-    subtitle: 'Strengthen your professional presence',
+    title: 'LinkedIn Profile',
+    subtitle: 'Strengthen your professional presence.',
     icon: Linkedin,
-    accent: '#0077B5',
     description:
-      'Your digital storefront. Aligned headline, engaging About section, and structured recommendations that project authority and credibility.',
-    meta: 'Profile Searchability · Network Authority',
-    features: ['High-visibility headline formula', 'First-person narrative About', 'Skills matrix indexing'],
+      'An engaging headline, concise About summary, and organized work history so recruiters and industry peers understand your professional background.',
+    meta: 'Online Presence · Recruiter Visibility',
+    features: [
+      'Search-friendly headline',
+      'Engaging About summary narrative',
+      'Structured experience and skills tags',
+    ],
   },
   {
     step: '03',
-    title: 'Portfolio',
-    subtitle: 'Showcase your actual work',
+    title: 'Portfolio Website',
+    subtitle: 'Showcase your actual work.',
     icon: Globe,
-    accent: '#17243B',
     description:
-      'Tangible evidence of your skills. An independent website featuring live case studies, problem-solving breakdowns, and verifiable outcomes.',
-    meta: 'Independent Domain · Responsive Web',
-    features: ['In-depth case studies', 'Interactive work samples', 'Dedicated contact bridge'],
+      'A clean personal website to present your case studies, projects, credentials, and achievements in one central, accessible place.',
+    meta: 'Personal Website · Domain & Handover',
+    features: [
+      'Project case study displays',
+      'Responsive mobile and desktop design',
+      'Direct contact section with lead forwarding',
+    ],
   },
   {
     step: '04',
-    title: 'Job Search',
-    subtitle: 'Organise your next opportunity',
+    title: 'Job Search Support',
+    subtitle: 'Organise your next opportunity.',
     icon: Briefcase,
-    accent: '#8172A8',
     description:
-      'Structured execution. Screened vacancies, tailored submissions, organized follow-ups, and active status tracking so nothing falls through the cracks.',
-    meta: 'Opportunity Tracking · Informed Submissions',
-    features: ['Curated vacancy matching', 'Tracking status pipeline', 'Consent-driven submissions'],
+      'Practical assistance with job portal profiles, identifying relevant job openings, and tracking applications so your search stays organized.',
+    meta: 'Search Support · Systematic Organisation',
+    features: [
+      'Job portal profile setup & updates',
+      'Application activity tracker sheet',
+      'Candidate-approved submissions only',
+    ],
   },
 ];
 
 export function CareerConnectedSection() {
   return (
-    <section className="py-28 bg-[#F7F5F0] relative overflow-hidden">
+    <section className="py-24 bg-[#F7F5F0] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Editorial Section Header */}
-        <div className="max-w-3xl mx-auto text-center mb-20">
+        <div className="max-w-3xl mx-auto text-center mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
             <Sparkles className="w-3 h-3 text-[#8172A8]" />
-            THE CONNECTED PRESENCE ECOSYSTEM
+            YOUR COMPLETE PROFESSIONAL PROFILE
           </div>
 
           <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-[#17243B] tracking-tight mb-4">
@@ -98,7 +109,7 @@ export function CareerConnectedSection() {
                   className="bg-white rounded-2xl border border-[#E6E2DC] p-6 sm:p-7 flex flex-col justify-between hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative group"
                 >
                   {/* Step Badge */}
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-5">
                     <span className="font-mono text-xs font-bold text-[#8172A8] px-2.5 py-1 rounded-full bg-[#FAF8FC] border border-[#E6E2DC]">
                       STEP {tp.step}
                     </span>
@@ -140,15 +151,15 @@ export function CareerConnectedSection() {
           </div>
         </div>
 
-        {/* Bottom Editorial Callout */}
-        <div className="mt-16 bg-white rounded-2xl border border-[#E6E2DC] p-8 max-w-4xl mx-auto shadow-sm">
+        {/* Bottom Callout */}
+        <div className="mt-14 bg-white rounded-2xl border border-[#E6E2DC] p-6 sm:p-8 max-w-4xl mx-auto shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="space-y-1">
               <h3 className="font-display font-bold text-lg text-[#17243B]">
-                Ready to unify your career presentation?
+                Ready to bring your career presentation together?
               </h3>
               <p className="text-xs sm:text-sm text-[#777781]">
-                Combine individual touchpoints into a cohesive personal brand package.
+                Choose an individual service or combine multiple services into a package.
               </p>
             </div>
             <a
@@ -164,4 +175,3 @@ export function CareerConnectedSection() {
     </section>
   );
 }
-

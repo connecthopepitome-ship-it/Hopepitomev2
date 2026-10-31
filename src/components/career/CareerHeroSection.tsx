@@ -3,13 +3,12 @@
 import React from 'react';
 import {
   FileText,
+  Search,
   Linkedin,
   Globe,
   Briefcase,
   CheckCircle2,
   ArrowRight,
-  ShieldCheck,
-  TrendingUp,
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
@@ -17,23 +16,28 @@ import {
 const supportingPoints = [
   {
     icon: FileText,
-    label: 'Professionally prepared resumes',
-    desc: 'Structured for impact & narrative clarity',
+    label: 'Professional Resume Writing',
+    desc: 'Structured for clarity and career impact',
+  },
+  {
+    icon: Search,
+    label: 'ATS Resume Optimisation',
+    desc: 'Keyword alignment & recruiter readability',
   },
   {
     icon: Linkedin,
-    label: 'Stronger online presence',
-    desc: 'Calibrated LinkedIn headline & story',
+    label: 'LinkedIn Profile Makeover',
+    desc: 'Stronger headline, summary & story',
   },
   {
     icon: Globe,
-    label: 'Personal portfolio websites',
-    desc: 'Dedicated showcase of your actual work',
+    label: 'Personal Portfolio Websites',
+    desc: 'Dedicated showcase for your work & projects',
   },
   {
     icon: Briefcase,
-    label: 'Practical job search assistance',
-    desc: 'Application organization & vacancy discovery',
+    label: 'Managed Job Search & Applications',
+    desc: 'Practical search organisation & vacancy tracking',
   },
 ];
 
@@ -52,7 +56,7 @@ export function CareerHeroSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          {/* Left Column: Editorial Value Proposition & CTAs */}
+          {/* Left Column: Value Proposition & CTAs */}
           <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2">
@@ -74,9 +78,9 @@ export function CareerHeroSection() {
 
             {/* Supporting Copy */}
             <p className="text-lg sm:text-xl text-[#292D36]/90 leading-relaxed font-sans max-w-2xl">
-              Whether you&apos;re starting your career, looking for your next opportunity or
-              planning a professional transition, we help you present your experience, showcase
-              your skills and manage your job search with greater confidence.
+              From professionally written resumes to LinkedIn profiles, personal portfolio websites
+              and job search assistance, we help you present your experience and take your next
+              career step with confidence.
             </p>
 
             {/* Action Buttons */}
@@ -98,17 +102,17 @@ export function CareerHeroSection() {
             </div>
 
             {/* Supporting Points Grid */}
-            <div className="pt-8 border-t border-[#E6E2DC]/80 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="pt-8 border-t border-[#E6E2DC]/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {supportingPoints.map((pt, idx) => {
                 const Icon = pt.icon;
                 return (
-                  <div key={idx} className="flex items-start space-x-3">
-                    <div className="p-2 rounded-lg bg-white border border-[#E6E2DC] text-[#8172A8] shrink-0 mt-0.5 shadow-2xs">
-                      <Icon className="w-4 h-4" />
+                  <div key={idx} className="flex items-start space-x-2.5">
+                    <div className="p-1.5 rounded-lg bg-white border border-[#E6E2DC] text-[#8172A8] shrink-0 mt-0.5 shadow-2xs">
+                      <Icon className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h2 className="text-sm font-semibold text-[#17243B]">{pt.label}</h2>
-                      <p className="text-xs text-[#777781] leading-normal">{pt.desc}</p>
+                      <h2 className="text-xs font-semibold text-[#17243B] leading-snug">{pt.label}</h2>
+                      <p className="text-[11px] text-[#777781] leading-tight mt-0.5">{pt.desc}</p>
                     </div>
                   </div>
                 );
@@ -128,16 +132,16 @@ export function CareerHeroSection() {
               {/* Document 1: Main Realistic Executive Resume Preview Sheet */}
               <div className="bg-white rounded-2xl border border-[#E6E2DC] shadow-xl p-6 sm:p-7 relative z-20">
                 {/* Document Top Bar */}
-                <div className="flex items-center justify-between pb-4 border-b border-[#E6E2DC]/80 mb-5">
+                <div className="flex items-center justify-between pb-3.5 border-b border-[#E6E2DC]/80 mb-4">
                   <div className="flex items-center space-x-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#8172A8]/60" />
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#777781]">
-                      Sample Preview · Executive Format
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold">
+                      Illustrative Concept Sample · Fictional Profile
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-mono font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    ATS Parsed
+                    Clean Structure
                   </span>
                 </div>
 
@@ -147,67 +151,67 @@ export function CareerHeroSection() {
                     SARAH CHEN
                   </h2>
                   <p className="text-xs font-medium text-[#8172A8] font-mono tracking-wide uppercase">
-                    SENIOR PRODUCT STRATEGIST & SYSTEMS LEAD
+                    SENIOR PRODUCT STRATEGIST
                   </p>
                   <p className="text-[11px] text-[#777781] font-sans">
-                    Singapore · sarah.chen@preview.com · linkedin.com/in/sarahchen
+                    Singapore · sample.chen@example.com · linkedin.com/in/sample-sarahchen
                   </p>
                 </div>
 
-                {/* Executive Summary */}
+                {/* Profile Summary */}
                 <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60">
                   <h3 className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold mb-1">
-                    Executive Profile
+                    Professional Summary
                   </h3>
                   <p className="text-xs text-[#292D36] leading-relaxed">
-                    Product leader with 9+ years architecting enterprise software solutions and
-                    scaling cross-functional operational teams across APAC and EMEA markets.
+                    Product leader with 9+ years managing software development roadmaps, coordinating
+                    cross-functional teams, and delivering enterprise digital products.
                   </p>
                 </div>
 
-                {/* Selected Impact Achievements */}
+                {/* Sample Experience Entries */}
                 <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60">
                   <h3 className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold mb-2">
-                    Key Achievements
+                    Key Experience Highlights
                   </h3>
                   <div className="space-y-2">
                     <div className="bg-[#FAF8FC] p-2.5 rounded-lg border border-[#E6E2DC]/80">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-[#17243B]">
-                          Revenue Expansion
+                          Product Modernisation
                         </span>
-                        <span className="text-[11px] font-mono font-bold text-[#8172A8]">
-                          +$14.3M ARR
+                        <span className="text-[10px] font-mono text-[#8172A8] font-semibold">
+                          Platform Lead
                         </span>
                       </div>
                       <p className="text-[11px] text-[#777781] mt-0.5">
-                        Led platform unification across 3 core business units.
+                        Led platform unification across 3 core business units with zero unplanned downtime.
                       </p>
                     </div>
 
                     <div className="bg-[#FAF8FC] p-2.5 rounded-lg border border-[#E6E2DC]/80">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-[#17243B]">
-                          Operational Velocity
+                          Workflow Optimization
                         </span>
-                        <span className="text-[11px] font-mono font-bold text-[#8172A8]">
-                          -42% Cycle Time
+                        <span className="text-[10px] font-mono text-[#8172A8] font-semibold">
+                          Operations Lead
                         </span>
                       </div>
                       <p className="text-[11px] text-[#777781] mt-0.5">
-                        Automated client onboarding and reporting workflows.
+                        Streamlined client onboarding steps and automated monthly status reporting.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Skills tags */}
+                {/* Core Competencies */}
                 <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60 flex flex-wrap gap-1.5">
                   {[
                     'Product Roadmapping',
                     'Systems Architecture',
-                    'ERP Integration',
-                    'Stakeholder Strategy',
+                    'Agile Delivery',
+                    'Stakeholder Management',
                   ].map((skill) => (
                     <span
                       key={skill}
@@ -220,43 +224,42 @@ export function CareerHeroSection() {
               </div>
 
               {/* Document 2: Floating Card — LinkedIn Profile Calibrated Card */}
-              <div className="sm:absolute -bottom-8 -left-8 sm:w-64 bg-[#FAF8FC] rounded-xl border border-[#E6E2DC] shadow-lg p-4 z-30 mt-4 sm:mt-0">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Linkedin className="w-4 h-4 text-[#0077B5]" />
+              <div className="sm:absolute -bottom-7 -left-7 sm:w-64 bg-[#FAF8FC] rounded-xl border border-[#E6E2DC] shadow-lg p-3.5 z-30 mt-4 sm:mt-0">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center space-x-1.5">
+                    <Linkedin className="w-3.5 h-3.5 text-[#0077B5]" />
                     <span className="text-[10px] font-mono font-semibold uppercase text-[#17243B]">
-                      LinkedIn Calibrated
+                      LinkedIn Makeover
                     </span>
                   </div>
-                  <span className="text-[9px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                    High Clarity
+                  <span className="text-[9px] font-mono text-[#777781] bg-white px-1.5 py-0.5 rounded border border-[#E6E2DC]">
+                    Concept
                   </span>
                 </div>
                 <p className="text-xs font-medium text-[#17243B]">
                   &ldquo;Senior Systems Lead | Enterprise ERP & Transformation&rdquo;
                 </p>
                 <p className="text-[10px] text-[#777781] mt-1">
-                  Optimized About section, search keywords and skills hierarchy.
+                  Structured About section, search keywords and skills hierarchy.
                 </p>
               </div>
 
               {/* Document 3: Floating Card — Personal Portfolio Preview */}
-              <div className="sm:absolute -top-6 -right-6 sm:w-60 bg-white rounded-xl border border-[#E6E2DC] shadow-lg p-4 z-30 hidden sm:block">
-                <div className="flex items-center justify-between mb-2">
+              <div className="sm:absolute -top-6 -right-6 sm:w-60 bg-white rounded-xl border border-[#E6E2DC] shadow-lg p-3.5 z-30 hidden sm:block">
+                <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center space-x-1.5">
                     <Globe className="w-3.5 h-3.5 text-[#8172A8]" />
                     <span className="text-[10px] font-mono font-semibold uppercase text-[#17243B]">
-                      Personal Portfolio
+                      Portfolio Website
                     </span>
                   </div>
                   <ExternalLink className="w-3 h-3 text-[#777781]" />
                 </div>
-                <div className="h-1.5 w-12 bg-[#8172A8]/30 rounded-full mb-1" />
                 <p className="text-xs font-semibold text-[#17243B]">
-                  sarahchen.design / work
+                  sarahchen.sample / portfolio
                 </p>
                 <p className="text-[10px] text-[#777781] mt-0.5">
-                  Responsive portfolio showcasing case studies & impact metrics.
+                  Clean responsive portfolio displaying project case studies.
                 </p>
               </div>
             </div>
@@ -266,4 +269,3 @@ export function CareerHeroSection() {
     </section>
   );
 }
-

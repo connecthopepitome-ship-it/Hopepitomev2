@@ -17,7 +17,7 @@ const steps = [
     quote: 'Share your existing resume, professional background, target roles and the services you need.',
     icon: MessageSquare,
     details:
-      'Submit your current resume draft or career notes via our structured enquiry form. Clarify your target industries, desired job titles, and any specific timelines.',
+      'Fill out the enquiry form below with your current resume draft or career notes. Let us know your target roles, industries, and preferred timeline.',
   },
   {
     number: '02',
@@ -25,7 +25,7 @@ const steps = [
     quote: 'We understand your experience, goals and expectations before beginning the work.',
     icon: FileCheck,
     details:
-      'Our career strategist conducts an intake assessment of your background, identifying career narrative angles, missing accomplishments, and ATS alignment opportunities.',
+      'Our team reviews your background and objectives, clarifying your priorities, key accomplishments, and target roles before beginning the work.',
   },
   {
     number: '03',
@@ -33,7 +33,7 @@ const steps = [
     quote: 'Our team works on the agreed documents, profiles, website or job search support.',
     icon: PenTool,
     details:
-      'We write, structure, design and calibrate your resume, LinkedIn narrative, portfolio website or job search framework according to your agreed package scope.',
+      'We write, structure, and format your agreed deliverables according to your chosen package, ensuring clean typography and clear organization.',
   },
   {
     number: '04',
@@ -41,7 +41,7 @@ const steps = [
     quote: 'You review the work, request the revisions included in your package and receive the final deliverables.',
     icon: CheckCircle,
     details:
-      'Inspect the draft deliverables in detail. Provide your feedback for refinements, and receive the finalized editable (DOCX), print-ready (PDF), and digital assets.',
+      'Review your draft materials, request the revisions included in your package, and receive your final editable (DOCX), print-ready (PDF), or web files.',
   },
 ];
 
@@ -53,14 +53,14 @@ export function CareerProcessSection() {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
             <Sparkles className="w-3 h-3 text-[#8172A8]" />
-            FOUR-STAGE COLLABORATION
+            HOW IT WORKS
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
             A simple process. Personal attention. Clear deliverables.
           </h2>
           <p className="text-base sm:text-lg text-[#292D36]/80 leading-relaxed font-sans max-w-2xl mx-auto">
-            Transparent milestones with dedicated revision allowances. We keep the process
-            organized, personal, and focused on your goals.
+            Defined milestones with agreed revision allowances. We keep the process straightforward,
+            transparent, and focused on your career goals.
           </p>
         </div>
 
@@ -97,8 +97,8 @@ export function CareerProcessSection() {
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-[#E6E2DC]/60 flex items-center justify-between text-[11px] font-mono text-[#8172A8]">
-                  <span>Phase {st.number}</span>
-                  <span className="text-[#777781]">Standard SLA</span>
+                  <span>Step {st.number}</span>
+                  <span className="text-[#777781]">Agreed Timeline</span>
                 </div>
               </div>
             );
@@ -119,4 +119,3 @@ export function CareerProcessSection() {
     </section>
   );
 }
-

@@ -6,8 +6,6 @@ import {
   CheckCircle,
   Sparkles,
   Layers,
-  ArrowRight,
-  ShieldAlert,
 } from 'lucide-react';
 
 const principles = [
@@ -15,33 +13,33 @@ const principles = [
     title: 'Personalised Approach',
     quote: 'We shape the work around your experience, goals and target opportunities.',
     description:
-      'We do not feed your background into generic automated fill-in-the-blank generators. We take the time to understand your distinctive trajectory, career inflection points, and specific target market before putting pen to paper.',
+      'We do not rely on generic templates or automated fill-in-the-blank generators. We take the time to understand your career background, target roles, and strengths before preparing your documents.',
     icon: UserCheck,
-    tag: 'Bespoke Consultation',
+    tag: 'Personal Attention',
   },
   {
     title: 'Clear Deliverables',
     quote: 'You know what is included, what will be delivered and how the process works.',
     description:
-      'No ambiguous promises or moving goalposts. Every engagement has a written scope detailing exact file formats (DOCX and PDF), revision allowances, turnaround timelines, and agreed milestones.',
+      'No ambiguous promises. Every project includes an agreed scope detailing exact document formats (DOCX and PDF), revision allowances, turnaround timelines, and deliverables.',
     icon: CheckCircle,
-    tag: 'Transparent Scoping',
+    tag: 'Clear Agreement',
   },
   {
     title: 'Professional Presentation',
     quote: 'We focus on clarity, structure, consistency and quality.',
     description:
-      'Recruiters review documents under intense time constraints. We prioritize clean typographic rhythm, scannable hierarchies, and impact-first metric framing so your capabilities stand out in seconds.',
+      'Hiring teams review documents quickly. We prioritize clean typography, scannable layouts, and clear organization so your experience and skills are easy to evaluate.',
     icon: Layers,
-    tag: 'Editorial Rigor',
+    tag: 'Quality & Clarity',
   },
   {
     title: 'Practical Support',
     quote: 'From preparing your resume to organising applications, get help with the tasks that take time and attention.',
     description:
-      'A job search requires continuous, meticulous organization. We provide realistic, hands-on assistance managing application trackers, formatting documents for specific roles, and keeping your pipeline moving forward.',
+      'Job hunting takes dedicated time and focus. We provide practical help preparing materials, setting up profiles, and organizing applications so you can stay confident and focused.',
     icon: Sparkles,
-    tag: 'Operational Relief',
+    tag: 'Practical Help',
   },
 ];
 
@@ -53,14 +51,14 @@ export function CareerWhyUsSection() {
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
             <Sparkles className="w-3 h-3 text-[#8172A8]" />
-            OUR GUIDING PRINCIPLES
+            OUR PRINCIPLES
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
             Professional support, without the unnecessary complexity.
           </h2>
           <p className="text-base sm:text-lg text-[#292D36]/80 leading-relaxed font-sans">
-            We believe in honest craftsmanship, grounded expectations, and meticulous attention to
-            detail. We do not make inflated guarantees — we deliver rigorous, thoughtful work.
+            We believe in honest work, clear expectations, and personal attention to detail. We do
+            not make unrealistic guarantees — we deliver thoughtful, practical support.
           </p>
         </div>
 
@@ -98,7 +96,7 @@ export function CareerWhyUsSection() {
 
                 <div className="pt-6 border-t border-[#E6E2DC]/80 mt-6 flex items-center justify-between text-xs font-mono text-[#8172A8]">
                   <span>Pillar 0{idx + 1}</span>
-                  <span className="text-[#777781]">Hopepitome Standard</span>
+                  <span className="text-[#777781]">Standard of Service</span>
                 </div>
               </div>
             );
@@ -108,4 +106,3 @@ export function CareerWhyUsSection() {
     </section>
   );
 }
-

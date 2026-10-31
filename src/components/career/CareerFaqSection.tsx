@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, Sparkles, HelpCircle } from 'lucide-react';
+import { ChevronDown, Sparkles } from 'lucide-react';
 
 interface FaqItem {
   q: string;
@@ -11,51 +11,51 @@ interface FaqItem {
 const faqs: FaqItem[] = [
   {
     q: '1. What information do I need to provide for resume writing?',
-    a: 'To get started, you can share your existing resume draft (even if outdated), your updated LinkedIn profile, or notes summarizing your work history, education, certifications, and major accomplishments. If you have target job descriptions you are aiming for, sharing those allows us to align the language and emphasis accurately.',
+    a: 'To get started, you can share your existing resume draft (even if outdated), your LinkedIn profile, or notes summarizing your work history, education, certifications, and major accomplishments. If you have specific target job descriptions you are aiming for, sharing those allows us to align the language and emphasis accurately.',
   },
   {
     q: '2. Can you create a resume for fresh graduates?',
-    a: 'Yes. For recent graduates and entry-level professionals, we structure resumes to highlight capstone projects, academic research, relevant coursework, technical proficiencies, internships, and extracurricular leadership to demonstrate real-world competence even with limited formal work history.',
+    a: 'Yes. For recent graduates and early-career candidates, we structure resumes to highlight capstone projects, academic research, relevant coursework, technical tools, internships, and extracurricular leadership to demonstrate practical capability.',
   },
   {
     q: '3. What is ATS resume optimisation?',
-    a: 'Applicant Tracking Systems (ATS) are software tools used by corporate recruiters to parse, filter, and organize incoming job applications. Our ATS optimisation involves structuring your resume with standard headings, legible formatting, scannable hierarchies, and authentic keyword relevance matched to your target role. We do not use invisible tricks or guarantee artificial score thresholds, because real-world ATS implementations differ across employers.',
+    a: 'Applicant Tracking Systems (ATS) are software tools used by corporate recruiters to parse, filter, and organize incoming job applications. Our ATS optimisation involves structuring your resume with standard headings, legible formatting, scannable hierarchies, and relevant keywords matched to your target role. We do not promise artificial score thresholds or guaranteed shortlisting, because real-world ATS implementations differ across employers.',
   },
   {
     q: '4. Can you customise my resume for a specific job?',
-    a: 'Yes. If you are targeting a specific opening or executive vacancy, we can review the job requirements and tailor your summary, achievement bullets, and skills section to reflect the exact domain priorities and keywords demanded by that role.',
+    a: 'Yes. If you are targeting a specific vacancy or role, we can review the job requirements and tailor your summary, experience points, and skills section to reflect the priorities and keywords of that position.',
   },
   {
     q: '5. Do you also improve LinkedIn profiles?',
-    a: 'Yes. Our LinkedIn Profile Makeover service refactors your headline, About summary, experience entries, and skills matrix. We optimize your profile to project authority, improve search visibility by recruiters, and ensure consistent positioning alongside your resume.',
+    a: 'Yes. Our LinkedIn Profile Makeover service refactors your headline, About summary, experience entries, and skills list. We optimize your profile so it communicates a clear professional story and stays consistent with your resume.',
   },
   {
     q: '6. Can you build a personal portfolio website?',
-    a: 'Yes. We design and build clean, fast, and responsive personal portfolio websites. These showcase your case studies, achievements, interactive media, and credentials on an independent domain, giving recruiters and clients tangible proof of your work.',
+    a: 'Yes. We design and build clean, fast, and responsive personal portfolio websites. These showcase your case studies, projects, credentials, and achievements on an independent domain, giving recruiters and clients a dedicated place to see your work.',
   },
   {
     q: '7. What does Managed Job Search & Applications include?',
-    a: 'This service provides practical, hands-on operational assistance during your job hunt. It includes setting up and refining your job portal profiles, researching and screening relevant vacancies that fit your agreed criteria, preparing application materials, tracking submission statuses, and providing regular progress updates.',
+    a: 'This service provides practical assistance during your job search. It includes setting up and updating job portal profiles, identifying relevant vacancies matching your agreed criteria, preparing application documents, and maintaining a centralized tracking sheet to monitor status and follow-ups.',
   },
   {
     q: '8. Do you apply for jobs on my behalf?',
-    a: 'We provide application assistance, but all job applications are made strictly with your advance knowledge, consent, and approval. We never submit fabricated credentials or apply to unsuitable roles without your sign-off. We also prioritize secure workflows so you retain complete control over your accounts and credentials.',
+    a: 'We provide application assistance, but every application is submitted strictly with your advance knowledge, consent, and approval. We never submit inaccurate information, fabricate credentials, or apply to unsuitable roles without your sign-off.',
   },
   {
     q: '9. How many revisions are included?',
-    a: 'Every package includes a clearly defined revision allowance (typically 2 to 3 rounds of structured revisions within a 14- to 30-day window following initial draft delivery). This ensures you have ample opportunity to review phrasing, factual accuracy, and design layout before final sign-off.',
+    a: 'Every package includes a clearly defined revision allowance (2 to 3 structured rounds within a 14- to 30-day window following draft delivery). We do not offer open-ended or unlimited revisions, ensuring focused feedback and clear milestone completion.',
   },
   {
     q: '10. How long does delivery take?',
-    a: 'Standard turnaround for resume writing and ATS optimisation is typically 3 to 7 business days from the completion of your intake review. Comprehensive packages including custom portfolio websites typically take 8 to 12 business days. If you have an urgent interview or deadline, express delivery options can be agreed during initial scoping.',
+    a: 'Standard turnaround for resume writing and ATS optimisation is typically 3 to 7 business days from the review of your requirements. Comprehensive packages including custom portfolio websites typically take 8 to 12 business days.',
   },
   {
     q: '11. Can I purchase individual services?',
-    a: 'Yes. You can engage us for any standalone service — such as a single resume rewrite, ATS calibration, a LinkedIn makeover, or a portfolio build — or combine them into a package according to your needs and budget.',
+    a: 'Yes. You can engage us for any standalone service — such as a single resume rewrite, ATS optimisation, a LinkedIn makeover, or a portfolio website — or combine services into a package based on your goals.',
   },
   {
     q: '12. How do I get a quotation?',
-    a: 'Simply fill out the consultation enquiry form below, indicating your career stage, the services you need, and any relevant details or target roles. Our team will review your requirements and provide a transparent, itemized quotation with clear deliverables and timelines before any commitment is made.',
+    a: 'Simply fill out the enquiry form below, indicating your career stage, the service you need, and any relevant details. Our team typically reviews submissions and responds with a transparent, itemized quotation within 1–2 business days before any commitment is made.',
   },
 ];
 
@@ -121,13 +121,13 @@ export function CareerFaqSection() {
           })}
         </div>
 
-        {/* Bottom Help Prompt */}
-        <div className="mt-12 text-center text-xs text-[#777781] font-mono">
-          Have an additional question? Include it in the consultation form below and our team will
-          answer it directly.
+        {/* Document Retention & Privacy Note */}
+        <div className="mt-12 text-center text-xs text-[#777781] font-sans max-w-2xl mx-auto">
+          <strong>Document Privacy:</strong> Your resumes, work notes, and contact details are kept
+          strictly confidential and will not be shared with third parties or external databases. You
+          can request deletion of your submitted files at any time.
         </div>
       </div>
     </section>
   );
 }
-

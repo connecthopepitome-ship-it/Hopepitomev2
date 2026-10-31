@@ -2,16 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Sparkles, ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 const footerNav = [
   { label: 'Home (Main Studio)', href: '/' },
   { label: 'Our Services', href: '#services' },
   { label: 'How It Works', href: '#how-it-works' },
   { label: 'Packages & Pricing', href: '#packages' },
-  { label: 'Concept Showcase', href: '#showcase' },
+  { label: 'Sample Showcase', href: '#showcase' },
   { label: 'FAQs', href: '#faqs' },
-  { label: 'Consultation Intake', href: '#contact' },
+  { label: 'Get Started', href: '#contact' },
 ];
 
 export function CareerFooter() {
@@ -31,9 +31,9 @@ export function CareerFooter() {
             </div>
 
             <p className="text-sm text-[#F7F5F0]/80 leading-relaxed max-w-md font-sans">
-              Helping professionals present their experience and move forward with confidence.
-              From executive resume refactoring to ATS alignment, personal web portfolios, and
-              application operations.
+              Helping professionals present their experience and take their next career step with
+              confidence. From professionally written resumes and ATS optimisation to LinkedIn
+              profiles, personal portfolio websites, and job search assistance.
             </p>
 
             {/* Back to Business Studio Callout Box */}
@@ -69,7 +69,7 @@ export function CareerFooter() {
 
           <div className="md:col-span-3 space-y-3">
             <h4 className="text-xs font-mono uppercase tracking-wider text-[#A69ACB] font-semibold">
-              Resources & Intake
+              Resources & Enquiry
             </h4>
             <ul className="space-y-2 text-xs font-sans text-[#F7F5F0]/75">
               {footerNav.slice(4).map((item) => (
@@ -89,8 +89,8 @@ export function CareerFooter() {
         {/* Bottom Legal, Confidentiality & Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-[#F7F5F0]/60">
           <div>
-            © {new Date().getFullYear()} Hopepitome. All rights reserved. Confidential career
-            presentation & document craftsmanship studio.
+            © {new Date().getFullYear()} Hopepitome. All rights reserved. Professional career
+            branding, resumes, and portfolio websites.
           </div>
           <div className="flex items-center space-x-4">
             <Link href="/" className="hover:text-white transition-colors">
@@ -98,7 +98,7 @@ export function CareerFooter() {
             </Link>
             <span>·</span>
             <a href="#contact" className="hover:text-white transition-colors">
-              Intake Channel
+              Get Started
             </a>
           </div>
         </div>
@@ -106,4 +106,3 @@ export function CareerFooter() {
     </footer>
   );
 }
-

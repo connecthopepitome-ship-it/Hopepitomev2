@@ -11,12 +11,23 @@ import {
   ArrowRight,
   AlertCircle,
   Shield,
-  Layers,
   Sparkles,
   Lock,
 } from 'lucide-react';
 
 export function CareerServicesSection() {
+  const handleSelectService = (serviceName: string) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('select-career-service', { detail: { service: serviceName } })
+      );
+      const contactEl = document.getElementById('contact');
+      if (contactEl) {
+        contactEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <section id="services" className="py-24 bg-white border-y border-[#E6E2DC] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,7 +35,7 @@ export function CareerServicesSection() {
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
             <Sparkles className="w-3 h-3 text-[#8172A8]" />
-            OUR CORE DISCIPLINES
+            OUR SERVICES
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
             Everything you need to present yourself professionally.
@@ -37,7 +48,7 @@ export function CareerServicesSection() {
 
         {/* 5 Distinct Service Blocks */}
         <div className="space-y-16">
-          {/* Service 01: Resume Crafting */}
+          {/* Service 01: Professional Resume Writing */}
           <div className="bg-[#FAF8FC] rounded-2xl border border-[#E6E2DC] p-8 md:p-10 transition-all hover:border-[#8172A8]/50 shadow-xs">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               <div className="lg:col-span-7 space-y-4">
@@ -46,7 +57,7 @@ export function CareerServicesSection() {
                     <FileText className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8172A8]">
-                    Service 01 · Narrative Architecture
+                    Service 01 · Professional Resume Writing
                   </span>
                 </div>
 
@@ -61,13 +72,14 @@ export function CareerServicesSection() {
                 </p>
 
                 <div className="pt-2">
-                  <a
-                    href="#contact"
+                  <button
+                    type="button"
+                    onClick={() => handleSelectService('Professional Resume Writing')}
                     className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-[#17243B] bg-white px-5 py-2.5 rounded-full border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#F2EFF7] transition-all group"
                   >
                     <span>Create My Resume</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -103,7 +115,7 @@ export function CareerServicesSection() {
                     <Search className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8172A8]">
-                    Service 02 · System Compatibility
+                    Service 02 · ATS Resume Optimisation
                   </span>
                 </div>
 
@@ -117,26 +129,27 @@ export function CareerServicesSection() {
                   target role to improve its compatibility with common applicant tracking systems.
                 </p>
 
-                {/* Important Technical & Ethical Disclaimer */}
+                {/* Important Technical & Ethical Policy Notice */}
                 <div className="bg-[#F7F5F0] border border-[#E6E2DC] rounded-xl p-4 flex items-start space-x-3">
                   <AlertCircle className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
                   <p className="text-xs text-[#777781] leading-relaxed">
-                    <strong className="text-[#17243B] font-semibold">Honest standard:</strong> We
-                    never promise guaranteed ATS scores, guaranteed shortlisting or guaranteed
-                    interviews. Real-world ATS parsing behaviors differ across recruitment
-                    platforms, human filter criteria and company configurations. We optimize for
-                    clean structure, semantic clarity and authentic keyword relevance.
+                    <strong className="text-[#17243B] font-semibold">Important notice:</strong> We
+                    do not promise guaranteed ATS scores, guaranteed shortlisting or guaranteed
+                    interviews. Real-world ATS parsing behaviors differ between recruitment
+                    platforms and individual employers. We focus on clean formatting, clear section
+                    hierarchy and authentic keyword relevance.
                   </p>
                 </div>
 
                 <div className="pt-2">
-                  <a
-                    href="#contact"
+                  <button
+                    type="button"
+                    onClick={() => handleSelectService('ATS Resume Optimisation')}
                     className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-[#17243B] bg-white px-5 py-2.5 rounded-full border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#F2EFF7] transition-all group"
                   >
                     <span>Optimise My Resume</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -172,7 +185,7 @@ export function CareerServicesSection() {
                     <Linkedin className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8172A8]">
-                    Service 03 · Online Presence
+                    Service 03 · LinkedIn Profile Makeover
                   </span>
                 </div>
 
@@ -187,13 +200,14 @@ export function CareerServicesSection() {
                 </p>
 
                 <div className="pt-2">
-                  <a
-                    href="#contact"
+                  <button
+                    type="button"
+                    onClick={() => handleSelectService('LinkedIn Profile Makeover')}
                     className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-[#17243B] bg-white px-5 py-2.5 rounded-full border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#F2EFF7] transition-all group"
                   >
                     <span>Improve My LinkedIn Profile</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -203,8 +217,8 @@ export function CareerServicesSection() {
                 </h4>
                 <ul className="space-y-2.5 text-xs text-[#292D36]">
                   {[
-                    'Professional headline drafting',
-                    'Engaging About section narrative',
+                    'Professional headline writing',
+                    'About section narrative',
                     'Experience description improvements',
                     'Skills and expertise organisation',
                     'Profile presentation recommendations',
@@ -221,7 +235,7 @@ export function CareerServicesSection() {
             </div>
           </div>
 
-          {/* Service 04: Personal Portfolio Development */}
+          {/* Service 04: Personal Portfolio Websites */}
           <div className="bg-[#FAF8FC] rounded-2xl border border-[#E6E2DC] p-8 md:p-10 transition-all hover:border-[#8172A8]/50 shadow-xs">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               <div className="lg:col-span-7 space-y-4">
@@ -230,7 +244,7 @@ export function CareerServicesSection() {
                     <Globe className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8172A8]">
-                    Service 04 · Digital Atelier
+                    Service 04 · Personal Portfolio Websites
                   </span>
                 </div>
 
@@ -248,24 +262,25 @@ export function CareerServicesSection() {
                   <div className="flex items-center justify-between text-xs font-mono text-[#777781] pb-2 border-b border-[#E6E2DC]/80">
                     <div className="flex items-center space-x-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span>Live Showcase Architecture</span>
+                      <span>Website Preview</span>
                     </div>
-                    <span>Mobile + Desktop Responsive</span>
+                    <span>Mobile & Desktop Responsive</span>
                   </div>
                   <div className="text-xs text-[#292D36]">
-                    Features structured case studies, metrics visualizations, downloadable document
-                    repository, and integrated direct contact channel.
+                    Includes project showcases, experience timeline, bio, downloadable resume link,
+                    and contact form.
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <a
-                    href="#contact"
+                  <button
+                    type="button"
+                    onClick={() => handleSelectService('Personal Portfolio Websites')}
                     className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-[#17243B] bg-white px-5 py-2.5 rounded-full border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#F2EFF7] transition-all group"
                   >
                     <span>Build My Portfolio</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -278,11 +293,11 @@ export function CareerServicesSection() {
                     'Personal portfolio website build',
                     'Professional introduction section',
                     'Skills and experience timeline',
-                    'Project showcase & case study templates',
-                    'Certifications and achievements gallery',
-                    'Contact section with lead forwarding',
-                    'Responsive mobile design & fast performance',
-                    'Domain setup, deployment & full handover',
+                    'Project showcase & case study layout',
+                    'Certifications and achievements section',
+                    'Contact section with email forwarding',
+                    'Responsive mobile design & fast loading',
+                    'Deployment setup and handover',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
                       <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
@@ -303,7 +318,7 @@ export function CareerServicesSection() {
                     <Briefcase className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8172A8]">
-                    Service 05 · Application Operations
+                    Service 05 · Managed Job Search & Applications
                   </span>
                 </div>
 
@@ -317,34 +332,35 @@ export function CareerServicesSection() {
                   tracking your application activity.
                 </p>
 
-                {/* Important Service Boundaries & Ethics Card */}
+                {/* Important Service Boundaries Notice */}
                 <div className="bg-[#F7F5F0] border border-[#E6E2DC] rounded-xl p-4 space-y-2">
                   <div className="flex items-center space-x-2 text-xs font-bold text-[#17243B]">
                     <Shield className="w-4 h-4 text-[#8172A8]" />
                     <span>Important Service Boundaries & Candidate Consent</span>
                   </div>
                   <p className="text-xs text-[#777781] leading-relaxed">
-                    This service provides practical assistance and administrative organization. We
-                    do <strong className="text-[#17243B]">not</strong> promise guaranteed
-                    employment, guaranteed interviews, guaranteed employer responses, or job offers.
-                    All job applications are made strictly with your knowledge and explicit
-                    approval. We never fabricate credentials, exaggerate experience, or apply to
-                    unsuitable roles.
+                    This service provides job search and application assistance. We do{' '}
+                    <strong className="text-[#17243B]">not</strong> promise guaranteed
+                    employment, guaranteed interviews, guaranteed employer responses, placement, or
+                    job offers. All applications are made strictly with your knowledge and advance
+                    approval. We never submit inaccurate information, fabricate experience, or
+                    apply to unsuitable roles without your consent.
                   </p>
                   <div className="flex items-center space-x-2 text-[11px] font-mono text-[#8172A8] pt-1">
                     <Lock className="w-3.5 h-3.5 text-[#8172A8]" />
-                    <span>Privacy Notice: Candidate passwords & confidential data are strictly safeguarded.</span>
+                    <span>Privacy Notice: Candidate credentials and personal data are strictly protected.</span>
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <a
-                    href="#contact"
+                  <button
+                    type="button"
+                    onClick={() => handleSelectService('Managed Job Search & Applications')}
                     className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-[#17243B] bg-white px-5 py-2.5 rounded-full border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#F2EFF7] transition-all group"
                   >
                     <span>Get Job Search Support</span>
                     <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -356,12 +372,12 @@ export function CareerServicesSection() {
                   {[
                     'Job portal profile setup and improvement',
                     'Profile information management',
-                    'Relevant vacancy identification & screening',
-                    'Application assistance & document packaging',
-                    'Job application tracking database',
+                    'Relevant vacancy identification',
+                    'Application assistance',
+                    'Job application tracking',
                     'Application status organisation',
-                    'Follow-up schedule tracking',
-                    'Periodic progress reports & consultation updates',
+                    'Follow-up tracking',
+                    'Periodic progress updates',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
                       <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
@@ -377,4 +393,3 @@ export function CareerServicesSection() {
     </section>
   );
 }
-

@@ -7,184 +7,184 @@ import {
   GraduationCap,
   Terminal,
   Globe,
-  Linkedin,
   Sparkles,
   CheckCircle2,
   ExternalLink,
   ChevronRight,
   Shield,
+  Info,
 } from 'lucide-react';
 
 const showcaseItems = [
-  {
-    id: 'executive',
-    title: 'Executive Resume',
-    label: 'Senior Leadership',
-    icon: UserCheck,
-    tag: 'C-Suite & VP Level',
-    candidate: 'Elena Vance — Chief Operations Officer',
-    summary:
-      'Engineered for a global operations executive with 16+ years scaling enterprise supply chains across 14 countries. Highlights multi-million dollar margin improvements and cross-border organizational leadership.',
-    highlights: [
-      '+$38M Operating margin efficiency across 3 global acquisitions',
-      'Unified 420-person multinational workforce across Americas & EMEA',
-      'Implemented automated ERP workflows decreasing fulfillment lag by 64%',
-    ],
-    previewType: 'resume',
-    previewData: {
-      headline: 'CHIEF OPERATIONS OFFICER · ENTERPRISE SCALE',
-      location: 'London, UK · Executive Advisory',
-      competencies: [
-        'Enterprise Restructuring',
-        'Global Supply Chain ERP',
-        'M&A Integration',
-        'P&L Optimization ($150M+)',
-        'Board Level Reporting',
-      ],
-      sampleBullet:
-        'Architected comprehensive post-merger integration framework across 4 enterprise business units, consolidating overlapping supply routes and capturing $18.4M in year-one synergies.',
-    },
-  },
-  {
-    id: 'modern',
-    title: 'Modern Professional Resume',
-    label: 'Mid-Senior Level',
-    icon: FileText,
-    tag: 'Product & Strategy',
-    candidate: 'Marcus Sterling — Principal Product Manager',
-    summary:
-      'Refactored from an unfocused 4-page list of responsibilities into a punchy, 2-page impact narrative demonstrating customer growth, platform adoption, and technical execution.',
-    highlights: [
-      'Grew active enterprise B2B subscriber base from 25K to 180K users',
-      'Spearheaded modern REST/GraphQL API product lines generating $8.2M ARR',
-      'Cut user churn by 28% through data-informed UX onboarding rebuild',
-    ],
-    previewType: 'resume',
-    previewData: {
-      headline: 'PRINCIPAL PRODUCT MANAGER · B2B SAAS PLATFORMS',
-      location: 'Berlin, Germany · Remote Strategy',
-      competencies: [
-        'Product Strategy & Roadmap',
-        'Enterprise SaaS',
-        'API Architecture',
-        'Agile Sprint Governance',
-        'Product-Led Growth (PLG)',
-      ],
-      sampleBullet:
-        'Partnered with engineering leadership to migrate legacy monolithic client dashboard to modular micro-frontends, accelerating feature release cadence by 3.5x while improving user NPS by +24 points.',
-    },
-  },
-  {
-    id: 'tech',
-    title: 'Technical Professional Resume',
-    label: 'Engineering & Architecture',
-    icon: Terminal,
-    tag: 'Cloud & Systems',
-    candidate: 'Devon Thorne — Cloud Solutions Architect',
-    summary:
-      'Calibrated for rigorous ATS systems and engineering hiring managers. Balances infrastructure depth with tangible business continuity metrics and cloud cost governance.',
-    highlights: [
-      'Designed multi-region AWS/Kubernetes architecture with 99.995% uptime',
-      'Optimized annual cloud expenditure saving $420,000 via automated right-sizing',
-      'Zero-downtime database migration for 12TB production MariaDB instance',
-    ],
-    previewType: 'resume',
-    previewData: {
-      headline: 'LEAD CLOUD & DISTRIBUTED SYSTEMS ARCHITECT',
-      location: 'Toronto, Canada · Hybrid Infra',
-      competencies: [
-        'Kubernetes / Terraform',
-        'AWS & Cloudflare Edge',
-        'High-Availability Architecture',
-        'Zero-Trust Security',
-        'CI/CD Pipelines',
-      ],
-      sampleBullet:
-        'Spearheaded zero-trust identity and micro-segmentation rollout across 80+ microservices, successfully passing SOC2 Type II and ISO 27001 enterprise security audits on first inspection.',
-    },
-  },
   {
     id: 'graduate',
     title: 'Fresh Graduate Resume',
     label: 'Early Career',
     icon: GraduationCap,
-    tag: 'Emerging Talent',
-    candidate: 'Aria Patel — Associate Data Analyst',
+    tag: 'Illustrative Concept · Early Career',
+    candidate: 'Aria Patel',
+    roleTitle: 'Associate Data Analyst',
     summary:
-      'Structured to elevate university research, capstone data modeling, hackathon accolades, and internship impact into commercial analytical competence for corporate intake programs.',
+      'Designed to structure academic projects, university coursework, internships, and analytical tool proficiencies into a clear, workforce-ready presentation.',
     highlights: [
-      'First Class Honours in Computer Science & Applied Statistics',
-      'Capstone predictive churn model recognized with Faculty Innovation Award',
-      'Internship project adopted into company-wide customer analytics reporting',
+      'Degree in Computer Science & Statistics with academic project honors',
+      'Capstone project analyzing transactional datasets to identify user patterns',
+      'Internship experience building automated SQL and dashboard reports',
     ],
     previewType: 'resume',
     previewData: {
-      headline: 'ASSOCIATE DATA ANALYST · STATISTICAL MODELING',
-      location: 'Sydney, Australia · Graduate Program',
+      headline: 'ASSOCIATE DATA ANALYST · STATISTICAL ANALYSIS',
+      location: 'Melbourne, Australia · sample.aria@example.com',
       competencies: [
-        'Python (Pandas, Scikit-learn)',
-        'SQL & Query Optimization',
+        'Python (Pandas, NumPy)',
+        'SQL & Query Design',
         'Tableau & PowerBI',
-        'Predictive Modeling',
-        'A/B Testing Methodology',
+        'Statistical Modeling',
+        'Excel Modeling',
       ],
       sampleBullet:
-        'Conducted statistical regression analysis on 500,000+ customer transaction rows during summer analyst residency, revealing previously untracked basket abandonment triggers.',
+        'Analyzed customer survey and transactional data during graduate residency, creating interactive dashboard summaries to support quarterly planning.',
     },
+    serviceToPreselect: 'Professional Resume Writing',
+  },
+  {
+    id: 'experienced',
+    title: 'Experienced Professional Resume',
+    label: 'Mid–Senior Level',
+    icon: FileText,
+    tag: 'Illustrative Concept · Mid–Senior Level',
+    candidate: 'Marcus Sterling',
+    roleTitle: 'Senior Product Manager',
+    summary:
+      'Refactored from an unfocused list of daily tasks into an organized narrative highlighting feature ownership, team coordination, and delivery milestones.',
+    highlights: [
+      'Managed agile product roadmaps for B2B web applications',
+      'Collaborated with engineering, design, and marketing across two-week sprints',
+      'Rebuilt customer onboarding experience, improving task completion rates',
+    ],
+    previewType: 'resume',
+    previewData: {
+      headline: 'SENIOR PRODUCT MANAGER · DIGITAL PLATFORMS',
+      location: 'London, UK · sample.marcus@example.com',
+      competencies: [
+        'Product Roadmapping',
+        'User Research & Discovery',
+        'Agile Sprint Planning',
+        'Cross-Functional Leadership',
+        'Feature Prioritisation',
+      ],
+      sampleBullet:
+        'Coordinated development and release of new self-service client portal, partnering with 8 engineers and UX designers to launch on schedule.',
+    },
+    serviceToPreselect: 'Professional Resume Writing',
+  },
+  {
+    id: 'executive',
+    title: 'Executive Resume',
+    label: 'Leadership',
+    icon: UserCheck,
+    tag: 'Illustrative Concept · Leadership Level',
+    candidate: 'Elena Vance',
+    roleTitle: 'Director of Operations',
+    summary:
+      'Engineered for senior leadership candidates with 12+ years of management background. Focuses on organizational leadership, operational efficiency, and team growth.',
+    highlights: [
+      'Led regional operations across 3 regional distribution hubs',
+      'Standardized vendor service contracts and procurement processes',
+      'Supported transition to unified enterprise ERP workflows across departments',
+    ],
+    previewType: 'resume',
+    previewData: {
+      headline: 'DIRECTOR OF OPERATIONS · ENTERPRISE SYSTEMS',
+      location: 'Singapore · sample.elena@example.com',
+      competencies: [
+        'Operations Management',
+        'Process Standardisation',
+        'ERP Workflow Integration',
+        'Vendor Governance',
+        'Cross-Department Coordination',
+      ],
+      sampleBullet:
+        'Oversaw operations team restructuring across three business units, introducing standardized performance milestones and regular cross-team reviews.',
+    },
+    serviceToPreselect: 'Professional Resume Writing',
+  },
+  {
+    id: 'tech',
+    title: 'Technical Professional Resume',
+    label: 'Engineering & Cloud',
+    icon: Terminal,
+    tag: 'Illustrative Concept · Technical Level',
+    candidate: 'Devon Thorne',
+    roleTitle: 'Cloud Solutions Architect',
+    summary:
+      'Calibrated for technical recruiters and engineering managers. Balances infrastructure proficiencies with systems reliability, security, and cloud cost awareness.',
+    highlights: [
+      'Architected resilient AWS cloud infrastructure using Terraform',
+      'Implemented automated CI/CD deployment pipelines for containerized microservices',
+      'Coordinated security reviews and infrastructure audit preparations',
+    ],
+    previewType: 'resume',
+    previewData: {
+      headline: 'CLOUD SOLUTIONS ARCHITECT · INFRASTRUCTURE & DEVOPS',
+      location: 'Toronto, Canada · sample.devon@example.com',
+      competencies: [
+        'AWS & Cloudflare Architecture',
+        'Kubernetes & Docker',
+        'Terraform & Infrastructure as Code',
+        'CI/CD Pipelines (GitHub Actions)',
+        'Systems Monitoring & Observability',
+      ],
+      sampleBullet:
+        'Led migration of containerized backend workloads to managed cloud infrastructure, setting up automated health monitoring and deployment rollbacks.',
+    },
+    serviceToPreselect: 'ATS Resume Optimisation',
   },
   {
     id: 'portfolio',
     title: 'Personal Portfolio Website',
-    label: 'Digital Web Presence',
+    label: 'Web Presence',
     icon: Globe,
-    tag: 'Custom Engineered Web',
-    candidate: 'Concept Preview — julian-ross.design',
+    tag: 'Illustrative Concept · Personal Website',
+    candidate: 'Julian Ross',
+    roleTitle: 'Design & Product Portfolio',
     summary:
-      'Bespoke portfolio website designed to showcase interactive design case studies, design systems architecture, and executive creative leadership on an independent domain.',
+      'A clean personal website designed to showcase case studies, design system work, professional credentials, and direct contact links on an independent domain.',
     highlights: [
-      'High-performance editorial layout with instant sub-second loading',
-      'Interactive case study deep-dives with problem-to-solution metrics',
-      'Automated contact bridge with calendar booking integration',
+      'Fast-loading responsive layout optimized for mobile and desktop screens',
+      'Structured case study overviews with clear problem-and-solution sections',
+      'Built-in contact section with lead routing and downloadable resume link',
     ],
     previewType: 'portfolio',
     previewData: {
-      headline: 'JULIAN ROSS — PRINCIPAL DESIGN SYSTEMS ARCHITECT',
-      domain: 'julianross.dev / live-portfolio',
+      headline: 'JULIAN ROSS — PRODUCT DESIGN & SYSTEMS',
+      domain: 'sample-julianross.example / work',
       sections: [
-        'Selected Works (6 Case Studies)',
-        'Design Systems Philosophy',
-        'Keynote & Thought Leadership',
-        'Downloadable Curriculum Vitae',
+        'Selected Project Case Studies',
+        'Design System Work Overview',
+        'Experience & Credentials',
+        'Direct Contact Channel',
       ],
     },
-  },
-  {
-    id: 'linkedin',
-    title: 'LinkedIn Profile Presentation',
-    label: 'Online Brand Calibration',
-    icon: Linkedin,
-    tag: 'Social Proof & Searchability',
-    candidate: 'Concept Preview — Maya Lin, VP Talent Acquisition',
-    summary:
-      'Rebuilt LinkedIn headline, banner styling, first-person narrative About section, and featured media to establish recognized authority and attract proactive executive headhunting.',
-    highlights: [
-      'Headline calibrated with primary executive search strings',
-      'Story-driven About section with 4.8x higher inbound recruiter contacts',
-      'Featured section organizing keynotes, published articles, and press mentions',
-    ],
-    previewType: 'linkedin',
-    previewData: {
-      headline: 'VP Global People Operations & Organizational Design | Keynote Speaker',
-      followers: '14,200+ followers · 500+ connections',
-      aboutLead:
-        '“Building modern workforces that thrive through rapid digital change. Passionate about transparent compensation, inclusive leadership, and high-trust engineering cultures.”',
-    },
+    serviceToPreselect: 'Personal Portfolio Websites',
   },
 ];
 
 export function CareerShowcaseSection() {
   const [activeTab, setActiveTab] = useState(showcaseItems[0].id);
   const activeItem = showcaseItems.find((item) => item.id === activeTab) || showcaseItems[0];
+
+  const handlePreselect = (serviceName: string) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('select-career-service', { detail: { service: serviceName } })
+      );
+      const contactEl = document.getElementById('contact');
+      if (contactEl) {
+        contactEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <section id="showcase" className="py-24 bg-[#F7F5F0] relative border-b border-[#E6E2DC]">
@@ -193,24 +193,28 @@ export function CareerShowcaseSection() {
         <div className="max-w-3xl mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
             <Sparkles className="w-3 h-3 text-[#8172A8]" />
-            GALLERY OF WORK SAMPLES
+            SAMPLE SHOWCASE
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
             See the difference thoughtful presentation makes.
           </h2>
           <p className="text-base sm:text-lg text-[#292D36]/80 leading-relaxed font-sans">
-            Explore authentic design concept samples across career levels. We craft each
-            deliverable to mirror the nuance, tone, and rigor expected by senior decision-makers.
+            Review illustrative concept samples across different career levels. We craft each
+            document to present experience clearly, accurately, and without unnecessary fluff.
           </p>
-          <div className="flex items-center space-x-2 text-xs font-mono text-[#777781] mt-3">
-            <Shield className="w-3.5 h-3.5 text-[#8172A8]" />
+
+          {/* Transparent Illustrative Concept Notice */}
+          <div className="mt-4 p-3 bg-white rounded-xl border border-[#E6E2DC] flex items-start space-x-2.5 max-w-2xl text-xs text-[#777781]">
+            <Info className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
             <span>
-              Privacy Guarantee: Concept samples utilize fictional profiles to protect confidential client data.
+              <strong>Concept Notice:</strong> The profiles and work samples shown below are
+              illustrative concept designs created with fictional identities to protect client
+              privacy. They demonstrate formatting, hierarchy, and presentation quality.
             </span>
           </div>
         </div>
 
-        {/* Interactive Tab Navigation */}
+        {/* Tab Navigation */}
         <div className="flex space-x-2 overflow-x-auto pb-4 no-scrollbar mb-8">
           {showcaseItems.map((item) => {
             const Icon = item.icon;
@@ -236,24 +240,24 @@ export function CareerShowcaseSection() {
         {/* Selected Sample Display Card */}
         <div className="bg-white rounded-3xl border border-[#E6E2DC] p-6 sm:p-10 shadow-lg">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            {/* Left: Sample Context & Strategic Breakdown */}
+            {/* Left: Sample Context & Breakdown */}
             <div className="lg:col-span-5 space-y-6">
               <div className="space-y-2">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-[#8172A8] font-bold px-2.5 py-1 rounded bg-[#FAF8FC] border border-[#E6E2DC]">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#8172A8] font-bold px-2.5 py-1 rounded bg-[#FAF8FC] border border-[#E6E2DC]">
                   {activeItem.tag}
                 </span>
                 <h3 className="font-display font-bold text-2xl text-[#17243B] pt-2">
-                  {activeItem.candidate}
+                  {activeItem.candidate} — {activeItem.roleTitle}
                 </h3>
                 <p className="text-xs sm:text-sm text-[#777781] leading-relaxed">
                   {activeItem.summary}
                 </p>
               </div>
 
-              {/* Strategic Transformation Highlights */}
+              {/* Sample Presentation Elements */}
               <div className="space-y-3 pt-2">
                 <h4 className="text-xs font-mono uppercase tracking-wider text-[#777781] font-semibold">
-                  Key Presentation Elements:
+                  Sample Presentation Elements:
                 </h4>
                 <div className="space-y-2">
                   {activeItem.highlights.map((hl, hIdx) => (
@@ -271,17 +275,18 @@ export function CareerShowcaseSection() {
               </div>
 
               <div className="pt-2">
-                <a
-                  href="#contact"
+                <button
+                  type="button"
+                  onClick={() => handlePreselect(activeItem.serviceToPreselect)}
                   className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-[#17243B] bg-[#FAF8FC] px-5 py-2.5 rounded-full border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#F2EFF7] transition-all group"
                 >
                   <span>Request Similar Custom Crafting</span>
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </a>
+                </button>
               </div>
             </div>
 
-            {/* Right: Realistic Document / Asset Mockup Preview */}
+            {/* Right: Realistic Document Mockup Preview */}
             <div className="lg:col-span-7">
               {activeItem.previewType === 'resume' && (
                 <div className="bg-[#FAF8FC] rounded-2xl border border-[#E6E2DC] p-6 sm:p-8 shadow-inner relative">
@@ -289,11 +294,16 @@ export function CareerShowcaseSection() {
                   <div className="bg-white rounded-xl border border-[#E6E2DC] p-6 sm:p-8 shadow-md space-y-5">
                     {/* Sheet Header */}
                     <div className="border-b border-[#E6E2DC] pb-4">
-                      <div className="text-[10px] font-mono tracking-widest text-[#8172A8] uppercase font-bold">
-                        {activeItem.previewData.headline}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono tracking-widest text-[#8172A8] uppercase font-bold">
+                          {activeItem.previewData.headline}
+                        </span>
+                        <span className="text-[9px] font-mono text-[#777781] bg-[#FAF8FC] px-2 py-0.5 rounded border border-[#E6E2DC]">
+                          Illustrative Sample
+                        </span>
                       </div>
                       <h4 className="font-display font-extrabold text-2xl text-[#17243B] tracking-tight mt-1">
-                        {activeItem.candidate.split('—')[0].trim()}
+                        {activeItem.candidate}
                       </h4>
                       <p className="text-xs text-[#777781] font-mono mt-0.5">
                         {activeItem.previewData.location}
@@ -303,7 +313,7 @@ export function CareerShowcaseSection() {
                     {/* Competencies Matrix */}
                     <div>
                       <div className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold mb-2">
-                        Core Competency Index
+                        Core Competencies & Tools
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {activeItem.previewData.competencies?.map((comp, cIdx) => (
@@ -317,14 +327,14 @@ export function CareerShowcaseSection() {
                       </div>
                     </div>
 
-                    {/* Selected Experience Detail */}
+                    {/* Experience Detail */}
                     <div className="space-y-2 pt-2 border-t border-[#E6E2DC]/80">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-[#17243B]">
-                          High-Impact Professional Experience
+                          Experience & Contribution Example
                         </span>
                         <span className="text-[11px] font-mono text-[#777781]">
-                          2021 — PRESENT
+                          SAMPLE TIMELINE
                         </span>
                       </div>
                       <div className="bg-[#F7F5F0]/60 p-3.5 rounded-lg border border-[#E6E2DC] text-xs text-[#292D36] leading-relaxed">
@@ -334,8 +344,8 @@ export function CareerShowcaseSection() {
 
                     {/* Verification watermark */}
                     <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-[#777781]">
-                      <span>Typography: Syne & Plus Jakarta Sans</span>
-                      <span>Verified ATS Structure · Ready for Export</span>
+                      <span>Clean typography & ATS-compatible structure</span>
+                      <span>Format: Editable DOCX & Print PDF</span>
                     </div>
                   </div>
                 </div>
@@ -359,15 +369,15 @@ export function CareerShowcaseSection() {
 
                     {/* Web Content Mockup */}
                     <div className="p-6 sm:p-8 space-y-6">
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <span className="text-[10px] font-mono text-[#8172A8] font-bold uppercase tracking-wider">
-                          Personal Atelier
+                          Illustrative Portfolio Design
                         </span>
                         <h4 className="font-display font-extrabold text-xl sm:text-2xl text-[#17243B]">
                           {activeItem.previewData.headline}
                         </h4>
                         <p className="text-xs text-[#777781]">
-                          Crafting scalable software design systems for Fortune 500 enterprises.
+                          Showcasing case studies, product work, and professional background.
                         </p>
                       </div>
 
@@ -385,51 +395,7 @@ export function CareerShowcaseSection() {
 
                       <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Responsive architecture, live deployment on edge CDN with fast global load times.</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeItem.previewType === 'linkedin' && (
-                <div className="bg-[#FAF8FC] rounded-2xl border border-[#E6E2DC] p-6 sm:p-8 shadow-inner">
-                  {/* LinkedIn Profile Shell */}
-                  <div className="bg-white rounded-xl border border-[#E6E2DC] shadow-md overflow-hidden">
-                    {/* Header Banner */}
-                    <div className="h-20 bg-gradient-to-r from-[#17243B] to-[#8172A8] relative">
-                      <div className="absolute -bottom-6 left-6 w-16 h-16 rounded-full bg-white p-1 border-2 border-white shadow">
-                        <div className="w-full h-full rounded-full bg-[#FAF8FC] flex items-center justify-center font-display font-bold text-[#17243B]">
-                          ML
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-8 px-6 pb-6 space-y-4">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-display font-bold text-xl text-[#17243B]">
-                            Maya Lin
-                          </h4>
-                          <span className="text-[10px] font-mono bg-[#EBF4FA] text-[#0077B5] px-2 py-0.5 rounded font-bold">
-                            in
-                          </span>
-                        </div>
-                        <p className="text-xs font-medium text-[#17243B] mt-1 leading-snug">
-                          {activeItem.previewData.headline}
-                        </p>
-                        <p className="text-[11px] font-mono text-[#777781] mt-1">
-                          {activeItem.previewData.followers}
-                        </p>
-                      </div>
-
-                      <div className="p-4 bg-[#FAF8FC] rounded-xl border border-[#E6E2DC] text-xs text-[#292D36] italic leading-relaxed">
-                        {activeItem.previewData.aboutLead}
-                      </div>
-
-                      <div className="flex items-center space-x-2 text-[11px] font-mono text-[#0077B5]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Optimized for LinkedIn search discovery & recruiter screening</span>
+                        <span>Responsive layout with clear typography, project galleries, and contact section.</span>
                       </div>
                     </div>
                   </div>
@@ -442,4 +408,3 @@ export function CareerShowcaseSection() {
     </section>
   );
 }
-
