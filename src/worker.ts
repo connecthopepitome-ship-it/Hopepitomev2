@@ -33,8 +33,10 @@ interface Env {
   GAS_SHARED_SECRET?: string;
 }
 
-// In-memory fallback rate limiter if KV is not bound
+// In-memory fallback stores for edge resiliency and testing before secrets are populated
 const inMemoryRateLimits = new Map<string, { attempts: number; lockedUntil: number }>();
+const inMemoryClients = new Map<string, { clientId: string; name: string; mobile: string; currentWorkOrderId: string; status: string }>();
+const inMemoryWorkOrders = new Map<string, { workOrderId: string; clientId: string; serviceType: string; status: WorkOrderStatus; createdAt: string; updatedAt: string }>();
 
 function normalizeMobile(mobile: string): string {
   if (!mobile) return '';
@@ -227,8 +229,7 @@ export default {
         const clientId = `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const workOrderId = generateWorkOrderId();
 
-        // A. Save Client Record in 'clients'
-        await firestore.setDocument('clients', clientId, {
+        const clientRecord = {
           clientId,
           name,
           mobile: normalizedMobile,
@@ -236,17 +237,25 @@ export default {
           currentWorkOrderId: workOrderId,
           createdAt: now,
           updatedAt: now,
-        });
+        };
 
-        // B. Save Initial Work Order in 'workOrders'
-        await firestore.setDocument('workOrders', workOrderId, {
+        const workOrderRecord = {
           workOrderId,
           clientId,
           serviceType: 'RESUME_WRITING',
-          status: 'Registered',
+          status: 'Registered' as WorkOrderStatus,
           createdAt: now,
           updatedAt: now,
-        });
+        };
+
+        inMemoryClients.set(normalizedMobile, clientRecord);
+        inMemoryWorkOrders.set(workOrderId, workOrderRecord);
+
+        // A. Save Client Record in 'clients'
+        await firestore.setDocument('clients', clientId, clientRecord);
+
+        // B. Save Initial Work Order in 'workOrders'
+        await firestore.setDocument('workOrders', workOrderId, workOrderRecord);
 
         // C. Initialize Career Profile document
         await firestore.setDocument('careerProfiles', clientId, {
@@ -340,7 +349,10 @@ export default {
         }
 
         // 1. Look up work order
-        const workOrderDoc = await firestore.getDocument('workOrders', workOrderId);
+        let workOrderDoc = await firestore.getDocument('workOrders', workOrderId);
+        if (!workOrderDoc) {
+          workOrderDoc = inMemoryWorkOrders.get(workOrderId) || null;
+        }
 
         if (!workOrderDoc) {
           // Record failed attempt
@@ -356,7 +368,15 @@ export default {
 
         // 2. Fetch associated client
         const clientId = workOrderDoc.clientId;
-        const clientDoc = await firestore.getDocument('clients', clientId);
+        let clientDoc = await firestore.getDocument('clients', clientId);
+        if (!clientDoc) {
+          for (const c of inMemoryClients.values()) {
+            if (c.clientId === clientId) {
+              clientDoc = c;
+              break;
+            }
+          }
+        }
 
         if (!clientDoc) {
           return new Response(
