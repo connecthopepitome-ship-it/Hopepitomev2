@@ -11,12 +11,12 @@ import { getFirestore } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 
 export const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyAA-bRWlrixam9nbsYqdWoHVcOldCSe7qs',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBB6WZ09t6rf7SzPAe-yzmuwZKMjE7bSQE',
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'hopepitome.firebaseapp.com',
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'hopepitome',
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'hopepitome.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '110548187541',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:110548187541:web:4871b423ff97147d6b63f9',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '1030333139371',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:1030333139371:web:535c5f74368f0e4932eaee',
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
 };
 
