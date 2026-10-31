@@ -640,5 +640,145 @@ export interface CrmConsultation {
   updatedAt: string;
 }
 
+// =============================================================================
+// EMPLOYEE MANAGEMENT & ACCESS CONTROL TYPES
+// =============================================================================
+
+export type StaffEmploymentType =
+  | 'Full Time'
+  | 'Part Time'
+  | 'Contract'
+  | 'Freelancer'
+  | 'Intern';
+
+export type StaffEmploymentStatus =
+  | 'Active'
+  | 'Pending Activation'
+  | 'On Leave'
+  | 'Suspended'
+  | 'Resigned'
+  | 'Terminated';
+
+export type StaffAccountStatus =
+  | 'ACTIVE'
+  | 'PENDING_ACTIVATION'
+  | 'SUSPENDED'
+  | 'INACTIVE'
+  | 'DEACTIVATED';
+
+export type StaffPermissionModule =
+  | 'dashboard'
+  | 'crm'
+  | 'leads'
+  | 'pipeline'
+  | 'followups'
+  | 'consultations'
+  | 'quotations'
+  | 'clients'
+  | 'profiles'
+  | 'documents'
+  | 'work_orders'
+  | 'service_orders'
+  | 'messages'
+  | 'reports'
+  | 'finance'
+  | 'employees'
+  | 'settings';
+
+export type StaffPermissionAction =
+  | 'view'
+  | 'create'
+  | 'edit'
+  | 'delete'
+  | 'assign'
+  | 'approve'
+  | 'export'
+  | 'manage';
+
+export type StaffRolePermissions = Partial<Record<StaffPermissionModule, StaffPermissionAction[]>>;
+
+export interface StaffUser {
+  uid: string;
+  employeeId: string; // e.g. HP-EMP-00001
+  fullName: string;
+  email: string;
+  mobile?: string;
+  departmentId: string;
+  departmentName?: string;
+  designation: string;
+  reportingManagerId?: string;
+  reportingManagerName?: string;
+  roleId: string; // e.g. super_admin, hr_admin, etc.
+  roleName?: string;
+  employmentType: StaffEmploymentType;
+  joiningDate: string;
+  employmentStatus: StaffEmploymentStatus;
+  accountStatus: StaffAccountStatus;
+  mustChangePassword: boolean;
+  emailVerificationStatus?: boolean;
+  profilePhoto?: string;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
+  createdBy?: string;
+  deactivatedAt?: string;
+  deactivatedBy?: string;
+}
+
+export interface StaffRole {
+  roleId: string;
+  roleName: string;
+  description: string;
+  permissions: StaffRolePermissions;
+  isSystemRole: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+}
+
+export interface StaffDepartment {
+  departmentId: string;
+  departmentName: string;
+  description: string;
+  managerId?: string;
+  managerName?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  employeeCount?: number;
+  createdAt: string;
+}
+
+export interface StaffPermissionOverride {
+  uid: string;
+  allowedPermissions: string[]; // e.g. "leads:export", "finance:view"
+  restrictedPermissions: string[];
+  updatedBy: string;
+  updatedAt: string;
+}
+
+export interface StaffActivityLog {
+  id: string;
+  uid: string;
+  employeeId: string;
+  employeeName?: string;
+  activityType: string;
+  description: string;
+  relatedRecordId?: string;
+  timestamp: string;
+  ipMetadataWhenAvailable?: string;
+}
+
+export interface StaffLoginLog {
+  id: string;
+  uid: string;
+  employeeId?: string;
+  email: string;
+  eventType: 'LOGIN_SUCCESS' | 'LOGIN_FAILED' | 'PASSWORD_CHANGED' | 'PASSWORD_RESET_REQUESTED' | 'LOGOUT';
+  timestamp: string;
+  result: 'SUCCESS' | 'FAILED';
+  failureReason?: string;
+  safeMetadata?: string;
+}
+
+
 
 

@@ -38,6 +38,11 @@ import type {
   CrmFollowUpOutcome,
   CrmActivity,
   CrmConsultation,
+  StaffUser,
+  StaffRole,
+  StaffDepartment,
+  StaffActivityLog,
+  StaffLoginLog,
 } from '../career/types';
 
 // Helper to sanitize undefined values before saving to Firestore
@@ -480,5 +485,140 @@ export async function saveCrmConsultation(consultation: CrmConsultation): Promis
   if (!db) return;
   await setDoc(doc(db, 'crm_consultations', consultation.id), cleanData(consultation), { merge: true });
 }
+
+// =============================================================================
+// EMPLOYEE MANAGEMENT & ACCESS CONTROL OPERATIONS
+// =============================================================================
+
+// 14. Staff Users Directory
+export function subscribeStaffUsers(callback: (users: StaffUser[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'staffUsers'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ uid: d.id, ...d.data() } as StaffUser));
+    list.sort((a, b) => (a.employeeId || '').localeCompare(b.employeeId || ''));
+    callback(list);
+  });
+}
+
+export async function getStaffUser(uid: string): Promise<StaffUser | null> {
+  if (!db || !uid) return null;
+  try {
+    const snap = await getDoc(doc(db, 'staffUsers', uid));
+    if (!snap.exists()) return null;
+    return { uid: snap.id, ...snap.data() } as StaffUser;
+  } catch (err) {
+    console.error('getStaffUser error:', err);
+    return null;
+  }
+}
+
+export async function saveStaffUser(user: StaffUser): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'staffUsers', user.uid), cleanData(user), { merge: true });
+}
+
+// 15. Staff Roles
+export function subscribeStaffRoles(callback: (roles: StaffRole[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'staffRoles'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ roleId: d.id, ...d.data() } as StaffRole));
+    callback(list);
+  });
+}
+
+export async function saveStaffRole(role: StaffRole): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'staffRoles', role.roleId), cleanData(role), { merge: true });
+}
+
+// 16. Staff Departments
+export function subscribeStaffDepartments(callback: (departments: StaffDepartment[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'staffDepartments'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ departmentId: d.id, ...d.data() } as StaffDepartment));
+    list.sort((a, b) => a.departmentName.localeCompare(b.departmentName));
+    callback(list);
+  });
+}
+
+export async function saveStaffDepartment(department: StaffDepartment): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'staffDepartments', department.departmentId), cleanData(department), { merge: true });
+}
+
+// 17. Staff Activity Logs
+export function subscribeStaffActivityLogs(
+  callback: (logs: StaffActivityLog[]) => void
+): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'staffActivityLogs'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as StaffActivityLog));
+    list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    callback(list);
+  });
+}
+
+export async function logStaffActivity(
+  activity: Omit<StaffActivityLog, 'id' | 'timestamp'>
+): Promise<void> {
+  if (!db) return;
+  try {
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `stf_act_${Date.now()}`;
+    const item: StaffActivityLog = {
+      id,
+      ...activity,
+      timestamp: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'staffActivityLogs'), cleanData(item));
+  } catch (e) {
+    console.warn('logStaffActivity error:', e);
+  }
+}
+
+// 18. Staff Login Logs
+export function subscribeStaffLoginLogs(callback: (logs: StaffLoginLog[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'staffLoginLogs'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as StaffLoginLog));
+    list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    callback(list);
+  });
+}
+
+export async function logStaffLogin(log: Omit<StaffLoginLog, 'id' | 'timestamp'>): Promise<void> {
+  if (!db) return;
+  try {
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `log_${Date.now()}`;
+    const item: StaffLoginLog = {
+      id,
+      ...log,
+      timestamp: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'staffLoginLogs'), cleanData(item));
+  } catch (e) {
+    console.warn('logStaffLogin warning:', e);
+  }
+}
+
 
 

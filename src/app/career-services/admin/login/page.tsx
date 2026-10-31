@@ -3,15 +3,24 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { loginWithEmail, loginWithGoogle, getFriendlyAuthErrorMessage } from '@/lib/firebase/auth';
-import { ArrowLeft, Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { loginWithEmail, sendPasswordReset, getFriendlyAuthErrorMessage } from '@/lib/firebase/auth';
+import { ArrowLeft, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff, KeyRound, CheckCircle2, Shield } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Forgot password modal state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +29,7 @@ export default function AdminLoginPage() {
 
     try {
       await loginWithEmail(email, password);
+      // AdminAuthProvider will automatically verify staffUsers status and accountStatus
       router.push('/career-services/admin/dashboard');
     } catch (err: any) {
       setError(getFriendlyAuthErrorMessage(err));
@@ -28,16 +38,19 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setError(null);
-    setLoading(true);
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+    setForgotSuccess(false);
+    setForgotLoading(true);
+
     try {
-      await loginWithGoogle();
-      router.push('/career-services/admin/dashboard');
+      await sendPasswordReset(forgotEmail);
+      setForgotSuccess(true);
     } catch (err: any) {
-      setError(getFriendlyAuthErrorMessage(err));
+      setForgotError(getFriendlyAuthErrorMessage(err));
     } finally {
-      setLoading(false);
+      setForgotLoading(false);
     }
   };
 
@@ -52,22 +65,29 @@ export default function AdminLoginPage() {
           <span>Back to Career Services</span>
         </Link>
 
-        <div className="w-10 h-10 rounded-xl bg-[#17243B] flex items-center justify-center text-white font-bold text-base mb-4 shadow-sm">
-          HP
-        </div>
-
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#17243B] text-white">
-            STAFF OPERATIONS
-          </span>
-          <span className="text-xs text-[#8172A8] font-medium">Internal Workspace</span>
+        {/* Company Logo & Internal Badge */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-11 h-11 rounded-2xl bg-[#17243B] flex items-center justify-center text-white font-bold text-base shadow-sm">
+            HP
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#17243B] text-white">
+                INTERNAL WORKSPACE
+              </span>
+              <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Secure SSO
+              </span>
+            </div>
+            <p className="text-xs text-[#777781] mt-0.5 font-medium">Hopepitome Career Services</p>
+          </div>
         </div>
 
         <h2 className="text-2xl font-bold tracking-tight text-[#17243B]">
-          Admin & Consultant Sign In
+          Staff & Consultant Sign In
         </h2>
         <p className="mt-1 text-xs text-[#777781]">
-          Access client dossiers, review career profile intakes, manage drafting pipelines, and dispatch deliverables.
+          Log in with your authorized company email and password to access CRM pipelines, client dossiers, and work orders.
         </p>
       </div>
 
@@ -83,7 +103,7 @@ export default function AdminLoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[#17243B] mb-1.5">
-                Staff Corporate Email
+                Company Email / Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#777781]">
@@ -94,29 +114,60 @@ export default function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@hopepitome.com"
+                  placeholder="name@hopepitome.com"
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8] focus:ring-1 focus:ring-[#8172A8] transition"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#17243B] mb-1.5">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-[#17243B]">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotEmail(email);
+                    setShowForgotModal(true);
+                  }}
+                  className="text-[11px] font-medium text-[#8172A8] hover:text-[#17243B] transition"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#777781]">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8] focus:ring-1 focus:ring-[#8172A8] transition"
+                  placeholder="••••••••••••"
+                  className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8] focus:ring-1 focus:ring-[#8172A8] transition"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#777781] hover:text-[#17243B]"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between py-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded border-[#E6E2DC] text-[#17243B] focus:ring-[#8172A8]"
+                />
+                <span className="text-[11px] text-[#777781]">Remember this session</span>
+              </label>
             </div>
 
             <button
@@ -128,35 +179,12 @@ export default function AdminLoginPage() {
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Sign In as Staff</span>
+                  <span>Sign In to Staff Workspace</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
             </button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E6E2DC]" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-[#FFFFFF] text-[#777781] text-[11px]">
-                  Or corporate SSO
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="mt-4 w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] hover:bg-[#F7F5F0] text-xs font-medium text-[#292D36] transition disabled:opacity-50"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#8172A8]" />
-              <span>Google Workspace Login</span>
-            </button>
-          </div>
 
           <p className="mt-8 text-center text-[11px] text-[#777781]">
             Are you a career services client?{' '}
@@ -164,12 +192,84 @@ export default function AdminLoginPage() {
               href="/career-services/portal/login"
               className="font-semibold text-[#17243B] underline underline-offset-4 hover:text-[#8172A8] transition"
             >
-              Go to Client Portal
+              Sign In with Mobile & Work Order
             </Link>
           </p>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-[#E6E2DC] shadow-xl max-w-sm w-full p-6">
+            <div className="w-10 h-10 rounded-xl bg-[#8172A8]/10 text-[#8172A8] flex items-center justify-center mb-3">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-[#17243B]">Reset Your Staff Password</h3>
+            <p className="text-xs text-[#777781] mt-1">
+              Enter your registered company email address. We will send an official Firebase recovery link to reset your credentials.
+            </p>
+
+            {forgotSuccess ? (
+              <div className="my-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                <span>Password recovery email dispatched. Please check your corporate inbox and spam folder.</span>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="mt-4 space-y-3">
+                {forgotError && (
+                  <div className="p-2.5 rounded-lg bg-red-50 text-xs text-red-700">
+                    {forgotError}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Company Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="name@hopepitome.com"
+                    className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none focus:border-[#8172A8]"
+                  />
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotModal(false);
+                      setForgotSuccess(false);
+                    }}
+                    className="flex-1 py-2 px-3 rounded-xl border border-[#E6E2DC] text-xs text-[#777781] hover:bg-[#F7F5F0]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="flex-1 py-2 px-3 rounded-xl bg-[#17243B] text-white text-xs font-semibold disabled:opacity-50"
+                  >
+                    {forgotLoading ? 'Sending...' : 'Send Link'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {forgotSuccess && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgotModal(false);
+                  setForgotSuccess(false);
+                }}
+                className="w-full mt-4 py-2 px-3 rounded-xl bg-[#17243B] text-white text-xs font-semibold"
+              >
+                Return to Login
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

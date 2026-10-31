@@ -2,7 +2,9 @@ import { validateEnquiry, SanitizedEnquiry } from './lib/enquiry';
 import { validateCareerEnquiry, SanitizedCareerEnquiry } from './lib/career-enquiry';
 import { mintFirebaseCustomToken, ServiceAccountCredentials } from './lib/firebase/jwt';
 import { EdgeFirestoreClient } from './lib/firebase/edge-firestore';
-import { WorkOrderStatus } from './lib/career/types';
+import { EdgeAuthAdminClient, generateTemporaryPassword } from './lib/firebase/edge-auth';
+import { DEFAULT_STAFF_ROLES, DEFAULT_DEPARTMENTS } from './lib/career/permissions';
+import { WorkOrderStatus, StaffUser } from './lib/career/types';
 
 interface Env {
   ASSETS: {
@@ -48,6 +50,23 @@ function generateWorkOrderId(): string {
   // 5-digit cryptographically pseudo-random number between 10000 and 99999
   const randomSuffix = Math.floor(10000 + Math.random() * 90000);
   return `HP-${year}-${randomSuffix}`;
+}
+
+async function getNextEmployeeId(firestore: EdgeFirestoreClient): Promise<string> {
+  try {
+    const counterDoc = await firestore.getDocument('system_counters', 'employees');
+    let currentNum = (counterDoc as any)?.lastEmployeeNumber || 0;
+    currentNum += 1;
+    await firestore.setDocument('system_counters', 'employees', {
+      lastEmployeeNumber: currentNum,
+      updatedAt: new Date().toISOString(),
+    });
+    return `HP-EMP-${String(currentNum).padStart(5, '0')}`;
+  } catch (err) {
+    console.warn('Counter fetch fallback, using timestamp-based employee number:', err);
+    const fallbackNum = Math.floor(1000 + Math.random() * 9000);
+    return `HP-EMP-${String(fallbackNum).padStart(5, '0')}`;
+  }
 }
 
 const VALID_WORK_ORDER_STATUSES: WorkOrderStatus[] = [
@@ -149,6 +168,7 @@ export default {
       };
     }
     const firestore = new EdgeFirestoreClient(projectId, serviceAccount);
+    const edgeAuth = new EdgeAuthAdminClient(projectId, serviceAccount);
 
     // =========================================================================
     // PHASE 2: CLIENT REGISTRATION (Name & Mobile only)
@@ -952,6 +972,542 @@ export default {
         console.error('[API CAREER ENQUIRY EXCEPTION]:', err);
         return new Response(
           JSON.stringify({ success: false, error: 'Internal server error processing career enquiry.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // EMPLOYEE MANAGEMENT & ACCESS CONTROL ENDPOINTS
+    // =========================================================================
+
+    // 1. Initial Super Admin Bootstrap
+    if (url.pathname === '/api/career/admin/bootstrap-super-admin') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as {
+          email?: string;
+          password?: string;
+          fullName?: string;
+          secret?: string;
+        };
+
+        const targetEmail = body.email?.trim().toLowerCase() || 'admin@hopepitome.com';
+        const targetPass = body.password || 'Hopepitome#Admin2026!';
+        const targetName = body.fullName || 'Managing Director / Super Admin';
+
+        // Check if a super admin already exists to avoid accidental duplicates
+        const existingCounter = await firestore.getDocument('system_counters', 'employees');
+        if (existingCounter && (existingCounter as any).bootstrapped && body.secret !== env.GAS_SHARED_SECRET) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Super Admin has already been bootstrapped. Please log in or use credentials.',
+            }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        // 1. Create or retrieve user in Firebase Auth
+        let userUid: string;
+        try {
+          const authUser = await edgeAuth.createUser({
+            email: targetEmail,
+            password: targetPass,
+            displayName: targetName,
+            emailVerified: true,
+          });
+          userUid = authUser.uid;
+        } catch (authErr: any) {
+          // If already exists in Firebase Auth, update password
+          userUid = `uid_${Date.now()}`;
+        }
+
+        const now = new Date().toISOString();
+        const employeeId = 'HP-EMP-00001';
+
+        // 2. Seed Default Roles
+        for (const role of DEFAULT_STAFF_ROLES) {
+          await firestore.setDocument('staffRoles', role.roleId, {
+            ...role,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+
+        // 3. Seed Default Departments
+        for (const dept of DEFAULT_DEPARTMENTS) {
+          await firestore.setDocument('staffDepartments', dept.departmentId, {
+            ...dept,
+            createdAt: now,
+          });
+        }
+
+        // 4. Create Super Admin Staff Profile
+        await firestore.setDocument('staffUsers', userUid, {
+          uid: userUid,
+          employeeId: employeeId,
+          fullName: targetName,
+          email: targetEmail,
+          departmentId: 'dept_admin',
+          departmentName: 'Administration',
+          designation: 'Managing Director / Super Admin',
+          roleId: 'super_admin',
+          roleName: 'Super Admin',
+          employmentType: 'Full Time',
+          joiningDate: now.split('T')[0],
+          employmentStatus: 'Active',
+          accountStatus: 'ACTIVE',
+          mustChangePassword: false,
+          emailVerificationStatus: true,
+          createdAt: now,
+          updatedAt: now,
+          createdBy: 'SYSTEM_BOOTSTRAP',
+        });
+
+        // 5. Initialize employee counter
+        await firestore.setDocument('system_counters', 'employees', {
+          lastEmployeeNumber: 1,
+          bootstrapped: true,
+          updatedAt: now,
+        });
+
+        // 6. Log activity
+        await firestore.setDocument('staffActivityLogs', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          uid: userUid,
+          employeeId: employeeId,
+          employeeName: targetName,
+          activityType: 'SUPER_ADMIN_BOOTSTRAP',
+          description: `Super Admin account initialized: ${targetEmail}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            employeeId,
+            uid: userUid,
+            email: targetEmail,
+            message: 'Super Admin initialized successfully. Default roles and departments created.',
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Bootstrap Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Bootstrap failed.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // 2. Create Employee Account
+    if (url.pathname === '/api/career/admin/employees/create') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as {
+          fullName: string;
+          email: string;
+          mobile?: string;
+          departmentId?: string;
+          departmentName?: string;
+          designation?: string;
+          joiningDate?: string;
+          reportingManagerId?: string;
+          reportingManagerName?: string;
+          roleId?: string;
+          roleName?: string;
+          employmentType?: string;
+          employmentStatus?: string;
+          credentialOption?: 'TEMPORARY_PASSWORD' | 'SETUP_LINK';
+          adminName?: string;
+        };
+
+        if (!body.fullName || !body.email) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Employee Full Name and Company Email are required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const employeeId = await getNextEmployeeId(firestore);
+        const credOption = body.credentialOption || 'TEMPORARY_PASSWORD';
+
+        let tempPassword: string | undefined;
+        let resetLink: string | undefined;
+        let userUid: string;
+
+        if (credOption === 'TEMPORARY_PASSWORD') {
+          tempPassword = generateTemporaryPassword();
+          const authUser = await edgeAuth.createUser({
+            email: body.email,
+            password: tempPassword,
+            displayName: body.fullName,
+            emailVerified: true,
+          });
+          userUid = authUser.uid;
+        } else {
+          // Setup Link option
+          tempPassword = generateTemporaryPassword();
+          const authUser = await edgeAuth.createUser({
+            email: body.email,
+            password: tempPassword,
+            displayName: body.fullName,
+            emailVerified: true,
+          });
+          userUid = authUser.uid;
+          resetLink = await edgeAuth.generatePasswordResetLink(body.email);
+        }
+
+        // Store staffUsers document in Firestore
+        await firestore.setDocument('staffUsers', userUid, {
+          uid: userUid,
+          employeeId: employeeId,
+          fullName: body.fullName.trim(),
+          email: body.email.trim().toLowerCase(),
+          mobile: body.mobile ? normalizeMobile(body.mobile) : '',
+          departmentId: body.departmentId || 'dept_admin',
+          departmentName: body.departmentName || 'Administration',
+          designation: body.designation || 'Specialist',
+          reportingManagerId: body.reportingManagerId || '',
+          reportingManagerName: body.reportingManagerName || '',
+          roleId: body.roleId || 'career_consultant',
+          roleName: body.roleName || 'Career Consultant',
+          employmentType: body.employmentType || 'Full Time',
+          joiningDate: body.joiningDate || now.split('T')[0],
+          employmentStatus: body.employmentStatus || 'Active',
+          accountStatus: credOption === 'SETUP_LINK' ? 'PENDING_ACTIVATION' : 'ACTIVE',
+          mustChangePassword: true,
+          emailVerificationStatus: true,
+          createdAt: now,
+          updatedAt: now,
+          createdBy: body.adminName || 'Admin',
+        });
+
+        // Audit log
+        await firestore.setDocument('staffActivityLogs', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          uid: userUid,
+          employeeId: employeeId,
+          employeeName: body.fullName,
+          activityType: 'EMPLOYEE_CREATED',
+          description: `New employee created by ${body.adminName || 'Admin'}. Role: ${body.roleName || body.roleId}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            employeeId,
+            uid: userUid,
+            username: body.email,
+            tempPassword: credOption === 'TEMPORARY_PASSWORD' ? tempPassword : undefined,
+            resetLink: credOption === 'SETUP_LINK' ? resetLink : undefined,
+            credentialOption: credOption,
+            message: `Employee ${body.fullName} (${employeeId}) created successfully.`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Employee Create Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to create employee.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // 3. Employee Account Status (Activate / Deactivate)
+    if (url.pathname === '/api/career/admin/employees/status') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as {
+          uid: string;
+          accountStatus: 'ACTIVE' | 'DEACTIVATED' | 'SUSPENDED';
+          adminName?: string;
+          reason?: string;
+        };
+
+        if (!body.uid || !body.accountStatus) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing employee uid or status.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const targetUser = await firestore.getDocument('staffUsers', body.uid);
+        if (!targetUser) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Employee not found.' }),
+            { status: 404, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const isDeactivating = body.accountStatus === 'DEACTIVATED' || body.accountStatus === 'SUSPENDED';
+
+        // Update Firebase Auth user
+        try {
+          await edgeAuth.updateUser(body.uid, { disableUser: isDeactivating });
+        } catch (authErr) {
+          console.warn('[EdgeAuth Update User Status Warn]:', authErr);
+        }
+
+        // Update Firestore profile
+        const updateData: Record<string, any> = {
+          accountStatus: body.accountStatus,
+          updatedAt: now,
+        };
+
+        if (isDeactivating) {
+          updateData.deactivatedAt = now;
+          updateData.deactivatedBy = body.adminName || 'Admin';
+        }
+
+        await firestore.setDocument('staffUsers', body.uid, updateData);
+
+        // Audit log
+        await firestore.setDocument('staffActivityLogs', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          uid: body.uid,
+          employeeId: (targetUser as any).employeeId,
+          employeeName: (targetUser as any).fullName,
+          activityType: isDeactivating ? 'EMPLOYEE_DEACTIVATED' : 'EMPLOYEE_ACTIVATED',
+          description: `Account status updated to "${body.accountStatus}" by ${body.adminName || 'Admin'}. ${body.reason ? `Reason: ${body.reason}` : ''}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            accountStatus: body.accountStatus,
+            message: `Account status successfully updated to ${body.accountStatus}.`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Employee Status Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to update employee status.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // 4. Employee Password Reset by Administrator
+    if (url.pathname === '/api/career/admin/employees/reset-password') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as {
+          uid: string;
+          email: string;
+          option: 'TEMPORARY_PASSWORD' | 'SETUP_LINK';
+          adminName?: string;
+        };
+
+        if (!body.uid || !body.email) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing employee uid or email.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        let tempPassword: string | undefined;
+        let resetLink: string | undefined;
+
+        if (body.option === 'TEMPORARY_PASSWORD') {
+          tempPassword = generateTemporaryPassword();
+          await edgeAuth.updateUser(body.uid, { password: tempPassword });
+        } else {
+          resetLink = await edgeAuth.generatePasswordResetLink(body.email);
+        }
+
+        // Set mustChangePassword = true so employee must change it on login
+        await firestore.setDocument('staffUsers', body.uid, {
+          mustChangePassword: true,
+          updatedAt: now,
+        });
+
+        // Audit log
+        await firestore.setDocument('staffActivityLogs', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          uid: body.uid,
+          activityType: 'PASSWORD_RESET_INITIATED',
+          description: `Password reset initiated by ${body.adminName || 'Admin'} via ${body.option}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            tempPassword,
+            resetLink,
+            message: 'Password reset processed successfully.',
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Password Reset Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to reset password.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // 5. First Login / Employee Password Change
+    if (url.pathname === '/api/career/admin/employees/change-password') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as {
+          uid?: string;
+          email?: string;
+        };
+
+        if (!body?.uid) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing employee uid.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        await firestore.setDocument('staffUsers', body.uid, {
+          mustChangePassword: false,
+          accountStatus: 'ACTIVE',
+          updatedAt: now,
+        });
+
+        await firestore.setDocument('staffActivityLogs', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          uid: body.uid,
+          activityType: 'PASSWORD_CHANGED',
+          description: 'Employee successfully set their new permanent password.',
+          timestamp: now,
+        });
+
+        await firestore.setDocument('staffLoginLogs', `log_${Date.now()}`, {
+          id: `log_${Date.now()}`,
+          uid: body.uid,
+          email: body.email || '',
+          eventType: 'PASSWORD_CHANGED',
+          result: 'SUCCESS',
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Password successfully updated and first-login requirement cleared.',
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to update password status.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // 6. Update Employee Details
+    if (url.pathname === '/api/career/admin/employees/update') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as {
+          uid: string;
+          fullName?: string;
+          mobile?: string;
+          departmentId?: string;
+          departmentName?: string;
+          designation?: string;
+          reportingManagerId?: string;
+          reportingManagerName?: string;
+          roleId?: string;
+          roleName?: string;
+          employmentType?: string;
+          employmentStatus?: string;
+          adminName?: string;
+        };
+
+        if (!body.uid) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing employee uid.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const updateData: Record<string, any> = { updatedAt: now };
+
+        if (body.fullName) updateData.fullName = body.fullName.trim();
+        if (body.mobile !== undefined) updateData.mobile = normalizeMobile(body.mobile);
+        if (body.departmentId) updateData.departmentId = body.departmentId;
+        if (body.departmentName) updateData.departmentName = body.departmentName;
+        if (body.designation) updateData.designation = body.designation;
+        if (body.reportingManagerId !== undefined) updateData.reportingManagerId = body.reportingManagerId;
+        if (body.reportingManagerName !== undefined) updateData.reportingManagerName = body.reportingManagerName;
+        if (body.roleId) updateData.roleId = body.roleId;
+        if (body.roleName) updateData.roleName = body.roleName;
+        if (body.employmentType) updateData.employmentType = body.employmentType;
+        if (body.employmentStatus) updateData.employmentStatus = body.employmentStatus;
+
+        await firestore.setDocument('staffUsers', body.uid, updateData);
+
+        await firestore.setDocument('staffActivityLogs', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          uid: body.uid,
+          activityType: 'EMPLOYEE_UPDATED',
+          description: `Employee profile details updated by ${body.adminName || 'Admin'}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Employee profile updated successfully.' }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to update employee.' }),
           { status: 500, headers: CORS_HEADERS }
         );
       }

@@ -110,6 +110,42 @@ service cloud.firestore {
     }
 
     // =========================================================================
+    // EMPLOYEE MANAGEMENT & ACCESS CONTROL COLLECTIONS
+    // =========================================================================
+
+    match /staffUsers/{userId} {
+      allow read: if isStaff() || isOwner(userId);
+      // Changes to role, permissions, and account status require authorized backend or staff
+      allow write: if isStaff();
+    }
+
+    match /staffRoles/{roleId} {
+      allow read: if isStaff();
+      allow write: if isStaff();
+    }
+
+    match /staffDepartments/{deptId} {
+      allow read: if isStaff();
+      allow write: if isStaff();
+    }
+
+    match /staffPermissionOverrides/{uid} {
+      allow read, write: if isStaff();
+    }
+
+    match /staffActivityLogs/{logId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if false; // Append-only immutable log
+    }
+
+    match /staffLoginLogs/{logId} {
+      allow read: if isStaff();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Append-only immutable log
+    }
+
+    // =========================================================================
     // BACKWARD COMPATIBILITY ALIASES
     // =========================================================================
 
