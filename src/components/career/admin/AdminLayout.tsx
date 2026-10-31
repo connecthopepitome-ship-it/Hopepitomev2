@@ -16,6 +16,13 @@ import {
   History,
   ChevronRight,
   ShieldAlert,
+  Inbox,
+  Kanban,
+  PhoneCall,
+  Calendar,
+  BarChart3,
+  Settings,
+  Sparkles,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -50,7 +57,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     return null;
   }
 
-  const navItems = [
+  const crmNavItems = [
+    { label: 'CRM Dashboard', href: '/career-services/admin/crm', icon: LayoutDashboard },
+    { label: 'Leads Inbox', href: '/career-services/admin/crm/leads', icon: Inbox },
+    { label: 'Sales Pipeline (Kanban)', href: '/career-services/admin/crm/pipeline', icon: Kanban },
+    { label: 'Follow-ups & Calls', href: '/career-services/admin/crm/follow-ups', icon: PhoneCall },
+    { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: Calendar },
+    { label: 'Reports & Analytics', href: '/career-services/admin/crm/reports', icon: BarChart3 },
+    { label: 'CRM Settings', href: '/career-services/admin/crm/settings', icon: Settings },
+  ];
+
+  const opsNavItems = [
     { label: 'Operations Dashboard', href: '/career-services/admin/dashboard', icon: LayoutDashboard },
     { label: 'Client Directory (360°)', href: '/career-services/admin/clients', icon: Users },
     { label: 'Service Orders Pipeline', href: '/career-services/admin/orders', icon: Briefcase },
@@ -67,12 +84,46 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col md:flex-row gap-8">
         {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0 space-y-6">
+        <aside className="w-full md:w-64 shrink-0 space-y-5">
+          {/* CRM Navigation Group */}
+          <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
+            <div className="flex items-center justify-between px-3 py-1 mb-0.5">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-[#8172A8]">
+                CRM & Sales
+              </span>
+              <span className="text-[9px] font-semibold bg-[#8172A8]/10 text-[#8172A8] px-1.5 py-0.5 rounded">
+                Acquisition
+              </span>
+            </div>
+            {crmNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
+                    isActive
+                      ? 'bg-[#17243B] text-white shadow-sm'
+                      : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#8172A8]'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Operations Navigation Group */}
           <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
             <span className="text-[10px] font-bold tracking-wider uppercase text-[#777781] px-3 py-1 block">
-              Operations Navigation
+              Fulfillment & Operations
             </span>
-            {navItems.map((item) => {
+            {opsNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (

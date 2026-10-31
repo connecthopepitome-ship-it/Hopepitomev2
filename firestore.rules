@@ -90,6 +90,26 @@ service cloud.firestore {
     }
 
     // =========================================================================
+    // CRM COLLECTIONS
+    // =========================================================================
+
+    match /crm_leads/{leadId} {
+      allow read, write: if isStaff();
+    }
+    match /crm_followups/{followUpId} {
+      allow read, write: if isStaff();
+    }
+    match /crm_activities/{activityId} {
+      allow read, write: if isStaff();
+    }
+    match /crm_consultations/{consultationId} {
+      allow read, write: if isStaff();
+    }
+    match /crm_settings/{settingId} {
+      allow read, write: if isStaff();
+    }
+
+    // =========================================================================
     // BACKWARD COMPATIBILITY ALIASES
     // =========================================================================
 

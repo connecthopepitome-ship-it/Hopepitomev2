@@ -480,4 +480,165 @@ export interface AdminRecord {
   status: 'ACTIVE' | 'SUSPENDED';
 }
 
+// =============================================================================
+// CRM (CUSTOMER RELATIONSHIP MANAGEMENT) DATA MODELS
+// =============================================================================
+
+export type CrmPipelineStage =
+  | 'New Lead'
+  | 'Contact Attempted'
+  | 'Contacted'
+  | 'Qualified'
+  | 'Consultation Scheduled'
+  | 'Consultation Completed'
+  | 'Quotation Preparation'
+  | 'Quotation Sent'
+  | 'Negotiation'
+  | 'Won / Ready to Convert'
+  | 'Lost'
+  | 'Nurture / Follow-up Later';
+
+export type CrmLeadSource =
+  | 'WEBSITE'
+  | 'WHATSAPP'
+  | 'INSTAGRAM'
+  | 'FACEBOOK'
+  | 'LINKEDIN'
+  | 'GOOGLE_SEARCH'
+  | 'GOOGLE_ADS'
+  | 'REFERRAL'
+  | 'EXISTING_CLIENT'
+  | 'DIRECT'
+  | 'CAMPAIGN'
+  | 'OTHER';
+
+export type CrmFollowUpType =
+  | 'INITIAL_CONTACT'
+  | 'PHONE_CALL'
+  | 'WHATSAPP'
+  | 'EMAIL'
+  | 'CONSULTATION'
+  | 'QUOTATION_FOLLOWUP'
+  | 'PAYMENT_FOLLOWUP'
+  | 'DOCUMENT_FOLLOWUP'
+  | 'GENERAL';
+
+export type CrmFollowUpStatus =
+  | 'PENDING'
+  | 'DUE_TODAY'
+  | 'OVERDUE'
+  | 'COMPLETED'
+  | 'RESCHEDULED'
+  | 'CANCELLED';
+
+export type CrmFollowUpOutcome =
+  | 'INTERESTED'
+  | 'NOT_INTERESTED'
+  | 'MORE_INFO'
+  | 'CONSULTATION_BOOKED'
+  | 'QUOTATION_REQUESTED'
+  | 'PRICE_CONCERN'
+  | 'NO_RESPONSE'
+  | 'CALL_BACK_LATER'
+  | 'CONVERTED'
+  | 'OTHER';
+
+export interface CrmLead {
+  id: string; // Format: LEAD-YYYYMM-XXXX
+  fullName: string;
+  mobile: string;
+  email?: string;
+  preferredContactMethod?: 'WHATSAPP' | 'PHONE' | 'EMAIL';
+  city?: string;
+  country?: string;
+  serviceInterestedIn: string;
+  enquiryDescription?: string;
+  targetRole?: string;
+  currentExperienceLevel?: 'ENTRY' | 'MID' | 'SENIOR' | 'EXECUTIVE' | 'TRANSITION';
+  preferredBudget?: string;
+  expectedStartDate?: string;
+  additionalRequirements?: string;
+  leadSource: CrmLeadSource | string;
+  campaignName?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  referralName?: string;
+  leadOwner: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  stage: CrmPipelineStage;
+  estimatedValue?: number; // In USD or local currency
+  lostReason?: string;
+  convertedClientId?: string;
+  convertedWorkOrderId?: string;
+  lastContactedAt?: string;
+  nextFollowUpDate?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrmFollowUp {
+  id: string;
+  leadId?: string;
+  leadName?: string;
+  leadPhone?: string;
+  clientId?: string;
+  title: string;
+  description?: string;
+  followUpType: CrmFollowUpType;
+  assignedStaff: string;
+  dueDate: string; // YYYY-MM-DD
+  dueTime?: string; // HH:mm
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status: CrmFollowUpStatus;
+  outcome?: CrmFollowUpOutcome;
+  outcomeNotes?: string;
+  createdBy: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface CrmActivity {
+  id: string;
+  leadId?: string;
+  clientId?: string;
+  activityType:
+    | 'LEAD_CREATED'
+    | 'STAGE_CHANGED'
+    | 'CALL_LOGGED'
+    | 'WHATSAPP_LOGGED'
+    | 'EMAIL_LOGGED'
+    | 'NOTE_ADDED'
+    | 'FOLLOWUP_SCHEDULED'
+    | 'FOLLOWUP_COMPLETED'
+    | 'CONSULTATION_SCHEDULED'
+    | 'CONSULTATION_COMPLETED'
+    | 'QUOTATION_SENT'
+    | 'LEAD_CONVERTED'
+    | 'LEAD_LOST';
+  title: string;
+  description?: string;
+  performedBy: string;
+  timestamp: string;
+}
+
+export interface CrmConsultation {
+  id: string;
+  leadId: string;
+  leadName: string;
+  leadPhone?: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  consultantName: string;
+  status: 'SCHEDULED' | 'COMPLETED' | 'RESCHEDULED' | 'NO_SHOW' | 'CANCELLED';
+  meetingLink?: string;
+  discussionNotes?: string;
+  recommendedService?: string;
+  quotedPrice?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
 

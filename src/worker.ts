@@ -570,6 +570,130 @@ export default {
     }
 
     // =========================================================================
+    // CRM: LEAD CONVERSION TO CLIENT & WORK ORDER
+    // =========================================================================
+    if (url.pathname === '/api/career/crm/lead/convert') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as {
+          leadId?: string;
+          adminName?: string;
+          initialService?: string;
+          fullName?: string;
+          mobile?: string;
+          email?: string;
+        } | null;
+
+        if (!body?.leadId) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing leadId.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const leadDoc = await firestore.getDocument('crm_leads', body.leadId);
+        const leadFullName = leadDoc?.fullName || body.fullName;
+        const leadMobile = leadDoc?.mobile || body.mobile || '';
+        const leadEmail = leadDoc?.email || body.email || '';
+        const leadService = body.initialService || leadDoc?.serviceInterestedIn || 'RESUME_WRITING';
+
+        if (!leadDoc && !leadFullName) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Lead record not found.' }),
+            { status: 404, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const normalizedMobile = normalizeMobile(leadMobile || '');
+        const clientId = `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const workOrderId = generateWorkOrderId();
+
+        // 1. Create client record
+        await firestore.setDocument('clients', clientId, {
+          clientId,
+          name: leadFullName || 'Client',
+          mobile: normalizedMobile,
+          email: leadEmail,
+          status: 'ACTIVE',
+          currentWorkOrderId: workOrderId,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // 2. Create work order
+        await firestore.setDocument('workOrders', workOrderId, {
+          workOrderId,
+          clientId,
+          serviceType: leadService,
+          status: 'Confirmed',
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // 3. Initialize profile
+        await firestore.setDocument('careerProfiles', clientId, {
+          clientId,
+          fullName: leadFullName || '',
+          email: leadEmail,
+          phone: normalizedMobile,
+          targetRoleTitles: leadDoc?.targetRole ? [leadDoc.targetRole] : [],
+          status: 'NOT_STARTED',
+          updatedAt: now,
+        });
+
+        // 4. Update Lead record as Converted
+        await firestore.setDocument('crm_leads', body.leadId, {
+          stage: 'Won / Ready to Convert',
+          convertedClientId: clientId,
+          convertedWorkOrderId: workOrderId,
+          updatedAt: now,
+        });
+
+        // 5. Initialize Google Apps Script Drive vault folder
+        callGoogleAppsScript(env, {
+          action: 'initWorkOrderFolder',
+          workOrderId,
+        }).catch((e) => console.warn('[GAS Init Warning]:', e));
+
+        // 6. Log activities
+        await firestore.setDocument('crm_activities', `act_${Date.now()}`, {
+          id: `act_${Date.now()}`,
+          leadId: body.leadId,
+          clientId,
+          activityType: 'LEAD_CONVERTED',
+          title: `Lead converted to active client with Work Order ${workOrderId}`,
+          description: `Converted by ${body.adminName || 'Admin'}. Client account and Drive vault created.`,
+          performedBy: body.adminName || 'ADMIN',
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            leadId: body.leadId,
+            clientId,
+            workOrderId,
+            message: `Lead successfully converted to Client! Work Order ${workOrderId} initialized.`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[CRM Convert Exception]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to convert lead.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
     // PHASE 10: WORK ORDER LIFECYCLE MANAGEMENT (Admin Update)
     // =========================================================================
     if (url.pathname === '/api/career/admin/work-orders/status') {
@@ -777,10 +901,49 @@ export default {
           }
         }
 
+        // Seamlessly feed website enquiry into CRM Leads collection
+        let leadId: string | undefined;
+        try {
+          leadId = `LEAD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+          const nowStr = enquiry.createdAt || new Date().toISOString();
+
+          await firestore.setDocument('crm_leads', leadId, {
+            id: leadId,
+            fullName: enquiry.fullName,
+            mobile: enquiry.phoneWhatsapp || '',
+            email: enquiry.email,
+            preferredContactMethod: enquiry.preferredContactMethod || 'WHATSAPP',
+            serviceInterestedIn: enquiry.serviceRequired || 'Professional Resume Writing',
+            enquiryDescription: enquiry.requirements || '',
+            targetRole: enquiry.targetRole || '',
+            currentExperienceLevel: enquiry.careerStage || 'MID',
+            country: enquiry.targetCountry || '',
+            leadSource: 'WEBSITE',
+            leadOwner: 'Unassigned',
+            priority: 'HIGH',
+            stage: 'New Lead',
+            createdAt: nowStr,
+            updatedAt: nowStr,
+          });
+
+          await firestore.setDocument('crm_activities', `act_${Date.now()}`, {
+            id: `act_${Date.now()}`,
+            leadId: leadId,
+            activityType: 'LEAD_CREATED',
+            title: `New lead captured from website enquiry (${enquiry.serviceRequired})`,
+            description: enquiry.requirements || '',
+            performedBy: 'WEBSITE_INTAKE',
+            timestamp: nowStr,
+          });
+        } catch (crmErr) {
+          console.error('[CRM LEAD INTAKE ERROR]:', crmErr);
+        }
+
         return new Response(
           JSON.stringify({
             success: true,
             referenceCode: enquiry.referenceCode,
+            leadId: leadId,
             message: 'Your career consultation enquiry has been registered successfully.',
           }),
           { status: 200, headers: CORS_HEADERS }

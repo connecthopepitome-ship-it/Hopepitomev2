@@ -32,6 +32,12 @@ import type {
   CareerActivityLog,
   CareerUser,
   UserRole,
+  CrmLead,
+  CrmPipelineStage,
+  CrmFollowUp,
+  CrmFollowUpOutcome,
+  CrmActivity,
+  CrmConsultation,
 } from '../career/types';
 
 // Helper to sanitize undefined values before saving to Firestore
@@ -348,4 +354,131 @@ export async function logActivity(log: Omit<CareerActivityLog, 'id' | 'timestamp
     console.warn('Activity logging warning:', e);
   }
 }
+
+// =============================================================================
+// CRM FIRESTORE HELPERS
+// =============================================================================
+
+// 10. Leads Inbox & Pipeline
+export function subscribeCrmLeads(callback: (leads: CrmLead[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'crm_leads'));
+  return onSnapshot(q, (snapshot) => {
+    const leads = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CrmLead));
+    leads.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(leads);
+  });
+}
+
+export async function saveCrmLead(lead: CrmLead): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'crm_leads', lead.id), cleanData(lead), { merge: true });
+}
+
+export async function updateCrmLeadStage(
+  leadId: string,
+  stage: CrmPipelineStage,
+  lostReason?: string
+): Promise<void> {
+  if (!db) return;
+  const updates: any = {
+    stage,
+    updatedAt: new Date().toISOString(),
+  };
+  if (lostReason) {
+    updates.lostReason = lostReason;
+  }
+  await updateDoc(doc(db, 'crm_leads', leadId), cleanData(updates));
+}
+
+// 11. Follow-ups
+export function subscribeCrmFollowUps(callback: (followUps: CrmFollowUp[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'crm_followups'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CrmFollowUp));
+    list.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    callback(list);
+  });
+}
+
+export async function saveCrmFollowUp(followUp: CrmFollowUp): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'crm_followups', followUp.id), cleanData(followUp), { merge: true });
+}
+
+export async function completeCrmFollowUp(
+  id: string,
+  outcome: CrmFollowUpOutcome,
+  outcomeNotes?: string
+): Promise<void> {
+  if (!db) return;
+  await updateDoc(doc(db, 'crm_followups', id), {
+    status: 'COMPLETED',
+    outcome,
+    outcomeNotes: outcomeNotes || '',
+    completedAt: new Date().toISOString(),
+  });
+}
+
+// 12. CRM Activity Timeline
+export function subscribeCrmActivities(
+  leadId: string,
+  callback: (activities: CrmActivity[]) => void
+): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'crm_activities'), where('leadId', '==', leadId));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CrmActivity));
+    list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    callback(list);
+  });
+}
+
+export async function logCrmActivity(
+  activity: Omit<CrmActivity, 'id' | 'timestamp'>
+): Promise<void> {
+  if (!db) return;
+  try {
+    const item: CrmActivity = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `act_${Date.now()}`,
+      ...activity,
+      timestamp: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'crm_activities'), cleanData(item));
+  } catch (e) {
+    console.warn('CRM activity logging warning:', e);
+  }
+}
+
+// 13. Consultations
+export function subscribeCrmConsultations(
+  callback: (consultations: CrmConsultation[]) => void
+): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'crm_consultations'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CrmConsultation));
+    list.sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+    callback(list);
+  });
+}
+
+export async function saveCrmConsultation(consultation: CrmConsultation): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'crm_consultations', consultation.id), cleanData(consultation), { merge: true });
+}
+
 
