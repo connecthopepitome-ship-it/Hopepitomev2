@@ -54,8 +54,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   // Master administrative emails recognized during bootstrapping
   const allowedAdminEmails = [
-    'connect.hopepitome@gmail.com',
+    'hopeadmin@hopepitome.com',
     'admin@hopepitome.com',
+    'connect.hopepitome@gmail.com',
     'ramsaltvc@gmail.com',
     'lead@hopepitome.com',
   ];
@@ -103,7 +104,12 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setStaffProfile(staff);
-        setMustChangePassword(Boolean(staff.mustChangePassword));
+        // Hardcoded Super Admin is exempt from first-login password change
+        if (email === 'hopeadmin@hopepitome.com' || staff.email === 'hopeadmin@hopepitome.com') {
+          setMustChangePassword(false);
+        } else {
+          setMustChangePassword(Boolean(staff.mustChangePassword));
+        }
 
         // Maintain legacy CareerUser compatibility
         setAdminProfile({

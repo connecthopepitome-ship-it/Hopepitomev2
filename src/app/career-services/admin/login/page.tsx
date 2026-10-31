@@ -28,7 +28,13 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      await loginWithEmail(email, password);
+      let cleanEmail = email.trim().toLowerCase();
+      // Allow username without domain (e.g. "Hopeadmin" -> "hopeadmin@hopepitome.com")
+      if (!cleanEmail.includes('@')) {
+        cleanEmail = `${cleanEmail}@hopepitome.com`;
+      }
+
+      await loginWithEmail(cleanEmail, password);
       // AdminAuthProvider will automatically verify staffUsers status and accountStatus
       router.push('/career-services/admin/dashboard');
     } catch (err: any) {
@@ -110,11 +116,11 @@ export default function AdminLoginPage() {
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@hopepitome.com"
+                  placeholder="Hopeadmin or name@hopepitome.com"
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8] focus:ring-1 focus:ring-[#8172A8] transition"
                 />
               </div>

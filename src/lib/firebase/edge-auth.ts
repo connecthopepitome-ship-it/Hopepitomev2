@@ -82,6 +82,52 @@ export class EdgeAuthAdminClient {
   }
 
   /**
+   * Look up user by email
+   */
+  async getUserByEmail(email: string): Promise<{ uid: string; email: string } | null> {
+    const authHeader = await this.getAuthHeader();
+    const url = `https://identitytoolkit.googleapis.com/v1/projects/${this.projectId}/accounts:lookup`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+      body: JSON.stringify({ email: [email.trim().toLowerCase()] }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as any;
+    const user = data.users?.[0];
+    if (!user) return null;
+    return { uid: user.localId, email: user.email };
+  }
+
+  /**
+   * Create or update user if already exists (e.g. setting new password)
+   */
+  async createOrUpdateUser(params: {
+    email: string;
+    password?: string;
+    displayName: string;
+    emailVerified?: boolean;
+    disabled?: boolean;
+  }): Promise<{ uid: string; email: string }> {
+    try {
+      return await this.createUser(params);
+    } catch (e: any) {
+      if (String(e?.message).includes('EMAIL_EXISTS')) {
+        const existing = await this.getUserByEmail(params.email);
+        if (existing) {
+          await this.updateUser(existing.uid, {
+            password: params.password,
+            displayName: params.displayName,
+            disableUser: params.disabled === true,
+          });
+          return existing;
+        }
+      }
+      throw e;
+    }
+  }
+
+  /**
    * Update an employee's password, status (disabled/enabled), or display name
    */
   async updateUser(

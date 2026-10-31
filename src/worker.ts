@@ -998,35 +998,25 @@ export default {
           secret?: string;
         };
 
-        const targetEmail = body.email?.trim().toLowerCase() || 'admin@hopepitome.com';
-        const targetPass = body.password || 'Hopepitome#Admin2026!';
-        const targetName = body.fullName || 'Managing Director / Super Admin';
+        const targetEmail = body.email?.trim().toLowerCase() || 'hopeadmin@hopepitome.com';
+        const targetPass = body.password || 'Rams@3608';
+        const targetName = body.fullName || 'Hopeadmin';
 
-        // Check if a super admin already exists to avoid accidental duplicates
-        const existingCounter = await firestore.getDocument('system_counters', 'employees');
-        if (existingCounter && (existingCounter as any).bootstrapped && body.secret !== env.GAS_SHARED_SECRET) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: 'Super Admin has already been bootstrapped. Please log in or use credentials.',
-            }),
-            { status: 400, headers: CORS_HEADERS }
-          );
-        }
-
-        // 1. Create or retrieve user in Firebase Auth
+        // 1. Create or update user in Firebase Auth
         let userUid: string;
         try {
-          const authUser = await edgeAuth.createUser({
+          const authUser = await edgeAuth.createOrUpdateUser({
             email: targetEmail,
             password: targetPass,
             displayName: targetName,
             emailVerified: true,
+            disabled: false,
           });
           userUid = authUser.uid;
         } catch (authErr: any) {
-          // If already exists in Firebase Auth, update password
-          userUid = `uid_${Date.now()}`;
+          console.error('[Bootstrap Auth Error]:', authErr);
+          const existing = await edgeAuth.getUserByEmail(targetEmail);
+          userUid = existing?.uid || `uid_${Date.now()}`;
         }
 
         const now = new Date().toISOString();
