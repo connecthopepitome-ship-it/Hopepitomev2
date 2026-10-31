@@ -380,7 +380,20 @@ export function subscribeCrmLeads(callback: (leads: CrmLead[]) => void): () => v
 
 export async function saveCrmLead(lead: CrmLead): Promise<void> {
   if (!db) return;
-  await setDoc(doc(db, 'crm_leads', lead.id), cleanData(lead), { merge: true });
+  try {
+    await setDoc(doc(db, 'crm_leads', lead.id), cleanData(lead), { merge: true });
+  } catch (clientErr) {
+    console.warn('[Firestore] Client SDK saveCrmLead rejected, failing over to Worker API...', clientErr);
+    const res = await fetch('/api/career/crm/lead/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cleanData(lead)),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to save lead record.');
+    }
+  }
 }
 
 export async function updateCrmLeadStage(
@@ -396,7 +409,16 @@ export async function updateCrmLeadStage(
   if (lostReason) {
     updates.lostReason = lostReason;
   }
-  await updateDoc(doc(db, 'crm_leads', leadId), cleanData(updates));
+  try {
+    await updateDoc(doc(db, 'crm_leads', leadId), cleanData(updates));
+  } catch (clientErr) {
+    console.warn('[Firestore] Client SDK updateCrmLeadStage rejected, failing over to Worker API...', clientErr);
+    await fetch('/api/career/crm/lead/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: leadId, ...cleanData(updates) }),
+    });
+  }
 }
 
 // 11. Follow-ups

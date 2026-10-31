@@ -63,6 +63,13 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (currentUser: FirebaseUser) => {
     try {
+      // Force-refresh token to ensure newly provisioned roles & claims are activated immediately
+      try {
+        await currentUser.getIdToken(true);
+      } catch (tokenErr) {
+        console.warn('ID token refresh warning:', tokenErr);
+      }
+
       const email = currentUser.email?.toLowerCase() || '';
       const isMasterAdmin = allowedAdminEmails.some((adm) => adm.toLowerCase() === email);
 

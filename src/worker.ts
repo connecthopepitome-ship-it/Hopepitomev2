@@ -590,6 +590,39 @@ export default {
     }
 
     // =========================================================================
+    // CRM: SAVE LEAD RECORD (ADMIN / RESILIENT FALLBACK API)
+    // =========================================================================
+    if (url.pathname === '/api/career/crm/lead/save') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as any;
+        if (!body || !body.id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Invalid lead data: ID is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        await firestore.setDocument('crm_leads', body.id, body);
+        return new Response(JSON.stringify({ success: true, leadId: body.id }), {
+          status: 200,
+          headers: CORS_HEADERS,
+        });
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to save lead.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
     // CRM: LEAD CONVERSION TO CLIENT & WORK ORDER
     // =========================================================================
     if (url.pathname === '/api/career/crm/lead/convert') {

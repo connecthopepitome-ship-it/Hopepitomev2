@@ -210,9 +210,9 @@ function LeadsContent() {
       setBudget('');
       setEnquiryDescription('');
       setActiveLead(newLeadRecord);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving lead:', err);
-      alert('Failed to save lead record.');
+      alert(err?.message || 'Failed to save lead record.');
     } finally {
       setCreatingLead(false);
     }
