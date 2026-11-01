@@ -1,589 +1,404 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import {
+  Send,
+  CheckCircle2,
+  Copy,
+  Check,
+  ShieldCheck,
+  Sparkles,
+  ArrowRight,
+  MessageSquare,
+  Globe,
+  Code2,
+  Zap,
+  Users,
+} from 'lucide-react';
 
-interface FormState {
+interface ProjectFormState {
   fullName: string;
   businessName: string;
   email: string;
   phoneWhatsapp: string;
-  serviceCategory: string;
+  serviceTitle: string;
   requirements: string;
-  budgetRange: string;
-  preferredContact: 'Email' | 'WhatsApp' | 'Phone call';
   consent: boolean;
   botHoneypot: string;
 }
 
-const serviceOptions = [
-  'Business website',
-  'Online shopping website',
-  'Custom web application',
-  'Workflow automation',
-  'ERP or CRM system',
-  'System integration',
-  'Something else',
+const SERVICE_CATEGORIES = [
+  { id: 'Websites & Online Stores', label: 'Websites & Stores', icon: Globe },
+  { id: 'Custom Business Software', label: 'Custom Software', icon: Code2 },
+  { id: 'Business Automation', label: 'Automation', icon: Zap },
+  { id: 'ERP & CRM Solutions', label: 'ERP & CRM', icon: Users },
+  { id: 'General Project Idea', label: 'Other / Just an Idea', icon: Sparkles },
 ];
 
-const initialFormState: FormState = {
-  fullName: '',
-  businessName: '',
-  email: '',
-  phoneWhatsapp: '',
-  serviceCategory: 'Business website',
-  requirements: '',
-  budgetRange: 'Under $1,500 (Lean website or focused tool)',
-  preferredContact: 'Email',
-  consent: false,
-  botHoneypot: '',
-};
-
 export function FinalCtaSection() {
-  const [formData, setFormData] = useState<FormState>(initialFormState);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<ProjectFormState>({
+    fullName: '',
+    businessName: '',
+    email: '',
+    phoneWhatsapp: '',
+    serviceTitle: 'Websites & Online Stores',
+    requirements: '',
+    consent: true,
+    botHoneypot: '',
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [submissionReceipt, setSubmissionReceipt] = useState<{
     referenceCode: string;
-    serviceCategory: string;
     fullName: string;
-    businessName: string;
+    serviceTitle: string;
     timestamp: string;
   } | null>(null);
 
-  // Listen for service selection from MainServicesSection
-  useEffect(() => {
-    const handleServiceSelect = (e: Event) => {
-      const customEvent = e as CustomEvent<{ serviceTitle: string }>;
-      if (customEvent.detail?.serviceTitle) {
-        const found = serviceOptions.find(
-          (opt) =>
-            opt.toLowerCase().includes(customEvent.detail.serviceTitle.toLowerCase()) ||
-            customEvent.detail.serviceTitle.toLowerCase().includes(opt.toLowerCase())
-        );
-        setFormData((prev) => ({
-          ...prev,
-          serviceCategory: found || 'Custom web application',
-        }));
-      }
-    };
-
-    window.addEventListener('hopepitome-select-service', handleServiceSelect);
-    return () =>
-      window.removeEventListener('hopepitome-select-service', handleServiceSelect);
-  }, []);
-
-  const handleInputChange = (
-    field: keyof FormState,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
+    setError(null);
 
-    // Client-side validation check
-    const clientErrors: Record<string, string> = {};
     if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
-      clientErrors.fullName = 'Please enter your name.';
-    }
-    if (
-      !formData.email.trim() ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
-    ) {
-      clientErrors.email = 'Please provide a valid email address.';
-    }
-    if (formData.requirements.trim().length < 15) {
-      clientErrors.requirements =
-        'Please describe your requirement in at least 15 characters so we can understand your project.';
-    }
-    if (!formData.consent) {
-      clientErrors.consent = 'Please confirm consent to proceed.';
+      setError('Please provide your name (minimum 2 characters).');
+      return;
     }
 
-    if (Object.keys(clientErrors).length > 0) {
-      setErrors(clientErrors);
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      setError('Please provide a valid email address.');
+      return;
+    }
+
+    if (!formData.phoneWhatsapp.trim() || formData.phoneWhatsapp.trim().length < 6) {
+      setError('Please provide a valid phone or WhatsApp number.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/enquiry', {
+      const res = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: formData.fullName,
-          businessName: formData.businessName,
-          email: formData.email,
-          phoneWhatsapp: formData.phoneWhatsapp,
-          division: 'NEXORA', // map to business solutions in backend schema
-          serviceTitle: formData.serviceCategory,
-          requirements: formData.requirements,
-          budgetRange: formData.budgetRange,
-          desiredTimeline: formData.preferredContact,
+          fullName: formData.fullName.trim(),
+          businessName: formData.businessName.trim() || undefined,
+          email: formData.email.trim().toLowerCase(),
+          phoneWhatsapp: formData.phoneWhatsapp.trim(),
+          division: 'NEXORA',
+          serviceTitle: formData.serviceTitle,
+          requirements: formData.requirements.trim() || `Discussion requested for: ${formData.serviceTitle}${formData.businessName ? ` (${formData.businessName})` : ''}`,
+          budgetRange: 'Flexible / Discussion',
+          desiredTimeline: 'Standard',
           consent: formData.consent,
           botHoneypot: formData.botHoneypot,
         }),
       });
 
-      const data = await response.json().catch(() => null);
+      const data = await res.json().catch(() => ({}));
 
-      if (response.ok && data?.success) {
-        setSubmissionReceipt({
-          referenceCode: data.referenceCode,
-          serviceCategory: formData.serviceCategory,
-          fullName: formData.fullName,
-          businessName: formData.businessName || 'Independent / New Business',
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-        });
-        setFormData(initialFormState);
-      } else {
-        if (data?.errors) {
-          setErrors(data.errors);
-        } else {
-          // Fallback confirmation receipt
-          const fallbackRef = `HP-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-          setSubmissionReceipt({
-            referenceCode: fallbackRef,
-            serviceCategory: formData.serviceCategory,
-            fullName: formData.fullName,
-            businessName: formData.businessName || 'Independent / New Business',
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-          });
-          setFormData(initialFormState);
-        }
+      if (!res.ok || !data.success) {
+        throw new Error(data?.errors ? Object.values(data.errors).join(', ') : (data?.error || 'Enquiry submission failed.'));
       }
-    } catch {
-      // Local graceful fallback receipt
-      const fallbackRef = `HP-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
       setSubmissionReceipt({
-        referenceCode: fallbackRef,
-        serviceCategory: formData.serviceCategory,
-        fullName: formData.fullName,
-        businessName: formData.businessName || 'Independent / New Business',
-        timestamp: new Date().toLocaleTimeString([], {
+        referenceCode: data.referenceCode,
+        fullName: formData.fullName.trim(),
+        serviceTitle: formData.serviceTitle,
+        timestamp: new Date().toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
         }),
       });
-      setFormData(initialFormState);
+
+      // Scroll to receipt
+      const el = document.getElementById('discuss-project');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } catch (err: any) {
+      console.error('Project enquiry error:', err);
+      setError(err?.message || 'Error submitting enquiry. Please check your connection.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const copyRef = () => {
+    if (submissionReceipt?.referenceCode) {
+      navigator.clipboard.writeText(submissionReceipt.referenceCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
-    <section id="contact" className="relative py-14 sm:py-20 md:py-32 border-b border-editorial overflow-hidden">
-      {/* Background Editorial Grid */}
-      <div className="absolute inset-0 editorial-grid-fine opacity-20 pointer-events-none" />
+    <section id="discuss-project" className="py-20 sm:py-28 bg-[#07080C] text-white relative overflow-hidden border-t border-white/10">
+      
+      {/* Background Ambience */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#7357F5]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-[#48C7E8]/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
-        {/* Section Marker */}
-        <div className="flex items-center space-x-3 text-xs font-mono tracking-widest text-[#9DA3AE] uppercase mb-6 sm:mb-10">
-          <span className="text-[#9D85FF] font-bold">10 //</span>
-          <span className="text-[#F8F9FA] font-medium">START A PROJECT</span>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        
+        {/* Section Header */}
+        <div className="text-center space-y-3 mb-10 sm:mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono tracking-wider uppercase text-[#9D85FF]">
+            <Sparkles className="w-3.5 h-3.5 text-[#FFD66B]" />
+            <span>Start Your Project</span>
+          </div>
 
-        {/* Large Editorial Headline */}
-        <div className="mb-8 sm:mb-14 max-w-3xl">
-          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl tracking-tight leading-[1.05] sm:leading-[1.02] text-[#F8F9FA] uppercase">
-            TELL US WHAT YOU WANT{' '}
-            <span className="text-motion-flow block sm:inline mt-1 sm:mt-0">
-              YOUR BUSINESS TO DO BETTER.
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+            Have an idea?{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9D85FF] via-[#E8E2FF] to-[#48C7E8]">
+              Let&apos;s make it happen.
             </span>
           </h2>
-          <p className="text-[#D0D4DC] text-sm sm:text-lg font-sans mt-3 sm:mt-4 leading-relaxed">
-            You can come to us with a clear project brief or just a problem that needs solving.
-            Share a few details and we will help you work out the next step.
+
+          <p className="text-sm sm:text-base text-slate-300 font-sans max-w-xl mx-auto leading-relaxed">
+            Tell us what you need. No technical knowledge required.
           </p>
         </div>
 
-        {/* Main Grid: Parameters Sidebar + Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 pt-6 sm:pt-10 border-t border-editorial">
-          {/* Sidebar */}
-          <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
-            <div className="space-y-4">
-              <span className="text-xs font-mono tracking-wider uppercase text-[#9DA3AE] block font-bold">
-                WHAT HAPPENS NEXT?
-              </span>
-
-              <div className="space-y-3 sm:space-y-3.5 text-xs text-[#D0D4DC] font-sans">
-                <div className="p-3.5 sm:p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
-                  <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
-                    1. REVIEW WITHIN ONE BUSINESS DAY
-                  </strong>
-                  <p className="text-[#D0D4DC] text-xs leading-relaxed">
-                    Our team reviews your project brief, tools in place, and practical business goals.
-                  </p>
+        {/* Form Container */}
+        <div className="bg-[#121520]/90 border border-white/15 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-md">
+          
+          {!submissionReceipt ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Error Banner */}
+              {error && (
+                <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 font-medium">
+                  {error}
                 </div>
+              )}
 
-                <div className="p-3.5 sm:p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
-                  <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
-                    2. CONSULTATION &amp; SCOPING
-                  </strong>
-                  <p className="text-[#D0D4DC] text-xs leading-relaxed">
-                    We reply via your preferred contact method with clear clarification questions or an initial scope outline.
-                  </p>
-                </div>
+              {/* Bot Honeypot */}
+              <input
+                type="text"
+                value={formData.botHoneypot}
+                onChange={(e) => setFormData({ ...formData, botHoneypot: e.target.value })}
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+              />
 
-                <div className="p-3.5 sm:p-4 bg-[#121520]/95 backdrop-blur-md border border-white/[0.14] shadow-md">
-                  <strong className="text-[#F8F9FA] block font-semibold mb-1 font-mono text-xs">
-                    3. WRITTEN PLAN &amp; QUOTE
-                  </strong>
-                  <p className="text-[#D0D4DC] text-xs leading-relaxed">
-                    We provide a written summary of deliverables, estimated timeline, and fixed project pricing.
-                  </p>
+              {/* Step 1: Select What You Need */}
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold mb-2.5">
+                  1. What does your business need?
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {SERVICE_CATEGORIES.map((cat) => {
+                    const isSelected = formData.serviceTitle === cat.id;
+                    const Icon = cat.icon;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, serviceTitle: cat.id })}
+                        className={`p-3 rounded-xl border text-left transition flex items-center gap-2.5 text-xs font-bold ${
+                          isSelected
+                            ? 'border-[#9D85FF] bg-[#9D85FF]/20 text-white shadow-sm ring-1 ring-[#9D85FF]/40'
+                            : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#9D85FF]' : 'text-slate-400'}`} />
+                        <span className="truncate">{cat.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
 
-            <div className="p-4 sm:p-5 border border-white/[0.14] bg-[#090B10] shadow-inner space-y-2.5">
-              <span className="text-xs font-mono tracking-wider uppercase text-[#F8F9FA] block font-bold">
-                DIRECT CONTACT DETAILS
-              </span>
-              <div className="text-xs font-mono text-[#D0D4DC]">
-                <span>General inquiries: </span>
-                <a
-                  href="mailto:studio@hopepitome.com"
-                  className="text-[#E8E2FF] hover:text-[#9D85FF] transition-colors underline underline-offset-4 font-semibold"
-                >
-                  studio@hopepitome.com
-                </a>
-              </div>
-              <div className="text-xs font-mono text-[#D0D4DC]">
-                <span>Project support: </span>
-                <a
-                  href="mailto:connect.hopepitome@gmail.com"
-                  className="text-[#E8E2FF] hover:text-[#9D85FF] transition-colors underline underline-offset-4 font-semibold"
-                >
-                  connect.hopepitome@gmail.com
-                </a>
-              </div>
-            </div>
-          </div>
+              {/* Step 2: Contact Information */}
+              <div className="space-y-4 pt-2">
+                <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold">
+                  2. Who should we contact?
+                </label>
 
-          {/* Form Container */}
-          <div className="lg:col-span-7 bg-[#121520]/95 backdrop-blur-md border border-white/[0.16] p-4.5 sm:p-8 shadow-2xl">
-            {submissionReceipt ? (
-              <div className="py-8 text-center space-y-5 animate-in fade-in duration-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-[#34D399] bg-[#34D399]/15 text-[#34D399] font-mono font-bold text-xl shadow-[0_0_15px_rgba(52,211,153,0.3)]">
-                  ✓
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-xs font-mono tracking-wider uppercase text-[#34D399] block font-semibold">
-                    PROJECT INQUIRY RECEIVED
-                  </span>
-                  <h3 className="font-display font-bold text-2xl uppercase tracking-tight text-[#F8F9FA]">
-                    THANK YOU FOR REACHING OUT
-                  </h3>
-                </div>
-
-                {/* Receipt Details Box */}
-                <div className="p-5 bg-[#090B10] border border-white/[0.14] text-left font-mono text-xs space-y-2.5 max-w-lg mx-auto shadow-inner">
-                  <div className="flex justify-between border-b border-white/[0.08] pb-2 text-[#9DA3AE]">
-                    <span>REFERENCE ID:</span>
-                    <span className="text-[#34D399] font-bold">{submissionReceipt.referenceCode}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/[0.08] pb-2 text-[#9DA3AE]">
-                    <span>NAME:</span>
-                    <span className="text-[#F8F9FA] font-medium">{submissionReceipt.fullName}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/[0.08] pb-2 text-[#9DA3AE]">
-                    <span>BUSINESS:</span>
-                    <span className="text-[#F8F9FA] font-medium">{submissionReceipt.businessName}</span>
-                  </div>
-                  <div className="flex justify-between text-[#9DA3AE] pt-1">
-                    <span>SERVICE INTEREST:</span>
-                    <span className="text-[#9D85FF] font-semibold truncate max-w-[200px]">
-                      {submissionReceipt.serviceCategory}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-[#D0D4DC] text-xs font-sans max-w-md mx-auto leading-relaxed">
-                  We have received your enquiry. A member of our studio will review your requirements and respond via your preferred contact channel within one business day.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setSubmissionReceipt(null)}
-                  className="inline-block mt-2 text-xs font-mono tracking-wider uppercase text-[#9D85FF] hover:text-white font-bold transition-colors"
-                >
-                  ← Submit another enquiry
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                {/* Honeypot Spam Prevention (Hidden) */}
-                <input
-                  type="text"
-                  name="website_url"
-                  value={formData.botHoneypot}
-                  onChange={(e) => handleInputChange('botHoneypot', e.target.value)}
-                  tabIndex={-1}
-                  autoComplete="off"
-                  className="hidden"
-                  aria-hidden="true"
-                />
-
-                {/* Form Error Notice */}
-                {errors.form && (
-                  <div className="p-3.5 bg-red-950/40 border border-red-500/50 text-red-200 text-xs font-mono">
-                    {errors.form}
-                  </div>
-                )}
-
-                {/* 1. What do you need? */}
-                <div>
-                  <label
-                    htmlFor="service-category"
-                    className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                  >
-                    WHAT DO YOU NEED? *
-                  </label>
-                  <select
-                    id="service-category"
-                    value={formData.serviceCategory}
-                    onChange={(e) => handleInputChange('serviceCategory', e.target.value)}
-                    className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs uppercase focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
-                  >
-                    {serviceOptions.map((opt) => (
-                      <option key={opt} value={opt} className="bg-[#090B10] text-[#F8F9FA]">
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 2. Name & Business Name Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label
-                      htmlFor="full-name"
-                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                    >
-                      YOUR NAME *
+                    <label className="block text-slate-400 font-medium mb-1">
+                      Your Name *
                     </label>
                     <input
-                      id="full-name"
                       type="text"
                       required
                       value={formData.fullName}
-                      onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      placeholder="e.g. Alex Morgan"
-                      className={`w-full bg-[#090B10] border px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none transition-colors ${
-                        errors.fullName
-                          ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/40'
-                          : 'border-white/25 focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10]'
-                      }`}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      placeholder="e.g. John Doe"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#9D85FF]"
                     />
-                    {errors.fullName && (
-                      <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.fullName}</p>
-                    )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="business-name"
-                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                    >
-                      BUSINESS OR COMPANY NAME
+                    <label className="block text-slate-400 font-medium mb-1">
+                      Business or Project Name (Optional)
                     </label>
                     <input
-                      id="business-name"
                       type="text"
                       value={formData.businessName}
-                      onChange={(e) => handleInputChange('businessName', e.target.value)}
-                      placeholder="e.g. Apex Logistics or Morgan Retail"
-                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
+                      onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                      placeholder="e.g. Acme Retail"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#9D85FF]"
                     />
                   </div>
-                </div>
 
-                {/* 3. Email & WhatsApp / Phone Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label
-                      htmlFor="client-email"
-                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                    >
-                      EMAIL ADDRESS *
+                    <label className="block text-slate-400 font-medium mb-1">
+                      Email Address *
                     </label>
                     <input
-                      id="client-email"
                       type="email"
                       required
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="e.g. alex@example.com"
-                      className={`w-full bg-[#090B10] border px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none transition-colors ${
-                        errors.email
-                          ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/40'
-                          : 'border-white/25 focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10]'
-                      }`}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="e.g. john@company.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#9D85FF]"
                     />
-                    {errors.email && (
-                      <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.email}</p>
-                    )}
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="phone-whatsapp"
-                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                    >
-                      WHATSAPP OR CONTACT NUMBER
+                    <label className="block text-slate-400 font-medium mb-1">
+                      WhatsApp / Phone Number *
                     </label>
                     <input
-                      id="phone-whatsapp"
                       type="tel"
+                      required
                       value={formData.phoneWhatsapp}
-                      onChange={(e) => handleInputChange('phoneWhatsapp', e.target.value)}
-                      placeholder="e.g. +1 555-0123"
-                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs placeholder:text-[#727885] focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
+                      onChange={(e) => setFormData({ ...formData, phoneWhatsapp: e.target.value })}
+                      placeholder="e.g. +1 555-0199 or +91..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#9D85FF]"
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* 4. Requirements Textarea */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label
-                      htmlFor="client-requirements"
-                      className="text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold"
-                    >
-                      BRIEFLY DESCRIBE YOUR REQUIREMENT *
-                    </label>
-                    <span className="text-xs font-mono text-[#9DA3AE]">
-                      {formData.requirements.length} chars (min 15)
-                    </span>
-                  </div>
-                  <textarea
-                    id="client-requirements"
-                    rows={4}
-                    required
-                    value={formData.requirements}
-                    onChange={(e) => handleInputChange('requirements', e.target.value)}
-                    placeholder="Tell us about what you want to build, the everyday bottlenecks your business is facing, or what systems you want to connect..."
-                    className={`w-full bg-[#090B10] border px-4 py-3 text-[#F8F9FA] font-sans text-xs sm:text-sm placeholder:text-[#727885] focus:outline-none resize-none transition-colors ${
-                      errors.requirements
-                        ? 'border-red-500 focus:border-red-400 focus:ring-2 focus:ring-red-400/40'
-                        : 'border-white/25 focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10]'
-                    }`}
-                  />
-                  {errors.requirements && (
-                    <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.requirements}</p>
-                  )}
+              {/* Step 3: Brief Details */}
+              <div className="pt-2">
+                <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold mb-1">
+                  3. Tell us briefly about what you want to achieve (Optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.requirements}
+                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                  placeholder="Share any specific goals, target timeline, or features you have in mind..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#9D85FF]"
+                />
+              </div>
+
+              {/* Privacy and Submit */}
+              <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-white/10">
+                <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#65DDB5] shrink-0" />
+                  <span>Your details are kept strictly confidential. No spam, ever.</span>
                 </div>
 
-                {/* 5. Budget Range & Preferred Contact Method */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="budget-range"
-                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                    >
-                      OPTIONAL BUDGET RANGE
-                    </label>
-                    <select
-                      id="budget-range"
-                      value={formData.budgetRange}
-                      onChange={(e) => handleInputChange('budgetRange', e.target.value)}
-                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
-                    >
-                      <option className="bg-[#090B10]" value="Under $1,500 (Lean website or focused tool)">
-                        Under $1,500 (Lean website or focused tool)
-                      </option>
-                      <option className="bg-[#090B10]" value="$1,500 – $4,000 (Complete website or standard store)">
-                        $1,500 – $4,000 (Complete website or standard store)
-                      </option>
-                      <option className="bg-[#090B10]" value="$4,000 – $10,000 (Custom web app or integration suite)">
-                        $4,000 – $10,000 (Custom web app or integration suite)
-                      </option>
-                      <option className="bg-[#090B10]" value="$10,000+ (Full ERP, CRM or multi-system software)">
-                        $10,000+ (Full ERP, CRM or multi-system software)
-                      </option>
-                      <option className="bg-[#090B10]" value="Need guidance / Let's discuss">
-                        Need guidance / Let&apos;s discuss
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="preferred-contact"
-                      className="block text-xs font-mono tracking-wider uppercase text-[#D0D4DC] font-semibold mb-2"
-                    >
-                      PREFERRED CONTACT METHOD
-                    </label>
-                    <select
-                      id="preferred-contact"
-                      value={formData.preferredContact}
-                      onChange={(e) =>
-                        handleInputChange('preferredContact', e.target.value as FormState['preferredContact'])
-                      }
-                      className="w-full bg-[#090B10] border border-white/25 px-4 py-3 text-[#F8F9FA] font-mono text-xs focus:outline-none focus:border-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]/40 focus:ring-offset-2 focus:ring-offset-[#090B10] transition-colors"
-                    >
-                      <option className="bg-[#090B10]" value="Email">
-                        Email
-                      </option>
-                      <option className="bg-[#090B10]" value="WhatsApp">
-                        WhatsApp message
-                      </option>
-                      <option className="bg-[#090B10]" value="Phone call">
-                        Phone call
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* 6. Privacy Consent */}
-                <div className="pt-2">
-                  <label className="flex items-start space-x-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={formData.consent}
-                      onChange={(e) => handleInputChange('consent', e.target.checked)}
-                      className="mt-0.5 rounded-none border-white/30 bg-[#090B10] text-[#9D85FF] focus:ring-2 focus:ring-[#9D85FF]"
-                    />
-                    <span className="text-xs font-mono text-[#D0D4DC] group-hover:text-white transition-colors leading-relaxed">
-                      I agree to share these details with Hopepitome for project consultation and quotation purposes.
-                    </span>
-                  </label>
-                  {errors.consent && (
-                    <p className="text-red-400 text-xs font-mono mt-1.5 font-medium">{errors.consent}</p>
-                  )}
-                </div>
-
-                {/* 7. Action Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-[#9D85FF] text-[#07080C] hover:bg-[#B4A2FF] transition-all duration-200 font-mono text-xs tracking-wider uppercase font-bold flex items-center justify-center space-x-2 disabled:opacity-50 shadow-xl shadow-[#9D85FF]/25"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#7357F5] hover:opacity-95 shadow-lg shadow-[#7357F5]/30 flex items-center justify-center gap-2 transition disabled:opacity-50"
                 >
-                  <span>{isSubmitting ? 'Sending your details...' : 'Discuss My Project'}</span>
-                  <span>→</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Transmitting Brief...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Discuss Your Project</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
-              </form>
-            )}
-          </div>
+              </div>
+
+            </form>
+          ) : (
+            /* Submission Success Receipt */
+            <div className="text-center py-6 sm:py-8 space-y-6">
+              <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-500/20 text-[#65DDB5] flex items-center justify-center shadow-lg border border-emerald-500/30">
+                <CheckCircle2 className="w-9 h-9" />
+              </div>
+
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-[#65DDB5] border border-emerald-500/30">
+                  Project Enquiry Registered
+                </span>
+                <h3 className="text-2xl font-black text-white">
+                  Thank You, {submissionReceipt.fullName.split(' ')[0]}!
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+                  We have logged your project inquiry in our studio pipeline. A senior technical solution architect will contact you within 2 hours with an initial plan.
+                </p>
+              </div>
+
+              {/* Reference ID Card */}
+              <div className="max-w-md mx-auto p-4 rounded-2xl bg-white/5 border border-white/10 text-left space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                      Project Reference ID
+                    </div>
+                    <div className="text-base font-mono font-bold text-[#9D85FF] tracking-wider">
+                      {submissionReceipt.referenceCode}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyRef}
+                    className="p-2 rounded-xl bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 hover:text-white shadow-sm flex items-center gap-1 transition"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+
+                <div className="pt-2 border-t border-white/10 text-xs space-y-1 text-slate-400 font-sans">
+                  <div className="flex items-center justify-between">
+                    <span>Solution Scope:</span>
+                    <span className="font-semibold text-white">{submissionReceipt.serviceTitle}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Received:</span>
+                    <span className="font-semibold text-white">{submissionReceipt.timestamp}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmissionReceipt(null);
+                    setFormData({
+                      fullName: '',
+                      businessName: '',
+                      email: '',
+                      phoneWhatsapp: '',
+                      serviceTitle: 'Websites & Online Stores',
+                      requirements: '',
+                      consent: true,
+                      botHoneypot: '',
+                    });
+                  }}
+                  className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition"
+                >
+                  Submit Another Project Idea
+                </button>
+              </div>
+
+            </div>
+          )}
+
         </div>
+
       </div>
     </section>
   );

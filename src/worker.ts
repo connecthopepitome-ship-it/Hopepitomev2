@@ -1177,10 +1177,49 @@ export default {
           }
         }
 
+        // Seamlessly feed main website enquiry into Firestore crm_leads & activities
+        let leadId: string | undefined;
+        try {
+          leadId = `LEAD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+          const nowStr = enquiry.createdAt || new Date().toISOString();
+
+          await firestore.setDocument('crm_leads', leadId, {
+            id: leadId,
+            referenceCode: enquiry.referenceCode,
+            fullName: enquiry.fullName,
+            businessName: enquiry.businessName || '',
+            mobile: enquiry.phoneWhatsapp || '',
+            email: enquiry.email,
+            preferredContactMethod: 'WhatsApp',
+            selectedServices: [enquiry.serviceTitle],
+            serviceInterestedIn: enquiry.serviceTitle,
+            enquiryDescription: enquiry.requirements || '',
+            leadSource: 'WEBSITE',
+            leadOwner: 'Unassigned',
+            priority: 'HIGH',
+            stage: 'New Lead',
+            createdAt: nowStr,
+            updatedAt: nowStr,
+          });
+
+          await firestore.setDocument('crm_activities', `act_${Date.now()}`, {
+            id: `act_${Date.now()}`,
+            leadId: leadId,
+            activityType: 'LEAD_CREATED',
+            title: `New business enquiry captured (${enquiry.serviceTitle})`,
+            description: enquiry.requirements || '',
+            performedBy: 'MAIN_WEBSITE_INTAKE',
+            timestamp: nowStr,
+          });
+        } catch (crmErr) {
+          console.error('[CRM MAIN LEAD INTAKE ERROR]:', crmErr);
+        }
+
         return new Response(
           JSON.stringify({
             success: true,
             referenceCode: enquiry.referenceCode,
+            leadId: leadId,
             message: 'Project brief registered successfully in studio pipeline.',
           }),
           { status: 200, headers: CORS_HEADERS }

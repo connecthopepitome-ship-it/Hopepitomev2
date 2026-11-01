@@ -235,6 +235,17 @@ function LeadsContent() {
 
     try {
       await saveCrmLead(newLeadRecord);
+      try {
+        await logCrmActivity({
+          leadId,
+          activityType: 'LEAD_CREATED',
+          title: `Manual lead created: ${fullName.trim()}`,
+          description: `Source: ${leadSource}, Priority: ${priority}, Interested in: ${serviceInterestedIn}`,
+          performedBy: adminProfile?.displayName || 'Admin',
+        });
+      } catch (actErr) {
+        console.warn('CRM activity logging warning:', actErr);
+      }
       setLeads((prev) => [newLeadRecord, ...prev.filter((l) => l.id !== newLeadRecord.id)]);
       setShowNewLeadModal(false);
       setFullName('');
@@ -1001,22 +1012,22 @@ function LeadsContent() {
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Service Interested In</label>
-                <select
-                  value={serviceInterestedIn}
-                  onChange={(e) => setServiceInterestedIn(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
-                >
-                  {SERVICES_LIST.map((srv) => (
-                    <option key={srv} value={srv}>
-                      {srv}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Interested Service</label>
+                  <select
+                    value={serviceInterestedIn}
+                    onChange={(e) => setServiceInterestedIn(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
+                  >
+                    {SERVICES_LIST.map((srv) => (
+                      <option key={srv} value={srv}>
+                        {srv}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Lead Source</label>
                   <select
@@ -1030,6 +1041,19 @@ function LeadsContent() {
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Target Role</label>
+                  <input
+                    type="text"
+                    value={targetRole}
+                    onChange={(e) => setTargetRole(e.target.value)}
+                    placeholder="e.g. VP of Product"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
+                  />
                 </div>
 
                 <div>

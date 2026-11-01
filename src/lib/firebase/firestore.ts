@@ -84,11 +84,15 @@ export async function resilientSaveDoc(
 
   if (db) {
     try {
-      await setDoc(doc(db, collectionName, docId), payload, { merge: true });
+      const clientWritePromise = setDoc(doc(db, collectionName, docId), payload, { merge: true });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Client SDK write timeout')), 2500)
+      );
+      await Promise.race([clientWritePromise, timeoutPromise]);
       savedLocally = true;
     } catch (clientErr) {
       console.warn(
-        `[Firestore] Client SDK write to ${collectionName}/${docId} rejected, failing over to Worker API...`,
+        `[Firestore] Client SDK write to ${collectionName}/${docId} rejected or timed out, failing over to Worker API...`,
         clientErr
       );
     }

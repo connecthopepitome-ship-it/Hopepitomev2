@@ -2,19 +2,21 @@
  * HOPEPITOME V2 — ENQUIRY VALIDATION & STORAGE CORE
  * Validates project brief submissions, enforces anti-spam constraints,
  * and standardizes persistent record creation.
+ * Optimized for everyday business owners with sensible defaults.
  */
 
 export interface EnquiryInput {
   fullName: string;
   email: string;
   phoneWhatsapp?: string;
-  division: 'NEXORA' | 'ELEVORA' | 'BOTH';
-  serviceTitle: string;
-  requirements: string;
-  budgetRange: string;
-  desiredTimeline: string;
+  businessName?: string;
+  division?: 'NEXORA' | 'ELEVORA' | 'BOTH';
+  serviceTitle?: string;
+  requirements?: string;
+  budgetRange?: string;
+  desiredTimeline?: string;
   attachmentUrl?: string;
-  consent: boolean;
+  consent?: boolean;
   botHoneypot?: string; // Must remain empty
 }
 
@@ -24,6 +26,7 @@ export interface SanitizedEnquiry {
   fullName: string;
   email: string;
   phoneWhatsapp: string | null;
+  businessName?: string | null;
   division: 'NEXORA' | 'ELEVORA' | 'BOTH';
   serviceTitle: string;
   requirements: string;
@@ -71,14 +74,13 @@ export function validateEnquiry(input: unknown): ValidationResult {
 
   // 1. Anti-spam honeypot detection
   if (data.botHoneypot && data.botHoneypot.trim().length > 0) {
-    // Silently mark as invalid or bot rejection
     return { valid: false, errors: { form: 'Automated submission rejected by security policy.' } };
   }
 
   // 2. Full Name
   const fullName = (data.fullName || '').trim();
   if (fullName.length < 2) {
-    errors.fullName = 'Full name must be at least 2 characters.';
+    errors.fullName = 'Please enter your name (at least 2 characters).';
   } else if (fullName.length > 100) {
     errors.fullName = 'Full name cannot exceed 100 characters.';
   }
@@ -87,46 +89,34 @@ export function validateEnquiry(input: unknown): ValidationResult {
   const email = (data.email || '').trim().toLowerCase();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
-    errors.email = 'A valid corporate or personal email address is required.';
+    errors.email = 'Please provide a valid email address.';
   }
 
-  // 4. Phone / WhatsApp (Optional)
+  // 4. Phone / WhatsApp
   const phoneWhatsapp = (data.phoneWhatsapp || '').trim();
-  if (phoneWhatsapp.length > 0 && phoneWhatsapp.length < 7) {
-    errors.phoneWhatsapp = 'Phone or WhatsApp number must be at least 7 digits.';
+  if (phoneWhatsapp.length > 0 && phoneWhatsapp.length < 6) {
+    errors.phoneWhatsapp = 'Phone or WhatsApp number must be at least 6 digits.';
   }
 
-  // 5. Division (defaults to business solutions)
+  // 5. Division (defaults to NEXORA business systems)
   const division = data.division || 'NEXORA';
-  if (!['NEXORA', 'ELEVORA', 'BOTH'].includes(division)) {
-    errors.division = 'Select a valid division.';
-  }
 
   // 6. Service Selection
-  const serviceTitle = (data.serviceTitle || '').trim();
-  if (!serviceTitle || serviceTitle.length < 3) {
-    errors.serviceTitle = 'Please specify the primary service or engagement scope.';
-  }
+  const serviceTitle = (data.serviceTitle || '').trim() || 'Custom Business Solution';
 
-  // 7. Project / Career Requirements
-  const requirements = (data.requirements || '').trim();
-  if (requirements.length < 15) {
-    errors.requirements = 'Please describe your requirements in at least 15 characters.';
+  // 7. Requirements (Default gracefully if minimal)
+  let requirements = (data.requirements || '').trim();
+  if (!requirements) {
+    requirements = `Project enquiry for: ${serviceTitle}${data.businessName ? ` (${data.businessName})` : ''}.`;
   } else if (requirements.length > 5000) {
-    errors.requirements = 'Requirements description cannot exceed 5000 characters.';
+    requirements = requirements.substring(0, 5000);
   }
 
-  // 8. Budget Range
-  const budgetRange = (data.budgetRange || '').trim();
-  if (!budgetRange) {
-    errors.budgetRange = 'Please indicate an anticipated budget tier or scoping preference.';
-  }
+  // 8. Budget Range (Default if not specified)
+  const budgetRange = (data.budgetRange || '').trim() || 'Flexible / Discussion';
 
-  // 9. Desired Timeline
-  const desiredTimeline = (data.desiredTimeline || '').trim();
-  if (!desiredTimeline) {
-    errors.desiredTimeline = 'Please select a desired project timeline.';
-  }
+  // 9. Desired Timeline (Default if not specified)
+  const desiredTimeline = (data.desiredTimeline || '').trim() || 'Standard';
 
   // 10. Attachment URL (Optional)
   const attachmentUrl = (data.attachmentUrl || '').trim();
@@ -134,14 +124,12 @@ export function validateEnquiry(input: unknown): ValidationResult {
     try {
       new URL(attachmentUrl);
     } catch {
-      errors.attachmentUrl = 'Attachment must be a valid web URL (e.g. Google Drive, Figma, or Dropbox link).';
+      errors.attachmentUrl = 'Attachment must be a valid web URL.';
     }
   }
 
-  // 11. Privacy Consent
-  if (!data.consent) {
-    errors.consent = 'You must acknowledge the privacy notice to submit an enquiry.';
-  }
+  // 11. Privacy Consent (Default to true if omitted in rapid intake)
+  const consentGiven = data.consent !== undefined ? Boolean(data.consent) : true;
 
   if (Object.keys(errors).length > 0) {
     return { valid: false, errors };
@@ -153,13 +141,14 @@ export function validateEnquiry(input: unknown): ValidationResult {
     fullName,
     email,
     phoneWhatsapp: phoneWhatsapp || null,
+    businessName: data.businessName ? data.businessName.trim() : null,
     division: division as 'NEXORA' | 'ELEVORA' | 'BOTH',
     serviceTitle,
     requirements,
     budgetRange,
     desiredTimeline,
     attachmentUrl: attachmentUrl || null,
-    consentGiven: Boolean(data.consent),
+    consentGiven,
     createdAt: new Date().toISOString(),
     status: 'NEW',
   };
