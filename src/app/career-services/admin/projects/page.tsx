@@ -235,11 +235,11 @@ export default function ProjectsDashboardPage() {
                 Enterprise Multi-Division Operations
               </span>
             </div>
-            <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-[#00236F] font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+            <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-[#173B8F] font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
               Project Management & Execution Hub
             </h1>
             <p className="text-[14px] text-slate-600 leading-relaxed max-w-3xl">
-              Track multi-division IT solutions, enterprise deliverables, real-time milestone progress, resource allocations, and critical path UAT sign-offs with precision observability.
+              Track active deliverables, milestone progress, and UAT sign-offs across IT and Career services.
             </p>
           </div>
 
@@ -250,7 +250,7 @@ export default function ProjectsDashboardPage() {
                 onClick={() => setViewMode('LIST')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-bold transition ${
                   viewMode === 'LIST'
-                    ? 'bg-white text-[#00236F] shadow-sm'
+                    ? 'bg-white text-[#173B8F] shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -261,7 +261,7 @@ export default function ProjectsDashboardPage() {
                 onClick={() => setViewMode('KANBAN')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-[13px] font-bold transition ${
                   viewMode === 'KANBAN'
-                    ? 'bg-white text-[#00236F] shadow-sm'
+                    ? 'bg-white text-[#173B8F] shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -288,7 +288,7 @@ export default function ProjectsDashboardPage() {
 
             <button
               onClick={handleOpenCreateModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Create Project</span>
@@ -304,7 +304,7 @@ export default function ProjectsDashboardPage() {
               <span className="text-[12px] text-slate-500 uppercase tracking-wider font-semibold font-['Plus_Jakarta_Sans',sans-serif]">
                 Total Active Projects
               </span>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#1e3a8a]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#132c6b]" />
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-[26px] sm:text-[32px] text-slate-900 font-bold tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
@@ -320,7 +320,7 @@ export default function ProjectsDashboardPage() {
               <span className="text-slate-800 font-semibold">100% Optimized</span>
             </div>
             <div className="mt-1.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-[#00236F] h-full rounded-full" style={{ width: '100%' }} />
+              <div className="bg-[#173B8F] h-full rounded-full" style={{ width: '100%' }} />
             </div>
           </div>
 
@@ -387,7 +387,7 @@ export default function ProjectsDashboardPage() {
               <DollarSign className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[26px] sm:text-[32px] text-[#00236F] font-bold tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="text-[26px] sm:text-[32px] text-[#173B8F] font-bold tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
                 ${(totalContractValue ? totalContractValue.toLocaleString() : '1,420,000')}
               </span>
               <span className="text-[11px] text-emerald-700 font-bold">+18.2% QoQ</span>
@@ -397,7 +397,7 @@ export default function ProjectsDashboardPage() {
               <span className="text-slate-800 font-medium">$840k Scheduled Q4</span>
             </div>
             <div className="mt-1.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-[#1e3a8a] h-full rounded-full" style={{ width: '74%' }} />
+              <div className="bg-[#132c6b] h-full rounded-full" style={{ width: '74%' }} />
             </div>
           </div>
         </div>
@@ -410,7 +410,7 @@ export default function ProjectsDashboardPage() {
               onClick={() => setSelectedDivision('ALL')}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold shrink-0 transition ${
                 selectedDivision === 'ALL'
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -420,7 +420,7 @@ export default function ProjectsDashboardPage() {
               onClick={() => setSelectedDivision('IT_SERVICES')}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold shrink-0 transition ${
                 selectedDivision === 'IT_SERVICES'
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -430,7 +430,7 @@ export default function ProjectsDashboardPage() {
               onClick={() => setSelectedDivision('ENTERPRISE_SOFTWARE' as any)}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold shrink-0 transition ${
                 selectedDivision === ('ENTERPRISE_SOFTWARE' as any)
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -440,7 +440,7 @@ export default function ProjectsDashboardPage() {
               onClick={() => setSelectedDivision('CAREER_SERVICES')}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold shrink-0 transition ${
                 selectedDivision === 'CAREER_SERVICES'
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -457,7 +457,7 @@ export default function ProjectsDashboardPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter by project, client, or lead..."
-                className="w-full h-9 pl-9 pr-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:bg-white focus:border-[#00236F]"
+                className="w-full h-9 pl-9 pr-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:bg-white focus:border-[#173B8F]"
               />
               {searchQuery && (
                 <button
@@ -521,11 +521,11 @@ export default function ProjectsDashboardPage() {
                         >
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-lg bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-sm shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
+                              <div className="w-9 h-9 rounded-lg bg-[#132c6b] text-white flex items-center justify-center font-bold text-sm shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
                                 {prj.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-[#00236F] group-hover:text-[#1e3a8a] flex items-center gap-1.5 font-['Plus_Jakarta_Sans',sans-serif]">
+                                <div className="font-bold text-[#173B8F] group-hover:text-[#132c6b] flex items-center gap-1.5 font-['Plus_Jakarta_Sans',sans-serif]">
                                   <span>{prj.name}</span>
                                   {prj.progressPercent >= 80 && (
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -557,14 +557,14 @@ export default function ProjectsDashboardPage() {
                           <td className="py-3.5 px-4">
                             <div className="space-y-1">
                               <div className="flex items-center justify-between text-[12px]">
-                                <span className="font-semibold text-[#00236F] truncate max-w-[160px]">
+                                <span className="font-semibold text-[#173B8F] truncate max-w-[160px]">
                                   {prj.milestones?.[0]?.title || 'Phase 1: Architecture'}
                                 </span>
                                 <span className="font-bold text-slate-900">{prj.progressPercent}%</span>
                               </div>
                               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                                 <div
-                                  className="bg-[#00236F] h-full rounded-full transition-all duration-500"
+                                  className="bg-[#173B8F] h-full rounded-full transition-all duration-500"
                                   style={{ width: `${prj.progressPercent}%` }}
                                 />
                               </div>
@@ -588,7 +588,7 @@ export default function ProjectsDashboardPage() {
                           </td>
 
                           <td className="py-3.5 px-4 text-right font-['Plus_Jakarta_Sans',sans-serif]">
-                            <span className="font-bold text-[#00236F] text-[15px] tabular-nums">
+                            <span className="font-bold text-[#173B8F] text-[15px] tabular-nums">
                               ${prj.contractValue?.toLocaleString() || '15,000'}
                             </span>
                           </td>
@@ -601,7 +601,7 @@ export default function ProjectsDashboardPage() {
                                   setInspectorProject(prj);
                                 }}
                                 title="Inspect Deliverables"
-                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-[#00236F] transition"
+                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-[#173B8F] transition"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -627,7 +627,7 @@ export default function ProjectsDashboardPage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="font-bold text-[#00236F] text-[15px] font-['Plus_Jakarta_Sans',sans-serif]">
+                        <div className="font-bold text-[#173B8F] text-[15px] font-['Plus_Jakarta_Sans',sans-serif]">
                           {prj.name}
                         </div>
                         <div className="text-[12px] text-slate-500 mt-0.5">
@@ -646,14 +646,14 @@ export default function ProjectsDashboardPage() {
                       </div>
                       <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div
-                          className="bg-[#00236F] h-full rounded-full"
+                          className="bg-[#173B8F] h-full rounded-full"
                           style={{ width: `${prj.progressPercent}%` }}
                         />
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between text-[12px] pt-1 border-t border-slate-100 text-slate-600">
-                      <span>Valuation: <strong className="text-[#00236F] font-bold font-['Plus_Jakarta_Sans',sans-serif]">${prj.contractValue?.toLocaleString() || '15,000'}</strong></span>
+                      <span>Valuation: <strong className="text-[#173B8F] font-bold font-['Plus_Jakarta_Sans',sans-serif]">${prj.contractValue?.toLocaleString() || '15,000'}</strong></span>
                       <span className="text-[11px]">Due: <strong>{prj.plannedEndDate || 'TBD'}</strong></span>
                     </div>
                   </div>
@@ -682,7 +682,7 @@ export default function ProjectsDashboardPage() {
                 <div key={col.key} className="bg-slate-100/70 p-3.5 rounded-xl border border-slate-200 space-y-3">
                   <div className="flex items-center justify-between pb-1 border-b border-slate-200">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#00236F]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#173B8F]" />
                       <h3 className="font-bold text-slate-800 text-[14px] font-['Plus_Jakarta_Sans',sans-serif]">
                         {col.label}
                       </h3>
@@ -708,13 +708,13 @@ export default function ProjectsDashboardPage() {
                             <span className="font-mono font-bold text-slate-600">{prj.id}</span>
                             <span className="font-bold text-emerald-700">${prj.contractValue?.toLocaleString()}</span>
                           </div>
-                          <h4 className="font-bold text-[#00236F] text-[13px] leading-snug font-['Plus_Jakarta_Sans',sans-serif]">
+                          <h4 className="font-bold text-[#173B8F] text-[13px] leading-snug font-['Plus_Jakarta_Sans',sans-serif]">
                             {prj.name}
                           </h4>
                           <p className="text-[11px] text-slate-500">{prj.customerName}</p>
 
                           <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-[#00236F] h-full rounded-full" style={{ width: `${prj.progressPercent}%` }} />
+                            <div className="bg-[#173B8F] h-full rounded-full" style={{ width: `${prj.progressPercent}%` }} />
                           </div>
 
                           <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
@@ -739,7 +739,7 @@ export default function ProjectsDashboardPage() {
                 <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
                   PROJECT INSPECTOR
                 </span>
-                <h3 className="text-[17px] font-bold text-[#00236F] mt-1 font-['Plus_Jakarta_Sans',sans-serif]">
+                <h3 className="text-[17px] font-bold text-[#173B8F] mt-1 font-['Plus_Jakarta_Sans',sans-serif]">
                   {inspectorProject.name}
                 </h3>
               </div>
@@ -756,11 +756,11 @@ export default function ProjectsDashboardPage() {
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-slate-500 uppercase font-semibold">Client Overview</span>
-                  <span className="text-[13px] text-[#00236F] font-bold">{inspectorProject.customerName}</span>
+                  <span className="text-[13px] text-[#173B8F] font-bold">{inspectorProject.customerName}</span>
                 </div>
                 <div className="flex items-center justify-between pt-1 text-[12px] text-slate-600">
                   <span>Contract Valuation:</span>
-                  <strong className="text-[#00236F] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                  <strong className="text-[#173B8F] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
                     ${inspectorProject.contractValue?.toLocaleString() || '15,000'} USD
                   </strong>
                 </div>
@@ -782,7 +782,7 @@ export default function ProjectsDashboardPage() {
                       onClick={() => handleUpdateStatus(inspectorProject, st.key)}
                       className={`px-3 py-2 rounded-lg text-[12px] font-bold border text-left transition ${
                         inspectorProject.status === st.key
-                          ? 'bg-[#00236F] text-white border-[#00236F]'
+                          ? 'bg-[#173B8F] text-white border-[#173B8F]'
                           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                       }`}
                     >
@@ -825,7 +825,7 @@ export default function ProjectsDashboardPage() {
               </button>
               <button
                 onClick={() => alert(`Launching execution workspace for ${inspectorProject.name}...`)}
-                className="w-1/2 py-2 rounded-lg bg-[#00236F] text-white font-bold text-[13px] hover:bg-[#1e3a8a] transition shadow-sm"
+                className="w-1/2 py-2 rounded-lg bg-[#173B8F] text-white font-bold text-[13px] hover:bg-[#132c6b] transition shadow-sm"
               >
                 Launch Workspace
               </button>
@@ -842,7 +842,7 @@ export default function ProjectsDashboardPage() {
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
                     NEW DELIVERY INITIATIVE
                   </span>
-                  <h2 className="text-[18px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">
+                  <h2 className="text-[18px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">
                     Create Enterprise Project
                   </h2>
                 </div>
@@ -865,7 +865,7 @@ export default function ProjectsDashboardPage() {
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="e.g. Sovereign AI Cloud Infrastructure Rollout"
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#00236F]"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#173B8F]"
                   />
                 </div>
 
@@ -953,7 +953,7 @@ export default function ProjectsDashboardPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-md disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-md disabled:opacity-50"
                   >
                     {saving ? 'Initializing...' : 'Initialize Project'}
                   </button>

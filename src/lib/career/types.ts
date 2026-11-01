@@ -487,6 +487,8 @@ export interface AdminRecord {
 
 export type CrmPipelineStage =
   | 'New Lead'
+  | 'New'
+  | 'Discovery / Needs Assessment'
   | 'Contact Attempted'
   | 'Contacted'
   | 'Qualified'
@@ -572,6 +574,7 @@ export interface CrmLead {
   lostReason?: string;
   convertedClientId?: string;
   convertedWorkOrderId?: string;
+  convertedProjectId?: string;
   lastContactedAt?: string;
   nextFollowUpDate?: string;
   notes?: string;

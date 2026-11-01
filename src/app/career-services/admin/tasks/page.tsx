@@ -184,13 +184,13 @@ export default function AdminTasksPage() {
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="hover:text-slate-800 cursor-pointer">Delivery Engine</span>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-[#00236F] font-bold">Staff Task Board</span>
+              <span className="text-[#173B8F] font-bold">Staff Task Board</span>
             </nav>
 
             {/* Right Status Badge */}
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-100 text-slate-700 text-[11px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00236F] animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#173B8F] animate-ping" />
                 Sprint Active: Day 6 / 14
               </span>
             </div>
@@ -244,7 +244,7 @@ export default function AdminTasksPage() {
 
               <button
                 onClick={() => setShowDrawer(true)}
-                className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+                className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add New Task</span>
@@ -261,7 +261,7 @@ export default function AdminTasksPage() {
               <span className="text-[12px] text-slate-500 uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
                 Active Sprint Tasks
               </span>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00236F]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#173B8F]" />
             </div>
             <div className="my-2 flex items-baseline gap-2">
               <span className="text-[26px] sm:text-[32px] font-bold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
@@ -290,7 +290,7 @@ export default function AdminTasksPage() {
               <span className="text-[12px] text-slate-500">concurrent items</span>
             </div>
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-[#00236F] h-full rounded-full" style={{ width: '45%' }} />
+              <div className="bg-[#173B8F] h-full rounded-full" style={{ width: '45%' }} />
             </div>
           </div>
 
@@ -332,7 +332,7 @@ export default function AdminTasksPage() {
           </div>
 
           {/* Card 5: Team Capacity Indicator */}
-          <div className="bg-[#00236F] text-white p-4 sm:p-5 rounded-xl shadow-md flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-[#173B8F] text-white p-4 sm:p-5 rounded-xl shadow-md flex flex-col justify-between relative overflow-hidden">
             <div className="flex items-center justify-between">
               <span className="text-[11px] uppercase tracking-wider font-bold text-blue-200 font-['Plus_Jakarta_Sans',sans-serif]">
                 Team Capacity
@@ -444,7 +444,7 @@ export default function AdminTasksPage() {
                     </div>
                     <button
                       onClick={() => handleUpdateStatus(t, 'IN_PROGRESS')}
-                      className="text-[11px] font-bold text-[#00236F] hover:underline"
+                      className="text-[11px] font-bold text-[#173B8F] hover:underline"
                     >
                       Start →
                     </button>
@@ -458,7 +458,7 @@ export default function AdminTasksPage() {
           <div className="bg-slate-100/80 rounded-xl p-3.5 border border-slate-200 space-y-3">
             <div className="flex items-center justify-between pb-1 border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00236F]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#173B8F]" />
                 <h2 className="text-[14px] font-bold text-slate-800 font-['Plus_Jakarta_Sans',sans-serif]">
                   In Progress
                 </h2>
@@ -495,7 +495,7 @@ export default function AdminTasksPage() {
                 >
                   <div className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">{t.id}</span>
+                      <span className="font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">{t.id}</span>
                       <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 font-bold text-[10px]">
                         {t.priority}
                       </span>
@@ -516,13 +516,13 @@ export default function AdminTasksPage() {
                       </span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#00236F] h-full rounded-full" style={{ width: '75%' }} />
+                      <div className="bg-[#173B8F] h-full rounded-full" style={{ width: '75%' }} />
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1 text-[12px] text-slate-600">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full bg-[#1e3a8a] text-white text-[10px] font-bold flex items-center justify-center font-['Plus_Jakarta_Sans',sans-serif]">
+                      <div className="w-5 h-5 rounded-full bg-[#132c6b] text-white text-[10px] font-bold flex items-center justify-center font-['Plus_Jakarta_Sans',sans-serif]">
                         {t.assignedToName.charAt(0)}
                       </div>
                       <span className="font-medium text-[11px]">{t.assignedToName}</span>
@@ -596,7 +596,7 @@ export default function AdminTasksPage() {
                     <span className="font-medium text-[11px]">{t.assignedToName}</span>
                     <button
                       onClick={() => handleUpdateStatus(t, 'COMPLETED')}
-                      className="text-[11px] font-bold text-[#00236F] hover:underline"
+                      className="text-[11px] font-bold text-[#173B8F] hover:underline"
                     >
                       Approve & Merge
                     </button>
@@ -689,7 +689,7 @@ export default function AdminTasksPage() {
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#00236F] text-white flex items-center justify-center font-bold text-xs font-['Plus_Jakarta_Sans',sans-serif]">
+                  <div className="w-8 h-8 rounded-full bg-[#173B8F] text-white flex items-center justify-center font-bold text-xs font-['Plus_Jakarta_Sans',sans-serif]">
                     SJ
                   </div>
                   <div>
@@ -772,7 +772,7 @@ export default function AdminTasksPage() {
                   <span className="text-[11px] uppercase font-bold text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
                     Operations Task Engine
                   </span>
-                  <h2 className="text-[17px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">
+                  <h2 className="text-[17px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">
                     Dispatch New Work Order
                   </h2>
                 </div>
@@ -795,7 +795,7 @@ export default function AdminTasksPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Deploy Canary build for API Gateway v4.2"
-                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#00236F]"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#173B8F]"
                   />
                 </div>
 
@@ -907,7 +907,7 @@ export default function AdminTasksPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-md disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-md disabled:opacity-50"
                   >
                     {saving ? 'Creating...' : 'Create & Assign Task'}
                   </button>

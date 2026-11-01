@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/career/admin/AdminLayout';
 import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
@@ -10,26 +10,34 @@ import {
   subscribeAllInvoices,
   subscribeProjects,
   subscribeCrmLeads,
+  subscribeCrmFollowUps,
 } from '@/lib/firebase/firestore';
-import type { ServiceOrder, CareerTask, CareerInvoice, EnterpriseProjectRecord, CrmLead } from '@/lib/career/types';
+import type {
+  ServiceOrder,
+  CareerTask,
+  CareerInvoice,
+  EnterpriseProjectRecord,
+  CrmLead,
+  CrmFollowUp,
+} from '@/lib/career/types';
 import {
+  Inbox,
   Briefcase,
-  RotateCcw,
   CheckSquare,
-  TrendingUp,
-  AlertCircle,
+  CreditCard,
+  Plus,
   ArrowRight,
-  FolderKanban,
-  Users,
-  Grid,
-  FileText,
   Clock,
-  Sparkles,
-  ShieldCheck,
+  AlertCircle,
   CheckCircle2,
+  Calendar,
   ChevronRight,
-  PlusCircle,
-  HelpCircle,
+  TrendingUp,
+  UserPlus,
+  FilePlus,
+  Receipt,
+  PhoneCall,
+  Sparkles,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -39,6 +47,7 @@ export default function AdminDashboardPage() {
   const [invoices, setInvoices] = useState<CareerInvoice[]>([]);
   const [projects, setProjects] = useState<EnterpriseProjectRecord[]>([]);
   const [leads, setLeads] = useState<CrmLead[]>([]);
+  const [followUps, setFollowUps] = useState<CrmFollowUp[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,22 +55,11 @@ export default function AdminDashboardPage() {
       setOrders(allOrders);
       setLoading(false);
     });
-
-    const unsubTasks = subscribeAllTasks((allTasks) => {
-      setTasks(allTasks);
-    });
-
-    const unsubInvoices = subscribeAllInvoices((allInvoices) => {
-      setInvoices(allInvoices);
-    });
-
-    const unsubProjects = subscribeProjects((allProjects) => {
-      setProjects(allProjects);
-    });
-
-    const unsubLeads = subscribeCrmLeads((allLeads) => {
-      setLeads(allLeads);
-    });
+    const unsubTasks = subscribeAllTasks((allTasks) => setTasks(allTasks));
+    const unsubInvoices = subscribeAllInvoices((allInvoices) => setInvoices(allInvoices));
+    const unsubProjects = subscribeProjects((allProjects) => setProjects(allProjects));
+    const unsubLeads = subscribeCrmLeads((allLeads) => setLeads(allLeads));
+    const unsubFollowUps = subscribeCrmFollowUps((allFollowUps) => setFollowUps(allFollowUps));
 
     return () => {
       unsubOrders();
@@ -69,390 +67,406 @@ export default function AdminDashboardPage() {
       unsubInvoices();
       unsubProjects();
       unsubLeads();
+      unsubFollowUps();
     };
   }, []);
 
-  const activeOrders = orders.filter((o) => o.status !== 'COMPLETED' && o.status !== 'CANCELLED');
-  const pendingReview = orders.filter((o) => o.status === 'CLIENT_REVIEW');
-  const inRevision = orders.filter((o) => o.status === 'REVISION');
-  const openTasks = tasks.filter((t) => t.status !== 'COMPLETED');
+  // 1. Key Business Indicators (Section 8)
+  const newLeadsCount = useMemo(() => {
+    return leads.filter((l) => (l.stage === 'New' || l.stage === 'New Lead') || l.stage === 'Contacted').length;
+  }, [leads]);
 
-  // Revenue calculation
-  const totalRevenue = invoices
-    .filter((inv) => inv.status === 'PAID')
-    .reduce((sum, inv) => sum + (inv.total || 0), 0);
+  const activeProjectsCount = useMemo(() => {
+    return projects.filter((p) => p.status !== 'COMPLETED' && (p.status as any) !== 'CANCELLED').length;
+  }, [projects]);
 
-  const pendingInvoiced = invoices
-    .filter((inv) => inv.status === 'ISSUED')
-    .reduce((sum, inv) => sum + (inv.total || 0), 0);
+  const pendingTasksCount = useMemo(() => {
+    return tasks.filter((t) => t.status !== 'COMPLETED').length;
+  }, [tasks]);
+
+  const outstandingPaymentsTotal = useMemo(() => {
+    return invoices
+      .filter((inv) => inv.status === 'ISSUED')
+      .reduce((sum, inv) => sum + (inv.total || 0), 0);
+  }, [invoices]);
+
+  // 2. Today's Priorities
+  const todayPriorities = useMemo(() => {
+    const list: Array<{ id: string; type: 'TASK' | 'FOLLOWUP' | 'ORDER'; title: string; subtitle: string; tag: string; tagColor: string; href: string }> = [];
+
+    // Urgent / Overdue Tasks
+    tasks
+      .filter((t) => t.status !== 'COMPLETED' && (t.priority === 'URGENT' || (t.priority as any) === 'HIGH'))
+      .slice(0, 3)
+      .forEach((t) => {
+        list.push({
+          id: `task_${t.id}`,
+          type: 'TASK',
+          title: t.title,
+          subtitle: `Assigned: ${t.assignedToName || 'Unassigned'} • Due: ${t.dueDate || 'ASAP'}`,
+          tag: t.priority,
+          tagColor: 'bg-rose-50 text-rose-700 border-rose-200',
+          href: '/career-services/admin/tasks',
+        });
+      });
+
+    // Scheduled Follow-ups
+    followUps
+      .filter((f) => f.status !== 'COMPLETED' && f.status !== 'CANCELLED')
+      .slice(0, 3)
+      .forEach((f) => {
+        list.push({
+          id: `fu_${f.id}`,
+          type: 'FOLLOWUP',
+          title: `Follow up: ${f.leadName || 'Prospective Client'}`,
+          subtitle: `${f.followUpType || 'Call'} • Due: ${f.dueDate || 'Today'}`,
+          tag: 'CALL',
+          tagColor: 'bg-amber-50 text-amber-700 border-amber-200',
+          href: '/career-services/admin/crm/follow-ups',
+        });
+      });
+
+    // Pending Client Reviews
+    orders
+      .filter((o) => o.status === 'CLIENT_REVIEW')
+      .slice(0, 2)
+      .forEach((o) => {
+        list.push({
+          id: `ord_${o.id}`,
+          type: 'ORDER',
+          title: `Awaiting Review: ${o.clientName}`,
+          subtitle: `${o.serviceType} • Order #${o.orderNumber}`,
+          tag: 'REVIEW',
+          tagColor: 'bg-purple-50 text-purple-700 border-purple-200',
+          href: '/career-services/admin/orders',
+        });
+      });
+
+    return list.slice(0, 5);
+  }, [tasks, followUps, orders]);
+
+  // Current Date Formatter
+  const currentDateFormatted = useMemo(() => {
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }, []);
+
+  const greetingTime = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }, []);
 
   return (
     <AdminLayout>
-      <div className="space-y-6 max-w-7xl mx-auto font-sans">
-        {/* Ambient Top Command Ribbon */}
-        <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <div className="space-y-1.5 max-w-4xl">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-tertiary-container text-tertiary-fixed font-label-sm text-xs uppercase tracking-wider font-bold shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                COMMAND & TELEMETRY
-              </span>
-              <span className="text-secondary font-label-md text-xs">•</span>
-              <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-[#00236f] text-white">
-                {role.toUpperCase()}
-              </span>
-              <span className="text-secondary font-label-md text-xs hidden sm:inline">
-                Welcome back, {adminProfile?.displayName || 'Lead Administrator'}
+      <div className="space-y-6 max-w-7xl mx-auto font-['Manrope',sans-serif]">
+        {/* Welcome Area (Section 8) */}
+        <div className="bg-white/80 backdrop-blur-sm p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium">{currentDateFormatted}</span>
+              <span className="w-1 h-1 rounded-full bg-slate-300" />
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#173B8F] border border-blue-100 uppercase">
+                {role.replace('_', ' ')}
               </span>
             </div>
-            <h1 className="font-headline-xl text-2xl lg:text-3xl text-primary font-bold tracking-tight">
-              Enterprise Operations Control Center
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+              {greetingTime}, {adminProfile?.displayName || 'Administrator'}
             </h1>
-            <p className="font-body-md text-sm text-on-surface-variant max-w-3xl leading-relaxed">
-              Supervising multi-division IT engineering solutions, career services studio orders, staff resource utilization, and client deliverables.
+            <p className="text-xs text-slate-500">
+              Here is what requires your attention across client deliveries and operations today.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          {/* Quick Actions Bar (Mobile-friendly Grid) */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link
+              href="/career-services/admin/crm/leads"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#173B8F] text-white text-xs font-semibold hover:bg-[#132c6b] transition shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Lead</span>
+            </Link>
             <Link
               href="/career-services/admin/projects"
-              className="px-4 py-2 rounded-xl bg-primary-container text-white text-xs font-semibold hover:bg-primary transition shadow-sm inline-flex items-center gap-1.5"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
             >
-              <FolderKanban className="w-3.5 h-3.5" />
-              <span>Project Hub</span>
+              <Briefcase className="w-3.5 h-3.5 text-violet-600" />
+              <span>Projects</span>
             </Link>
             <Link
-              href="/career-services/admin/tasks"
-              className="px-4 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest hover:bg-surface-container-low text-xs font-semibold text-primary transition inline-flex items-center gap-1.5"
+              href="/career-services/admin/crm/quotations"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
             >
-              <CheckSquare className="w-3.5 h-3.5" />
-              <span>Task Board</span>
+              <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Quotation</span>
             </Link>
           </div>
         </div>
 
-        {/* 4 Executive KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Active Engagements */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between text-secondary mb-2">
-              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Active Engagements</span>
-              <span className="w-2 h-2 rounded-full bg-primary-container"></span>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
-                {activeOrders.length + projects.length}
+        {/* 4 Key Business Indicators (Section 8) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Card 1: New Leads */}
+          <Link
+            href="/career-services/admin/crm/leads"
+            className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] hover:shadow-md hover:border-blue-200 transition group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                New Leads
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-primary font-label-sm text-xs font-bold">
-                <TrendingUp className="w-3.5 h-3.5" />
-                Live
-              </span>
-            </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
-              <span>{projects.length} IT Projects • {activeOrders.length} Orders</span>
-              <span className="text-primary font-semibold">100% Operational</span>
-            </div>
-            <div className="mt-1.5 w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-              <div className="bg-primary-container h-full rounded-full" style={{ width: '88%' }}></div>
-            </div>
-          </div>
-
-          {/* Card 2: Revisions & Quality Review */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between text-secondary mb-2">
-              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Revisions & QA Queue</span>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-label-sm text-xs font-semibold">
-                In Review
-              </span>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="font-kpi-display text-3xl font-bold text-purple-700 tabular-nums">
-                {inRevision.length + pendingReview.length}
-              </span>
-              <div className="flex items-center gap-1 text-xs text-secondary">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span>{inRevision.length} Client Feedback</span>
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 group-hover:scale-105 transition-transform">
+                <Inbox className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
-              <span>Client Review Threshold</span>
-              <span className="text-emerald-700 font-semibold">96.4% Approval</span>
-            </div>
-            <div className="mt-1.5 w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-              <div className="bg-purple-600 h-full rounded-full" style={{ width: '92%' }}></div>
-            </div>
-          </div>
-
-          {/* Card 3: Staff Resource Tasks */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between text-secondary mb-2">
-              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Assigned Tasks</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
-                {openTasks.length}
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {loading ? '—' : newLeadsCount}
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-xs font-bold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Sprint Active
+              <span className="text-[11px] text-blue-600 font-semibold flex items-center">
+                Pipeline
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
-              <span>Capacity Balanced</span>
-              <span className="text-on-surface font-semibold">84% Load</span>
-            </div>
-            <div className="mt-1.5 w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-              <div className="bg-emerald-600 h-full rounded-full" style={{ width: '84%' }}></div>
-            </div>
-          </div>
+            <p className="text-[11px] text-slate-400 mt-1">Awaiting qualification</p>
+          </Link>
 
-          {/* Card 4: Realized Revenue */}
-          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between text-secondary mb-2">
-              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Realized Invoicing</span>
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
-                ${totalRevenue.toLocaleString()}
-              </span>
-              <span className="text-xs text-amber-700 font-semibold font-mono">
-                +${pendingInvoiced.toLocaleString()} pend.
-              </span>
-            </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
-              <span>Collection Assurance</span>
-              <span className="text-emerald-700 font-semibold">98.2% Settle</span>
-            </div>
-            <div className="mt-1.5 w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-              <div className="bg-primary-container h-full rounded-full" style={{ width: '98%' }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Priority Action Alerts Ribbon */}
-        {(inRevision.length > 0 || pendingReview.length > 0) && (
-          <div className="p-4 rounded-2xl border border-purple-200 bg-purple-50/30 shadow-xs space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-primary">
-              <AlertCircle className="w-4 h-4 text-purple-700" />
-              <span>Priority Studio & Engineering Items Requiring Supervisor Attention</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              {inRevision.length > 0 && (
-                <div className="p-3.5 rounded-xl bg-white border border-purple-100 flex items-center justify-between shadow-xs">
-                  <div>
-                    <span className="font-bold text-primary block text-sm">
-                      {inRevision.length} Revision Requests Active
-                    </span>
-                    <span className="text-xs text-secondary">
-                      Client feedback notes registered; consultants editing deliverables.
-                    </span>
-                  </div>
-                  <Link
-                    href="/career-services/admin/revisions"
-                    className="px-3 py-1.5 rounded-lg bg-purple-100 text-purple-800 text-xs font-semibold hover:bg-purple-200 transition"
-                  >
-                    Open Queue
-                  </Link>
-                </div>
-              )}
-
-              {pendingReview.length > 0 && (
-                <div className="p-3.5 rounded-xl bg-white border border-amber-100 flex items-center justify-between shadow-xs">
-                  <div>
-                    <span className="font-bold text-primary block text-sm">
-                      {pendingReview.length} Drafts Awaiting Sign-Off
-                    </span>
-                    <span className="text-xs text-secondary">
-                      Milestone packages delivered to client portal; awaiting sign-off.
-                    </span>
-                  </div>
-                  <Link
-                    href="/career-services/admin/deliverables"
-                    className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-semibold hover:bg-amber-200 transition"
-                  >
-                    View Drafts
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Multi-Division Core Navigation Tiles */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Card 2: Active Projects */}
           <Link
             href="/career-services/admin/projects"
-            className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/40 hover:shadow-sm transition group"
+            className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] hover:shadow-md hover:border-violet-200 transition group"
           >
-            <div className="w-9 h-9 rounded-lg bg-blue-50 text-primary flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
-              <FolderKanban className="w-5 h-5 text-[#00236f]" />
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                Active Projects
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 group-hover:scale-105 transition-transform">
+                <Briefcase className="w-4 h-4" />
+              </div>
             </div>
-            <h3 className="font-bold text-sm text-primary">Project Management Hub</h3>
-            <p className="text-xs text-secondary mt-0.5">SaaS & Enterprise Deliveries</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {loading ? '—' : activeProjectsCount}
+              </span>
+              <span className="text-[11px] text-violet-600 font-semibold">Live delivery</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">IT & Career portfolio</p>
           </Link>
 
+          {/* Card 3: Pending Tasks */}
           <Link
             href="/career-services/admin/tasks"
-            className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/40 hover:shadow-sm transition group"
+            className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] hover:shadow-md hover:border-indigo-200 transition group"
           >
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
-              <CheckSquare className="w-5 h-5 text-emerald-700" />
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                Pending Tasks
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 group-hover:scale-105 transition-transform">
+                <CheckSquare className="w-4 h-4" />
+              </div>
             </div>
-            <h3 className="font-bold text-sm text-primary">Staff Operations Board</h3>
-            <p className="text-xs text-secondary mt-0.5">Work Orders & Sprint Kanban</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {loading ? '—' : pendingTasksCount}
+              </span>
+              <span className="text-[11px] text-indigo-600 font-semibold">In queue</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">Staff operations queue</p>
           </Link>
 
+          {/* Card 4: Outstanding Invoices */}
           <Link
-            href="/career-services/admin/clients"
-            className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/40 hover:shadow-sm transition group"
+            href="/career-services/admin/finance"
+            className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] hover:shadow-md hover:border-emerald-200 transition group"
           >
-            <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-800 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
-              <Users className="w-5 h-5 text-purple-700" />
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                Outstanding Due
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 group-hover:scale-105 transition-transform">
+                <CreditCard className="w-4 h-4" />
+              </div>
             </div>
-            <h3 className="font-bold text-sm text-primary">Customer 360 Directory</h3>
-            <p className="text-xs text-secondary mt-0.5">Accounts, Dossiers & SLAs</p>
-          </Link>
-
-          <Link
-            href="/career-services/admin/services"
-            className="p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/40 hover:shadow-sm transition group"
-          >
-            <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center mb-2.5 group-hover:scale-105 transition-transform">
-              <Grid className="w-5 h-5 text-amber-700" />
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {loading ? '—' : `$${outstandingPaymentsTotal.toLocaleString()}`}
+              </span>
+              <span className="text-[11px] text-emerald-600 font-semibold">Invoiced</span>
             </div>
-            <h3 className="font-bold text-sm text-primary">Service Catalogue Engine</h3>
-            <p className="text-xs text-secondary mt-0.5">Bundle Templates & Add-ons</p>
+            <p className="text-[11px] text-slate-400 mt-1">Awaiting client payment</p>
           </Link>
         </div>
 
-        {/* Live Delivery Stream (Responsive Table -> Cards on Mobile) */}
-        <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-outline-variant/30 gap-2">
-            <div>
-              <h2 className="font-headline-sm text-lg font-bold text-primary">
-                Active Client Pipeline Stream ({orders.length})
+        {/* Priorities & Recent Activity Split Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Left 2 Cols: Today's Priorities */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                  Today's Operational Priorities
+                </h2>
+                <p className="text-[11px] text-slate-500">Urgent tasks, scheduled calls, and review approvals</p>
+              </div>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                {todayPriorities.length} items
+              </span>
+            </div>
+
+            {todayPriorities.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400 space-y-2">
+                <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto" />
+                <p>No critical bottlenecks or overdue items today.</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {todayPriorities.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50/70 transition group"
+                  >
+                    <div className="space-y-0.5 min-w-0 pr-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase ${item.tagColor}`}>
+                          {item.tag}
+                        </span>
+                        <p className="text-xs font-semibold text-slate-800 truncate group-hover:text-[#173B8F] transition">
+                          {item.title}
+                        </p>
+                      </div>
+                      <p className="text-[11px] text-slate-500 truncate">{item.subtitle}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#173B8F] shrink-0 transition" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right 1 Col: Quick Jump Modules */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h2 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                Quick Operations
               </h2>
-              <p className="font-body-sm text-xs text-secondary">
-                Real-time operational status across resume development, IT deliverables, and portfolio deployments.
-              </p>
+              <span className="text-[10px] font-semibold text-blue-600 uppercase">Shortcuts</span>
+            </div>
+
+            <div className="space-y-2">
+              <Link
+                href="/career-services/admin/clients"
+                className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100">
+                    <UserPlus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">Customer 360</p>
+                    <p className="text-[10px] text-slate-400">Manage client directory</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 transition" />
+              </Link>
+
+              <Link
+                href="/career-services/admin/services"
+                className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">Service Catalogue</p>
+                    <p className="text-[10px] text-slate-400">Configure offerings & SLAs</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition" />
+              </Link>
+
+              <Link
+                href="/career-services/admin/crm/pipeline"
+                className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">Sales Pipeline</p>
+                    <p className="text-[10px] text-slate-400">Deal velocity Kanban</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 transition" />
+              </Link>
+
+              <Link
+                href="/career-services/admin/support"
+                className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                    <AlertCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">SLA Support Center</p>
+                    <p className="text-[10px] text-slate-400">Tickets & incident tracking</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 transition" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity Stream (Section 8) */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                Recent Business Activity
+              </h2>
+              <p className="text-[11px] text-slate-500">Real-time transactions, leads, and orders</p>
             </div>
             <Link
-              href="/career-services/admin/orders"
-              className="text-xs font-semibold text-primary hover:text-primary-container flex items-center gap-1 transition self-start sm:self-center"
+              href="/career-services/admin/audit"
+              className="text-xs text-[#173B8F] font-semibold hover:underline flex items-center gap-1"
             >
-              <span>View full pipeline matrix</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>View Audit Logs</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          {loading ? (
-            <div className="py-12 flex justify-center">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-12 text-xs text-secondary">
-              No orders registered in the system yet. Live client submissions will appear here automatically.
-            </div>
-          ) : (
-            <>
-              {/* Desktop Data Table */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-surface-container-low text-secondary font-label-sm uppercase tracking-wider border-b border-outline-variant/30">
-                    <tr>
-                      <th className="py-3 px-4 font-semibold">Order / Client</th>
-                      <th className="py-3 px-4 font-semibold">Service Package</th>
-                      <th className="py-3 px-4 font-semibold">Operational Stage</th>
-                      <th className="py-3 px-4 font-semibold">Status</th>
-                      <th className="py-3 px-4 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/20 font-body-sm">
-                    {orders.slice(0, 8).map((order) => (
-                      <tr key={order.id} className="hover:bg-surface-container-low/50 transition">
-                        <td className="py-3 px-4">
-                          <span className="font-mono text-xs font-bold text-primary block">
-                            {order.orderNumber}
-                          </span>
-                          <span className="text-on-surface font-semibold block text-sm">
-                            {order.clientName}
-                          </span>
-                          <span className="text-secondary text-xs">{order.clientEmail}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-on-surface font-medium block">
-                            {order.serviceType.replace(/_/g, ' ')}
-                          </span>
-                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-medium bg-surface-container-high text-secondary border border-outline-variant/30">
-                            {order.packageTier}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-semibold text-on-surface">{order.currentStage}</span>
-                          <div className="w-24 bg-surface-container-high h-1.5 rounded-full mt-1.5 overflow-hidden">
-                            <div
-                              className="bg-primary-container h-full rounded-full"
-                              style={{ width: `${order.progressPercent || 30}%` }}
-                            ></div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                            {order.status.replace(/_/g, ' ')}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <Link
-                            href="/career-services/admin/orders"
-                            className="px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-lowest hover:bg-surface-container-low text-xs font-semibold text-primary transition inline-flex items-center gap-1"
-                          >
-                            <span>Manage</span>
-                            <ChevronRight className="w-3.5 h-3.5 text-secondary" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card Transformation */}
-              <div className="md:hidden space-y-3">
-                {orders.slice(0, 6).map((order) => (
-                  <div
-                    key={order.id}
-                    className="p-4 rounded-xl bg-surface-container-low/40 border border-outline-variant/30 space-y-2.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-primary">
-                        {order.orderNumber}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                        {order.status.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h4 className="font-bold text-sm text-primary">{order.clientName}</h4>
-                      <p className="text-xs text-secondary">{order.serviceType.replace(/_/g, ' ')} • {order.packageTier}</p>
-                    </div>
-
-                    <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs">
-                      <span className="text-secondary font-medium">Stage: {order.currentStage}</span>
-                      <Link
-                        href="/career-services/admin/orders"
-                        className="px-3 py-1.5 rounded-lg bg-primary-container text-white text-xs font-semibold"
-                      >
-                        Manage
-                      </Link>
-                    </div>
+          <div className="divide-y divide-slate-100">
+            {leads.slice(0, 5).map((lead) => (
+              <div key={lead.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 truncate">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <Inbox className="w-3.5 h-3.5" />
                   </div>
-                ))}
+                  <div className="truncate">
+                    <p className="font-semibold text-slate-800 truncate">{lead.fullName}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{lead.serviceInterestedIn || 'General Enquiry'}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
+                    {lead.stage}
+                  </span>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : 'Recent'}
+                  </p>
+                </div>
               </div>
-            </>
-          )}
+            ))}
+          </div>
         </div>
       </div>
     </AdminLayout>

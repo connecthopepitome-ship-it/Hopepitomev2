@@ -78,6 +78,17 @@ export default function EmployeeDirectoryPage() {
   const [statusReason, setStatusReason] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
+  // Format deterministic unique ID if not explicitly stored
+  const getDisplayEmployeeId = (staff: StaffUser, index: number) => {
+    if (staff.employeeId && staff.employeeId !== 'HP-EMP-00000') {
+      return staff.employeeId;
+    }
+    // Generate clean unique ID based on UID hash
+    const cleanHash = (staff.uid || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 5).toUpperCase();
+    return `HP-EMP-${cleanHash || String(100 + index).padStart(5, '0')}`;
+  };
+
+
   useEffect(() => {
     const unsubStaff = subscribeStaffUsers((users) => {
       setStaffList(users);
@@ -246,12 +257,12 @@ export default function EmployeeDirectoryPage() {
       <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#17243B] text-white">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#173B8F] text-white">
               STAFF DIRECTORY
             </span>
-            <span className="text-xs text-[#8172A8] font-medium">RBAC Governance</span>
+            <span className="text-xs text-[#6558D3] font-medium">RBAC Governance</span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-[#17243B]">
+          <h1 className="text-xl font-bold tracking-tight text-[#173B8F]">
             All Employees Directory
           </h1>
           <p className="text-xs text-[#777781] mt-0.5">
@@ -262,7 +273,7 @@ export default function EmployeeDirectoryPage() {
         {hasPermission('employees', 'create') && (
           <Link
             href="/career-services/admin/employees/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm shrink-0"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#173B8F] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm shrink-0"
           >
             <UserPlus className="w-4 h-4 text-emerald-400" />
             <span>Create Employee</span>
@@ -279,7 +290,7 @@ export default function EmployeeDirectoryPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search employees by name, ID (e.g. HP-EMP-00001), email, designation..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8]"
+            className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] placeholder-[#777781]/60 focus:outline-none focus:border-[#6558D3]"
           />
         </div>
 
@@ -288,7 +299,7 @@ export default function EmployeeDirectoryPage() {
           <select
             value={selectedDept}
             onChange={(e) => setSelectedDept(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] text-xs text-[#17243B] focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] text-xs text-[#173B8F] focus:outline-none"
           >
             <option value="ALL">All Departments</option>
             {departments.map((d) => (
@@ -302,7 +313,7 @@ export default function EmployeeDirectoryPage() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] text-xs text-[#17243B] focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] text-xs text-[#173B8F] focus:outline-none"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -315,7 +326,7 @@ export default function EmployeeDirectoryPage() {
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] text-xs text-[#17243B] focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-[#E6E2DC] bg-[#FFFFFF] text-xs text-[#173B8F] focus:outline-none"
           >
             <option value="ALL">All Roles</option>
             {roles.map((r) => (
@@ -359,10 +370,10 @@ export default function EmployeeDirectoryPage() {
               ) : (
                 filteredStaff.map((staff) => (
                   <tr key={staff.uid} className="hover:bg-[#F7F5F0]/40 transition">
-                    <td className="py-3 px-4 font-mono font-bold text-[#17243B]">
-                      {staff.employeeId || 'HP-EMP-00000'}
+                    <td className="py-3 px-4 font-mono font-bold text-[#173B8F]">
+                      {getDisplayEmployeeId(staff, filteredStaff.indexOf(staff))}
                     </td>
-                    <td className="py-3 px-4 font-medium text-[#17243B]">
+                    <td className="py-3 px-4 font-medium text-[#173B8F]">
                       {staff.fullName}
                     </td>
                     <td className="py-3 px-4 font-mono text-[#777781]">
@@ -375,7 +386,7 @@ export default function EmployeeDirectoryPage() {
                       {staff.designation || 'Specialist'}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#8172A8]/10 text-[#8172A8]">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#6558D3]/10 text-[#6558D3]">
                         {staff.roleName || staff.roleId}
                       </span>
                     </td>
@@ -410,7 +421,7 @@ export default function EmployeeDirectoryPage() {
                             setShowViewDrawer(true);
                           }}
                           title="View Details"
-                          className="p-1.5 rounded-lg border border-[#E6E2DC] text-[#777781] hover:text-[#17243B] hover:bg-[#F7F5F0]"
+                          className="p-1.5 rounded-lg border border-[#E6E2DC] text-[#777781] hover:text-[#173B8F] hover:bg-[#F7F5F0]"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -420,7 +431,7 @@ export default function EmployeeDirectoryPage() {
                             type="button"
                             onClick={() => handleOpenEdit(staff)}
                             title="Edit Employee"
-                            className="p-1.5 rounded-lg border border-[#E6E2DC] text-[#777781] hover:text-[#17243B] hover:bg-[#F7F5F0]"
+                            className="p-1.5 rounded-lg border border-[#E6E2DC] text-[#777781] hover:text-[#173B8F] hover:bg-[#F7F5F0]"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
@@ -435,7 +446,7 @@ export default function EmployeeDirectoryPage() {
                               setResetResult(null);
                             }}
                             title="Reset Credentials"
-                            className="p-1.5 rounded-lg border border-[#E6E2DC] text-[#777781] hover:text-[#8172A8] hover:bg-[#F7F5F0]"
+                            className="p-1.5 rounded-lg border border-[#E6E2DC] text-[#777781] hover:text-[#6558D3] hover:bg-[#F7F5F0]"
                           >
                             <KeyRound className="w-3.5 h-3.5" />
                           </button>
@@ -481,7 +492,7 @@ export default function EmployeeDirectoryPage() {
             filteredStaff.map((staff) => (
               <div key={staff.uid} className="p-3 bg-[#F7F5F0]/30 rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-[#17243B]">{staff.employeeId || 'HP-EMP-00000'}</span>
+                  <span className="font-mono text-xs font-bold text-[#173B8F]">{getDisplayEmployeeId(staff, filteredStaff.indexOf(staff))}</span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                     staff.accountStatus === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
                   }`}>
@@ -489,12 +500,12 @@ export default function EmployeeDirectoryPage() {
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#17243B]">{staff.fullName}</h3>
+                  <h3 className="font-bold text-sm text-[#173B8F]">{staff.fullName}</h3>
                   <p className="text-xs text-[#777781]">{staff.designation} • {staff.departmentName}</p>
-                  <p className="text-xs text-[#8172A8] font-mono mt-0.5">{staff.email}</p>
+                  <p className="text-xs text-[#6558D3] font-mono mt-0.5">{staff.email}</p>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-[#E6E2DC]/80">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#8172A8]/10 text-[#8172A8]">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#6558D3]/10 text-[#6558D3]">
                     {staff.roleName || staff.roleId}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -504,7 +515,7 @@ export default function EmployeeDirectoryPage() {
                         setActiveStaff(staff);
                         setShowViewDrawer(true);
                       }}
-                      className="px-2.5 py-1 rounded-lg border border-[#E6E2DC] text-xs font-medium text-[#17243B]"
+                      className="px-2.5 py-1 rounded-lg border border-[#E6E2DC] text-xs font-medium text-[#173B8F]"
                     >
                       Inspect
                     </button>
@@ -512,7 +523,7 @@ export default function EmployeeDirectoryPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(staff)}
-                        className="px-2.5 py-1 rounded-lg bg-[#17243B] text-white text-xs font-medium"
+                        className="px-2.5 py-1 rounded-lg bg-[#173B8F] text-white text-xs font-medium"
                       >
                         Edit
                       </button>
@@ -532,18 +543,18 @@ export default function EmployeeDirectoryPage() {
             <div className="p-6 overflow-y-auto space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-[#E6E2DC]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#17243B] text-white flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-[#173B8F] text-white flex items-center justify-center font-bold">
                     {activeStaff.fullName.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#17243B]">{activeStaff.fullName}</h3>
-                    <p className="text-xs text-[#8172A8] font-mono">{activeStaff.employeeId}</p>
+                    <h3 className="text-base font-bold text-[#173B8F]">{activeStaff.fullName}</h3>
+                    <p className="text-xs text-[#6558D3] font-mono">{activeStaff.employeeId}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowViewDrawer(false)}
-                  className="p-2 text-[#777781] hover:text-[#17243B]"
+                  className="p-2 text-[#777781] hover:text-[#173B8F]"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -553,7 +564,7 @@ export default function EmployeeDirectoryPage() {
               <div className="p-4 rounded-xl bg-[#F7F5F0] border border-[#E6E2DC] flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-semibold text-[#777781] uppercase tracking-wider">Account Status</p>
-                  <p className="text-sm font-bold text-[#17243B] mt-0.5">{activeStaff.accountStatus}</p>
+                  <p className="text-sm font-bold text-[#173B8F] mt-0.5">{activeStaff.accountStatus}</p>
                 </div>
                 <span className="px-2 py-1 rounded text-xs font-semibold bg-white border border-[#E6E2DC]">
                   {activeStaff.employmentType || 'Full Time'}
@@ -562,31 +573,31 @@ export default function EmployeeDirectoryPage() {
 
               {/* Employee Details Grid */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-[#17243B] uppercase tracking-wider">Employment Details</p>
+                <p className="text-xs font-bold text-[#173B8F] uppercase tracking-wider">Employment Details</p>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Corporate Email:</span>
-                    <span className="font-mono font-medium text-[#17243B]">{activeStaff.email}</span>
+                    <span className="font-mono font-medium text-[#173B8F]">{activeStaff.email}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Mobile:</span>
-                    <span className="font-mono text-[#17243B]">{activeStaff.mobile || 'Not specified'}</span>
+                    <span className="font-mono text-[#173B8F]">{activeStaff.mobile || 'Not specified'}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Department:</span>
-                    <span className="font-medium text-[#17243B]">{activeStaff.departmentName}</span>
+                    <span className="font-medium text-[#173B8F]">{activeStaff.departmentName}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Designation:</span>
-                    <span className="font-medium text-[#17243B]">{activeStaff.designation}</span>
+                    <span className="font-medium text-[#173B8F]">{activeStaff.designation}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Role:</span>
-                    <span className="font-semibold text-[#8172A8]">{activeStaff.roleName || activeStaff.roleId}</span>
+                    <span className="font-semibold text-[#6558D3]">{activeStaff.roleName || activeStaff.roleId}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Joining Date:</span>
-                    <span className="text-[#17243B]">{activeStaff.joiningDate}</span>
+                    <span className="text-[#173B8F]">{activeStaff.joiningDate}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-[#E6E2DC]/60">
                     <span className="text-[#777781]">Must Change Password:</span>
@@ -605,7 +616,7 @@ export default function EmployeeDirectoryPage() {
                   setShowViewDrawer(false);
                   handleOpenEdit(activeStaff);
                 }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-[#17243B] text-white text-xs font-semibold text-center"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-[#173B8F] text-white text-xs font-semibold text-center"
               >
                 Edit Profile
               </button>
@@ -615,7 +626,7 @@ export default function EmployeeDirectoryPage() {
                   setShowViewDrawer(false);
                   setShowResetModal(true);
                 }}
-                className="py-2.5 px-4 rounded-xl border border-[#E6E2DC] bg-white text-xs font-semibold text-[#17243B]"
+                className="py-2.5 px-4 rounded-xl border border-[#E6E2DC] bg-white text-xs font-semibold text-[#173B8F]"
               >
                 Reset Password
               </button>
@@ -628,39 +639,39 @@ export default function EmployeeDirectoryPage() {
       {showEditModal && activeStaff && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-[#E6E2DC] shadow-xl max-w-md w-full p-6">
-            <h3 className="text-base font-bold text-[#17243B] mb-1">Edit Employee Profile</h3>
+            <h3 className="text-base font-bold text-[#173B8F] mb-1">Edit Employee Profile</h3>
             <p className="text-xs text-[#777781] mb-4">
               Update designation, department, and role for {activeStaff.fullName} ({activeStaff.employeeId}).
             </p>
 
             <form onSubmit={handleSaveEdit} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Full Name</label>
+                <label className="block text-[11px] font-semibold text-[#173B8F] mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none focus:border-[#8172A8]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] focus:outline-none focus:border-[#6558D3]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Mobile</label>
+                <label className="block text-[11px] font-semibold text-[#173B8F] mb-1">Mobile</label>
                 <input
                   type="text"
                   value={editMobile}
                   onChange={(e) => setEditMobile(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none focus:border-[#8172A8]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] focus:outline-none focus:border-[#6558D3]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Department</label>
+                <label className="block text-[11px] font-semibold text-[#173B8F] mb-1">Department</label>
                 <select
                   value={editDeptId}
                   onChange={(e) => setEditDeptId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] focus:outline-none"
                 >
                   {departments.map((d) => (
                     <option key={d.departmentId} value={d.departmentId}>
@@ -671,22 +682,22 @@ export default function EmployeeDirectoryPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Designation</label>
+                <label className="block text-[11px] font-semibold text-[#173B8F] mb-1">Designation</label>
                 <input
                   type="text"
                   required
                   value={editDesignation}
                   onChange={(e) => setEditDesignation(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none focus:border-[#8172A8]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] focus:outline-none focus:border-[#6558D3]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-[#17243B] mb-1">Assigned Role</label>
+                <label className="block text-[11px] font-semibold text-[#173B8F] mb-1">Assigned Role</label>
                 <select
                   value={editRoleId}
                   onChange={(e) => setEditRoleId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] focus:outline-none"
                 >
                   {roles.map((r) => (
                     <option key={r.roleId} value={r.roleId}>
@@ -707,7 +718,7 @@ export default function EmployeeDirectoryPage() {
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="flex-1 py-2 px-3 rounded-xl bg-[#17243B] text-white text-xs font-semibold disabled:opacity-50"
+                  className="flex-1 py-2 px-3 rounded-xl bg-[#173B8F] text-white text-xs font-semibold disabled:opacity-50"
                 >
                   {savingEdit ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -721,7 +732,7 @@ export default function EmployeeDirectoryPage() {
       {showResetModal && activeStaff && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-[#E6E2DC] shadow-xl max-w-md w-full p-6">
-            <h3 className="text-base font-bold text-[#17243B] mb-1">Reset Employee Password</h3>
+            <h3 className="text-base font-bold text-[#173B8F] mb-1">Reset Employee Password</h3>
             <p className="text-xs text-[#777781] mb-4">
               Select credential recovery method for {activeStaff.fullName} ({activeStaff.email}).
             </p>
@@ -732,7 +743,7 @@ export default function EmployeeDirectoryPage() {
                   <p className="text-xs font-semibold text-emerald-800 mb-2">
                     {resetResult.tempPassword ? 'New Temporary Password Generated:' : 'Password Setup Link Generated:'}
                   </p>
-                  <div className="p-2.5 rounded-lg bg-white border border-emerald-200 font-mono text-xs text-[#17243B] break-all select-all flex items-center justify-between">
+                  <div className="p-2.5 rounded-lg bg-white border border-emerald-200 font-mono text-xs text-[#173B8F] break-all select-all flex items-center justify-between">
                     <span>{resetResult.tempPassword || resetResult.resetLink}</span>
                     <button
                       type="button"
@@ -752,7 +763,7 @@ export default function EmployeeDirectoryPage() {
                 <button
                   type="button"
                   onClick={() => setShowResetModal(false)}
-                  className="w-full py-2.5 px-4 rounded-xl bg-[#17243B] text-white text-xs font-semibold"
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#173B8F] text-white text-xs font-semibold"
                 >
                   Done
                 </button>
@@ -766,10 +777,10 @@ export default function EmployeeDirectoryPage() {
                       name="resetOption"
                       checked={resetOption === 'TEMPORARY_PASSWORD'}
                       onChange={() => setResetOption('TEMPORARY_PASSWORD')}
-                      className="text-[#17243B]"
+                      className="text-[#173B8F]"
                     />
                     <div>
-                      <p className="text-xs font-semibold text-[#17243B]">Generate Temporary Password</p>
+                      <p className="text-xs font-semibold text-[#173B8F]">Generate Temporary Password</p>
                       <p className="text-[11px] text-[#777781]">Generate random 14-char key with forced first-login change</p>
                     </div>
                   </label>
@@ -780,10 +791,10 @@ export default function EmployeeDirectoryPage() {
                       name="resetOption"
                       checked={resetOption === 'SETUP_LINK'}
                       onChange={() => setResetOption('SETUP_LINK')}
-                      className="text-[#17243B]"
+                      className="text-[#173B8F]"
                     />
                     <div>
-                      <p className="text-xs font-semibold text-[#17243B]">Password Reset / Setup Link</p>
+                      <p className="text-xs font-semibold text-[#173B8F]">Password Reset / Setup Link</p>
                       <p className="text-[11px] text-[#777781]">Generate official Firebase recovery link</p>
                     </div>
                   </label>
@@ -801,7 +812,7 @@ export default function EmployeeDirectoryPage() {
                     type="button"
                     onClick={handleResetPassword}
                     disabled={resettingPass}
-                    className="flex-1 py-2 px-3 rounded-xl bg-[#17243B] text-white text-xs font-semibold disabled:opacity-50"
+                    className="flex-1 py-2 px-3 rounded-xl bg-[#173B8F] text-white text-xs font-semibold disabled:opacity-50"
                   >
                     {resettingPass ? 'Processing...' : 'Confirm Reset'}
                   </button>
@@ -816,7 +827,7 @@ export default function EmployeeDirectoryPage() {
       {showStatusModal && activeStaff && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-[#E6E2DC] shadow-xl max-w-sm w-full p-6">
-            <h3 className="text-base font-bold text-[#17243B] mb-1">
+            <h3 className="text-base font-bold text-[#173B8F] mb-1">
               {activeStaff.accountStatus === 'ACTIVE' ? 'Deactivate Employee Account' : 'Reactivate Employee Account'}
             </h3>
             <p className="text-xs text-[#777781] mb-4">
@@ -827,7 +838,7 @@ export default function EmployeeDirectoryPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-[#17243B] mb-1">
+                <label className="block text-[11px] font-semibold text-[#173B8F] mb-1">
                   Reason for Action (Internal Audit)
                 </label>
                 <textarea
@@ -835,7 +846,7 @@ export default function EmployeeDirectoryPage() {
                   value={statusReason}
                   onChange={(e) => setStatusReason(e.target.value)}
                   placeholder="e.g. End of contract / Resignation / Account renewal"
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] focus:outline-none focus:border-[#8172A8]"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#173B8F] focus:outline-none focus:border-[#6558D3]"
                 />
               </div>
 

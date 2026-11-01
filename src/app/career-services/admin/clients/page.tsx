@@ -244,7 +244,7 @@ export default function AdminClients360Page() {
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="hover:text-slate-800 cursor-pointer">CRM & Sales</span>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-[#00236F] font-bold">Customer 360 Directory</span>
+              <span className="text-[#173B8F] font-bold">Customer 360 Directory</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-[11px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
@@ -256,7 +256,7 @@ export default function AdminClients360Page() {
 
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
             <div className="max-w-3xl">
-              <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-[#00236F] font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+              <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-[#173B8F] font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
                 Customer 360 & Account Intelligence
               </h1>
               <p className="text-[14px] text-slate-600 leading-relaxed mt-1">
@@ -291,7 +291,7 @@ export default function AdminClients360Page() {
                     alert(`Account for ${name} created in pipeline.`);
                   }
                 }}
-                className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+                className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-sm"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Add New Account</span>
@@ -305,10 +305,10 @@ export default function AdminClients360Page() {
           <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">Managed Accounts</span>
-              <Building className="w-4 h-4 text-[#00236F]" />
+              <Building className="w-4 h-4 text-[#173B8F]" />
             </div>
             <div className="my-2 flex items-baseline gap-2">
-              <span className="text-[26px] sm:text-[32px] font-bold text-[#00236F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="text-[26px] sm:text-[32px] font-bold text-[#173B8F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
                 {clients.length || 142}
               </span>
               <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center">
@@ -327,7 +327,7 @@ export default function AdminClients360Page() {
               <DollarSign className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="my-2 flex items-baseline gap-2">
-              <span className="text-[26px] sm:text-[32px] font-bold text-[#00236F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="text-[26px] sm:text-[32px] font-bold text-[#173B8F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
                 $4.85M
               </span>
               <span className="text-[11px] text-slate-500 font-semibold">ARR Base</span>
@@ -387,7 +387,7 @@ export default function AdminClients360Page() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filter by company, stakeholder, or contract ID..."
-                  className="w-full h-9 pl-9 pr-4 rounded-lg bg-white border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:border-[#00236F]"
+                  className="w-full h-9 pl-9 pr-4 rounded-lg bg-white border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:border-[#173B8F]"
                 />
               </div>
               <div className="flex items-center gap-1.5">
@@ -428,11 +428,11 @@ export default function AdminClients360Page() {
                         >
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-[#00236F] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
+                              <div className="w-8 h-8 rounded-lg bg-[#173B8F] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
                                 {c.fullName.substring(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-[#00236F] text-[13px] font-['Plus_Jakarta_Sans',sans-serif]">
+                                <div className="font-bold text-[#173B8F] text-[13px] font-['Plus_Jakarta_Sans',sans-serif]">
                                   {c.fullName}
                                 </div>
                                 <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-500">
@@ -468,7 +468,7 @@ export default function AdminClients360Page() {
                                 e.stopPropagation();
                                 handleSelectClient(c);
                               }}
-                              className="p-1 rounded-lg bg-[#00236F] text-white hover:bg-[#1e3a8a] transition"
+                              className="p-1 rounded-lg bg-[#173B8F] text-white hover:bg-[#132c6b] transition"
                             >
                               <ArrowRight className="w-3.5 h-3.5" />
                             </button>
@@ -492,10 +492,10 @@ export default function AdminClients360Page() {
             {selectedClient ? (
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                 {/* Selected Client Header Profile */}
-                <div className="p-5 bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white space-y-3">
+                <div className="p-5 bg-gradient-to-r from-[#173B8F] to-[#132c6b] text-white space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-white text-[#00236F] flex items-center justify-center font-extrabold text-base shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
+                      <div className="w-12 h-12 rounded-xl bg-white text-[#173B8F] flex items-center justify-center font-extrabold text-base shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
                         {selectedClient.fullName.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
@@ -539,7 +539,7 @@ export default function AdminClients360Page() {
                     onClick={() => setInspectorTab('contracts')}
                     className={`flex-1 py-1.5 rounded-lg transition text-center ${
                       inspectorTab === 'contracts'
-                        ? 'bg-white text-[#00236F] shadow-sm'
+                        ? 'bg-white text-[#173B8F] shadow-sm'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -549,7 +549,7 @@ export default function AdminClients360Page() {
                     onClick={() => setInspectorTab('orders')}
                     className={`flex-1 py-1.5 rounded-lg transition text-center ${
                       inspectorTab === 'orders'
-                        ? 'bg-white text-[#00236F] shadow-sm'
+                        ? 'bg-white text-[#173B8F] shadow-sm'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -559,7 +559,7 @@ export default function AdminClients360Page() {
                     onClick={() => setInspectorTab('timeline')}
                     className={`flex-1 py-1.5 rounded-lg transition text-center ${
                       inspectorTab === 'timeline'
-                        ? 'bg-white text-[#00236F] shadow-sm'
+                        ? 'bg-white text-[#173B8F] shadow-sm'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -569,7 +569,7 @@ export default function AdminClients360Page() {
                     onClick={() => setInspectorTab('invoices')}
                     className={`flex-1 py-1.5 rounded-lg transition text-center ${
                       inspectorTab === 'invoices'
-                        ? 'bg-white text-[#00236F] shadow-sm'
+                        ? 'bg-white text-[#173B8F] shadow-sm'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -596,12 +596,12 @@ export default function AdminClients360Page() {
                       <div className="grid grid-cols-2 gap-2 text-[12px]">
                         <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-sm">
                           <div className="text-slate-500">Uptime Delivered</div>
-                          <div className="text-[16px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">99.98%</div>
+                          <div className="text-[16px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">99.98%</div>
                           <div className="text-[10px] text-emerald-700 font-semibold">Target: 99.95%</div>
                         </div>
                         <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-sm">
                           <div className="text-slate-500">Engineering Pod</div>
-                          <div className="text-[16px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">Dedicated 24/7</div>
+                          <div className="text-[16px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">Dedicated 24/7</div>
                           <div className="text-[10px] text-slate-500">Alpha-9 Platform Core</div>
                         </div>
                       </div>
@@ -614,13 +614,13 @@ export default function AdminClients360Page() {
                       </div>
                       <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <FileText className="w-5 h-5 text-[#00236F]" />
+                          <FileText className="w-5 h-5 text-[#173B8F]" />
                           <div>
                             <div className="text-[13px] font-bold text-slate-900">MSA Enterprise Master v3</div>
                             <div className="text-[11px] text-slate-500">Valid Oct 01, 2024 – Nov 30, 2025 • Auto-renewing</div>
                           </div>
                         </div>
-                        <span className="text-[13px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">$340,000/yr</span>
+                        <span className="text-[13px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">$340,000/yr</span>
                       </div>
                     </div>
 
@@ -633,7 +633,7 @@ export default function AdminClients360Page() {
                         <button
                           onClick={handleSaveNotes}
                           disabled={savingNotes}
-                          className="px-2.5 py-1 rounded bg-[#00236F] text-white text-[11px] font-bold hover:bg-[#1e3a8a] transition disabled:opacity-50"
+                          className="px-2.5 py-1 rounded bg-[#173B8F] text-white text-[11px] font-bold hover:bg-[#132c6b] transition disabled:opacity-50"
                         >
                           {savingNotes ? 'Saving...' : 'Save Notes'}
                         </button>
@@ -679,7 +679,7 @@ export default function AdminClients360Page() {
                   <div className="p-5">
                     <div className="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                       <div className="relative">
-                        <span className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-[#00236F]" />
+                        <span className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-[#173B8F]" />
                         <div className="text-[12px] font-bold text-slate-900">Annual Executive Review completed</div>
                         <div className="text-[11px] text-slate-500">Oct 24, 2024 at 14:00 UTC by Marcus Vance</div>
                       </div>
@@ -712,7 +712,7 @@ export default function AdminClients360Page() {
                 <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
                   <button
                     onClick={() => alert(`Creating work order for ${selectedClient.fullName}...`)}
-                    className="flex-1 py-2 px-3 rounded-lg bg-[#00236F] text-white text-[12px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+                    className="flex-1 py-2 px-3 rounded-lg bg-[#173B8F] text-white text-[12px] font-bold hover:bg-[#132c6b] transition shadow-sm"
                   >
                     Create Work Order
                   </button>
@@ -737,7 +737,7 @@ export default function AdminClients360Page() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm font-['Manrope',sans-serif]">
             <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
               <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <h3 className="text-[16px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">
+                <h3 className="text-[16px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">
                   Request Information from {selectedClient?.fullName}
                 </h3>
                 <button
@@ -765,7 +765,7 @@ export default function AdminClients360Page() {
                             setRequestedItems(requestedItems.filter((i) => i !== item));
                           }
                         }}
-                        className="rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]"
+                        className="rounded border-slate-300 text-[#173B8F] focus:ring-[#173B8F]"
                       />
                       <span>{item}</span>
                     </label>
@@ -796,7 +796,7 @@ export default function AdminClients360Page() {
                   <button
                     type="submit"
                     disabled={sendingRequest}
-                    className="px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-md disabled:opacity-50"
+                    className="px-4 py-2 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-md disabled:opacity-50"
                   >
                     {sendingRequest ? 'Dispatching...' : 'Dispatch Request'}
                   </button>

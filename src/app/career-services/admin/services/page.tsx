@@ -204,13 +204,13 @@ export default function ServiceCataloguePage() {
               <ChevronRight className="w-3.5 h-3.5" />
               <span className="hover:text-slate-800 cursor-pointer">Delivery & Projects</span>
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-[#00236F] font-bold">Service Catalogue Engine</span>
+              <span className="text-[#173B8F] font-bold">Service Catalogue Engine</span>
             </div>
             <div className="flex items-baseline gap-3 flex-wrap">
               <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-slate-900 font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
                 Service Catalogue & Solutions Matrix
               </h1>
-              <span className="px-2.5 py-0.5 rounded bg-blue-50 text-[#00236F] text-[11px] font-bold tracking-wide uppercase font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="px-2.5 py-0.5 rounded bg-blue-50 text-[#173B8F] text-[11px] font-bold tracking-wide uppercase font-['Plus_Jakarta_Sans',sans-serif]">
                 Engine Spec v4.19
               </span>
             </div>
@@ -239,7 +239,7 @@ export default function ServiceCataloguePage() {
 
             <button
               onClick={handleOpenCreateDrawer}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add Service Package</span>
@@ -254,7 +254,7 @@ export default function ServiceCataloguePage() {
               <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
                 Catalogued Bundles
               </span>
-              <Layers className="w-4 h-4 text-[#00236F]" />
+              <Layers className="w-4 h-4 text-[#173B8F]" />
             </div>
             <div className="my-2 flex items-baseline gap-2">
               <span className="text-[26px] sm:text-[32px] font-bold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
@@ -292,15 +292,15 @@ export default function ServiceCataloguePage() {
               <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
                 Enterprise Run-Rate
               </span>
-              <DollarSign className="w-4 h-4 text-[#00236F]" />
+              <DollarSign className="w-4 h-4 text-[#173B8F]" />
             </div>
             <div className="my-2 flex items-baseline gap-2">
-              <span className="text-[26px] sm:text-[32px] font-bold text-[#00236F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="text-[26px] sm:text-[32px] font-bold text-[#173B8F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
                 $1.48M
               </span>
               <span className="text-[12px] text-slate-500">Committed ARR</span>
             </div>
-            <div className="flex items-center gap-1 text-[#00236F] text-[12px] font-bold">
+            <div className="flex items-center gap-1 text-[#173B8F] text-[12px] font-bold">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>47 live SLA contracts</span>
             </div>
@@ -336,7 +336,7 @@ export default function ServiceCataloguePage() {
               }}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold whitespace-nowrap transition ${
                 selectedDivision === 'ALL' && activeCategory === 'ALL'
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -349,7 +349,7 @@ export default function ServiceCataloguePage() {
               }}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold whitespace-nowrap transition ${
                 selectedDivision === 'IT_SERVICES' && activeCategory === 'ALL'
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -362,7 +362,7 @@ export default function ServiceCataloguePage() {
               }}
               className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold whitespace-nowrap transition ${
                 selectedDivision === 'CAREER_SERVICES' && activeCategory === 'ALL'
-                  ? 'bg-[#00236F] text-white shadow-sm'
+                  ? 'bg-[#173B8F] text-white shadow-sm'
                   : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
               }`}
             >
@@ -378,7 +378,7 @@ export default function ServiceCataloguePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter packages, deliverables..."
-                className="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:bg-white focus:border-[#00236F]"
+                className="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:bg-white focus:border-[#173B8F]"
               />
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function ServiceCataloguePage() {
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 rounded bg-blue-50 text-[#00236F] text-[11px] font-bold uppercase font-['Plus_Jakarta_Sans',sans-serif]">
+                        <span className="px-2 py-0.5 rounded bg-blue-50 text-[#173B8F] text-[11px] font-bold uppercase font-['Plus_Jakarta_Sans',sans-serif]">
                           Division: {srv.division === 'IT_SERVICES' ? 'IT Services' : 'Career Services'}
                         </span>
                         <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-medium font-['Plus_Jakarta_Sans',sans-serif]">
@@ -414,7 +414,7 @@ export default function ServiceCataloguePage() {
                         </span>
                       </div>
 
-                      <h2 className="text-[17px] sm:text-[19px] font-bold text-slate-900 group-hover:text-[#00236F] transition-colors font-['Plus_Jakarta_Sans',sans-serif]">
+                      <h2 className="text-[17px] sm:text-[19px] font-bold text-slate-900 group-hover:text-[#173B8F] transition-colors font-['Plus_Jakarta_Sans',sans-serif]">
                         {srv.name}
                       </h2>
                       <p className="text-[13px] text-slate-600 leading-relaxed max-w-2xl">
@@ -426,7 +426,7 @@ export default function ServiceCataloguePage() {
                       <span className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                         Standard Pricing
                       </span>
-                      <span className="text-[18px] sm:text-[20px] font-bold text-[#00236F] tabular-nums">
+                      <span className="text-[18px] sm:text-[20px] font-bold text-[#173B8F] tabular-nums">
                         From ${srv.defaultPackages?.[0]?.price?.toLocaleString() || '15,000'}
                       </span>
                       <span className="text-[11px] text-slate-500 mt-0.5 font-['Manrope',sans-serif]">
@@ -489,7 +489,7 @@ export default function ServiceCataloguePage() {
                       </button>
                       <button
                         onClick={() => alert(`Creating work order for ${srv.name}...`)}
-                        className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-[#00236F] hover:bg-[#1e3a8a] text-white text-[12px] font-bold transition shadow-sm"
+                        className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-[#173B8F] hover:bg-[#132c6b] text-white text-[12px] font-bold transition shadow-sm"
                       >
                         Create Work Order
                       </button>
@@ -503,7 +503,7 @@ export default function ServiceCataloguePage() {
           {/* Right Insights Column: 4 Columns */}
           <div className="2xl:col-span-4 flex flex-col gap-4">
             {/* Top Velocity Bundle Highlight Card */}
-            <div className="p-5 sm:p-6 rounded-xl bg-[#00236F] text-white shadow-md relative overflow-hidden space-y-3">
+            <div className="p-5 sm:p-6 rounded-xl bg-[#173B8F] text-white shadow-md relative overflow-hidden space-y-3">
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-0.5 rounded bg-white/10 text-blue-200 text-[11px] font-bold uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
                   Top Velocity Bundle
@@ -536,7 +536,7 @@ export default function ServiceCataloguePage() {
                 </div>
                 <button
                   onClick={() => alert('Capacity allocation verified: optimal load.')}
-                  className="px-3 py-1.5 rounded bg-white text-[#00236F] text-[11px] font-bold hover:bg-slate-100 transition"
+                  className="px-3 py-1.5 rounded bg-white text-[#173B8F] text-[11px] font-bold hover:bg-slate-100 transition"
                 >
                   Inspect Capacity
                 </button>
@@ -547,7 +547,7 @@ export default function ServiceCataloguePage() {
             <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#00236F]" />
+                  <ShieldCheck className="w-4 h-4 text-[#173B8F]" />
                   <h3 className="text-[15px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
                     SLA Compliance Validator
                   </h3>
@@ -576,7 +576,7 @@ export default function ServiceCataloguePage() {
             <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-[#00236F]" />
+                  <SlidersHorizontal className="w-4 h-4 text-[#173B8F]" />
                   <h3 className="text-[15px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
                     Modular Add-on Engine
                   </h3>
@@ -587,7 +587,7 @@ export default function ServiceCataloguePage() {
               <div className="space-y-2">
                 <label className="p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between cursor-pointer">
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]" />
+                    <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#173B8F] focus:ring-[#173B8F]" />
                     <div className="text-[12px]">
                       <div className="font-bold text-slate-800">SOC2 Readiness Dossier</div>
                       <div className="text-[10px] text-slate-500">+1 Week Deliverable</div>
@@ -598,7 +598,7 @@ export default function ServiceCataloguePage() {
 
                 <label className="p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between cursor-pointer">
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]" />
+                    <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#173B8F] focus:ring-[#173B8F]" />
                     <div className="text-[12px]">
                       <div className="font-bold text-slate-800">Multi-Region Hot Standby</div>
                       <div className="text-[10px] text-slate-500">Zero-RPO Architecture</div>
@@ -627,7 +627,7 @@ export default function ServiceCataloguePage() {
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
                   SERVICE DEFINITION ENGINE
                 </span>
-                <h3 className="text-[17px] font-bold text-[#00236F] mt-0.5 font-['Plus_Jakarta_Sans',sans-serif]">
+                <h3 className="text-[17px] font-bold text-[#173B8F] mt-0.5 font-['Plus_Jakarta_Sans',sans-serif]">
                   {editingService ? 'Configure Package Template' : 'Add New Service Package'}
                 </h3>
               </div>
@@ -650,7 +650,7 @@ export default function ServiceCataloguePage() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Enterprise Cloud Infrastructure Architecture"
-                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#00236F]"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#173B8F]"
                 />
               </div>
 
@@ -747,7 +747,7 @@ export default function ServiceCataloguePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-md disabled:opacity-50"
+                  className="px-4 py-2 rounded-lg bg-[#173B8F] text-white text-[13px] font-bold hover:bg-[#132c6b] transition shadow-md disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Save Template'}
                 </button>

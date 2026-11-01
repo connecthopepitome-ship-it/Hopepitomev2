@@ -55,7 +55,7 @@ function generateWorkOrderId(): string {
 async function getNextEmployeeId(firestore: EdgeFirestoreClient): Promise<string> {
   try {
     const counterDoc = await firestore.getDocument('system_counters', 'employees');
-    let currentNum = (counterDoc as any)?.lastEmployeeNumber || 0;
+    let currentNum = Number((counterDoc as any)?.lastEmployeeNumber) || 100;
     currentNum += 1;
     await firestore.setDocument('system_counters', 'employees', {
       lastEmployeeNumber: currentNum,
@@ -64,7 +64,7 @@ async function getNextEmployeeId(firestore: EdgeFirestoreClient): Promise<string
     return `HP-EMP-${String(currentNum).padStart(5, '0')}`;
   } catch (err) {
     console.warn('Counter fetch fallback, using timestamp-based employee number:', err);
-    const fallbackNum = Math.floor(1000 + Math.random() * 9000);
+    const fallbackNum = 100 + (Date.now() % 89900);
     return `HP-EMP-${String(fallbackNum).padStart(5, '0')}`;
   }
 }
@@ -823,6 +823,11 @@ export default {
           fullName?: string;
           mobile?: string;
           email?: string;
+          existingClientId?: string;
+          assignedStaffId?: string;
+          assignedStaffName?: string;
+          createProject?: boolean;
+          notes?: string;
         } | null;
 
         if (!body?.leadId) {
@@ -833,78 +838,184 @@ export default {
         }
 
         const leadDoc = await firestore.getDocument('crm_leads', body.leadId);
-        const leadFullName = leadDoc?.fullName || body.fullName;
-        const leadMobile = leadDoc?.mobile || body.mobile || '';
-        const leadEmail = leadDoc?.email || body.email || '';
-        const leadService = body.initialService || leadDoc?.serviceInterestedIn || 'RESUME_WRITING';
-
-        if (!leadDoc && !leadFullName) {
+        if (!leadDoc && !body.fullName) {
           return new Response(
             JSON.stringify({ success: false, error: 'Lead record not found.' }),
             { status: 404, headers: CORS_HEADERS }
           );
         }
 
+        // Idempotency check: if lead was already converted, return existing records
+        if (leadDoc?.convertedWorkOrderId && (leadDoc?.convertedClientId || leadDoc?.customerId)) {
+          const existingClientId = leadDoc.convertedClientId || leadDoc.customerId;
+          const existingWorkOrderId = leadDoc.convertedWorkOrderId;
+          return new Response(
+            JSON.stringify({
+              success: true,
+              alreadyConverted: true,
+              leadId: body.leadId,
+              clientId: existingClientId,
+              workOrderId: existingWorkOrderId,
+              message: `Lead was previously converted with Work Order ${existingWorkOrderId}.`,
+            }),
+            { status: 200, headers: CORS_HEADERS }
+          );
+        }
+
+        const leadFullName = (leadDoc?.fullName || body.fullName || 'Customer').trim();
+        const leadMobile = leadDoc?.mobile || body.mobile || '';
+        const leadEmail = leadDoc?.email || body.email || '';
+        const leadService = body.initialService || leadDoc?.serviceInterestedIn || 'Website Development';
         const now = new Date().toISOString();
         const normalizedMobile = normalizeMobile(leadMobile || '');
-        const clientId = `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+        let clientId = body.existingClientId?.trim() || '';
+        let isExistingCustomer = false;
+
+        // If existingClientId provided, verify client
+        if (clientId) {
+          isExistingCustomer = true;
+          await firestore.setDocument('clients', clientId, {
+            updatedAt: now,
+          });
+        } else {
+          // Create new client
+          clientId = `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+          await firestore.setDocument('clients', clientId, {
+            clientId,
+            name: leadFullName,
+            mobile: normalizedMobile,
+            email: leadEmail,
+            status: 'ACTIVE',
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+
         const workOrderId = generateWorkOrderId();
 
-        // 1. Create client record
+        // Update client with current work order
         await firestore.setDocument('clients', clientId, {
-          clientId,
-          name: leadFullName || 'Client',
-          mobile: normalizedMobile,
-          email: leadEmail,
-          status: 'ACTIVE',
           currentWorkOrderId: workOrderId,
-          createdAt: now,
           updatedAt: now,
         });
 
-        // 2. Create work order
+        // 1. Create work order in 'workOrders'
         await firestore.setDocument('workOrders', workOrderId, {
           workOrderId,
           clientId,
+          clientName: leadFullName,
+          clientMobile: normalizedMobile,
+          clientEmail: leadEmail,
           serviceType: leadService,
           status: 'Confirmed',
           createdAt: now,
           updatedAt: now,
         });
 
-        // 3. Initialize profile
-        await firestore.setDocument('careerProfiles', clientId, {
+        // 2. Create service order in 'career_service_orders'
+        const orderId = `ord_${Date.now()}`;
+        await firestore.setDocument('career_service_orders', orderId, {
+          id: orderId,
+          orderNumber: workOrderId,
           clientId,
-          fullName: leadFullName || '',
-          email: leadEmail,
-          phone: normalizedMobile,
-          targetRoleTitles: leadDoc?.targetRole ? [leadDoc.targetRole] : [],
-          status: 'NOT_STARTED',
+          clientName: leadFullName,
+          clientEmail: leadEmail,
+          serviceType: leadService,
+          packageTier: 'PROFESSIONAL',
+          status: 'Confirmed',
+          assignedStaffId: body.assignedStaffId || '',
+          assignedStaffName: body.assignedStaffName || '',
+          currentWorkOrderId: workOrderId,
+          currentStage: 'Requirements Review',
+          progressPercent: 15,
+          revisionAllowance: 2,
+          revisionsUsed: 0,
+          serviceRequirements: {},
+          createdAt: now,
           updatedAt: now,
         });
 
-        // 4. Update Lead record as Converted
+        // 3. Initialize Career Profile if career service
+        const isCareer = leadService.toLowerCase().includes('resume') || leadService.toLowerCase().includes('linkedin') || leadService.toLowerCase().includes('career');
+        if (isCareer) {
+          await firestore.setDocument('careerProfiles', clientId, {
+            clientId,
+            fullName: leadFullName,
+            email: leadEmail,
+            phone: normalizedMobile,
+            targetRoleTitles: leadDoc?.targetRole ? [leadDoc.targetRole] : [],
+            status: 'NOT_STARTED',
+            updatedAt: now,
+          });
+        }
+
+        // 4. Create Project in 'projects'
+        const projectId = `proj_${Date.now()}`;
+        const division = isCareer ? 'CAREER_SERVICES' : 'IT_SERVICES';
+        const projectTemplates: Record<string, string[]> = {
+          CAREER_SERVICES: ['Intake & Requirements', 'Draft Preparation', 'Internal Review', 'Client Review', 'Revisions', 'Final Delivery'],
+          IT_SERVICES: ['Discovery & SRS', 'UI/UX Design', 'Development Sprint', 'Testing & QA', 'Client UAT', 'Deployment & Handover']
+        };
+        const milestones = (projectTemplates[division] || projectTemplates.IT_SERVICES).map((mTitle, idx) => ({
+          id: `ms_${idx + 1}`,
+          title: mTitle,
+          status: idx === 0 ? 'IN_PROGRESS' : 'PENDING',
+          dueDate: new Date(Date.now() + (idx + 1) * 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          deliverables: []
+        }));
+
+        await firestore.setDocument('projects', projectId, {
+          id: projectId,
+          projectId,
+          name: `${leadFullName} – ${leadService}`,
+          division,
+          customerId: clientId,
+          customerName: leadFullName,
+          customerEmail: leadEmail,
+          workOrderId,
+          leadId: body.leadId,
+          serviceId: leadService,
+          serviceName: leadService,
+          stage: isCareer ? 'WRITING' : 'DISCOVERY',
+          status: 'ACTIVE',
+          progress: 10,
+          projectManagerId: body.assignedStaffId || '',
+          projectManagerName: body.assignedStaffName || 'Assigned Lead',
+          milestones,
+          startDate: now.split('T')[0],
+          targetCompletionDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          contractValue: Number(leadDoc?.estimatedValue || 0) || 500,
+          currency: 'USD',
+          healthScore: 100,
+          notes: body.notes || `Converted from lead ${body.leadId}`,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // 5. Update Lead record as Converted
         await firestore.setDocument('crm_leads', body.leadId, {
           stage: 'Won / Ready to Convert',
           convertedClientId: clientId,
           convertedWorkOrderId: workOrderId,
+          convertedProjectId: projectId,
           updatedAt: now,
         });
 
-        // 5. Initialize Google Apps Script Drive vault folder
+        // 6. Initialize Google Apps Script Drive vault folder (non-blocking)
         callGoogleAppsScript(env, {
           action: 'initWorkOrderFolder',
           workOrderId,
         }).catch((e) => console.warn('[GAS Init Warning]:', e));
 
-        // 6. Log activities
+        // 7. Log activity
         await firestore.setDocument('crm_activities', `act_${Date.now()}`, {
           id: `act_${Date.now()}`,
           leadId: body.leadId,
           clientId,
           activityType: 'LEAD_CONVERTED',
-          title: `Lead converted to active client with Work Order ${workOrderId}`,
-          description: `Converted by ${body.adminName || 'Admin'}. Client account and Drive vault created.`,
+          title: `Lead converted to active ${isExistingCustomer ? 'linked' : 'new'} client with Work Order ${workOrderId}`,
+          description: `Converted by ${body.adminName || 'Admin'}. Project ${projectId} initialized.`,
           performedBy: body.adminName || 'ADMIN',
           timestamp: now,
         });
@@ -915,7 +1026,9 @@ export default {
             leadId: body.leadId,
             clientId,
             workOrderId,
-            message: `Lead successfully converted to Client! Work Order ${workOrderId} initialized.`,
+            projectId,
+            isExistingCustomer,
+            message: `Lead successfully converted! Work Order ${workOrderId} and Project initialized.`,
           }),
           { status: 200, headers: CORS_HEADERS }
         );
