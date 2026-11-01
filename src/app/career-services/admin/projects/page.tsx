@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AdminLayout } from '@/components/career/admin/AdminLayout';
 import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import {
@@ -58,6 +59,7 @@ const PROJECT_STATUSES: { key: ProjectStatus; label: string; badgeClass: string 
 ];
 
 export default function ProjectsDashboardPage() {
+  const router = useRouter();
   const { adminProfile, isAuthorized } = useAdminAuth();
 
   const [projects, setProjects] = useState<EnterpriseProjectRecord[]>([]);
@@ -591,21 +593,33 @@ export default function ProjectsDashboardPage() {
 
                           <td className="py-3.5 px-4 text-right font-['Plus_Jakarta_Sans',sans-serif]">
                             <span className="font-bold text-[#173B8F] text-[15px] tabular-nums">
-                              ${prj.contractValue?.toLocaleString() || '15,000'}
+                              {formatINR(prj.contractValue || 0)}
                             </span>
                           </td>
 
                           <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1">
+                            <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setInspectorProject(prj);
                                 }}
-                                title="Inspect Deliverables"
+                                title="Inspect Quick Drawer"
                                 className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-[#173B8F] transition"
                               >
                                 <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const pId = prj.id || (prj as any).projectId;
+                                  if (pId) router.push(`/career-services/admin/projects/workspace?projectId=${encodeURIComponent(pId)}`);
+                                }}
+                                title="Launch Execution Workspace"
+                                className="px-2.5 py-1.5 rounded-lg bg-[#173B8F]/10 hover:bg-[#173B8F] text-[#173B8F] hover:text-white transition text-[11px] font-bold inline-flex items-center gap-1"
+                              >
+                                <span>Workspace</span>
+                                <ArrowRight className="w-3 h-3" />
                               </button>
                             </div>
                           </td>
@@ -826,10 +840,16 @@ export default function ProjectsDashboardPage() {
                 Close Drawer
               </button>
               <button
-                onClick={() => alert(`Launching execution workspace for ${inspectorProject.name}...`)}
-                className="w-1/2 py-2 rounded-lg bg-[#173B8F] text-white font-bold text-[13px] hover:bg-[#132c6b] transition shadow-sm"
+                onClick={() => {
+                  const pId = inspectorProject.id || (inspectorProject as any).projectId;
+                  if (pId) {
+                    router.push(`/career-services/admin/projects/workspace?projectId=${encodeURIComponent(pId)}`);
+                  }
+                }}
+                className="w-1/2 py-2 rounded-lg bg-[#173B8F] text-white font-bold text-[13px] hover:bg-[#132c6b] transition shadow-sm flex items-center justify-center gap-1.5"
               >
-                Launch Workspace
+                <span>Launch Workspace</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

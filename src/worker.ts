@@ -772,6 +772,129 @@ export default {
     }
 
     // =========================================================================
+    // ADMIN: GET ENTITY BY ID (FAST FAILOVER GET API)
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/entity/get') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as any;
+        const collection = body?.collection;
+        const id = body?.id;
+
+        if (!collection || !id) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Collection and ID are required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const doc = await firestore.getDocument(collection, id);
+        return new Response(JSON.stringify({ success: true, data: doc, id, collection }), {
+          status: 200,
+          headers: CORS_HEADERS,
+        });
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to retrieve entity.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // ADMIN: PROJECT WORKSPACE FULL BUNDLE (RETRIEVES PROJECT + CLIENT + ENQUIRY + DOCS + TASKS)
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/project/workspace-bundle') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as any;
+        const projectId = body?.projectId;
+
+        if (!projectId) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Project ID is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const project = await firestore.getDocument('projects', projectId);
+        if (!project) {
+          return new Response(
+            JSON.stringify({ success: false, error: `Project '${projectId}' was not found.` }),
+            { status: 404, headers: CORS_HEADERS }
+          );
+        }
+
+        // Retrieve customer / client
+        let client = null;
+        if (project.customerId) {
+          client = await firestore.getDocument('clients', project.customerId);
+        }
+
+        // Retrieve enquiry
+        let enquiry = null;
+        if (project.enquiryId) {
+          enquiry = await firestore.getDocument('career_enquiries', project.enquiryId);
+        }
+
+        // Retrieve work order if exists
+        let workOrder = null;
+        if (project.workOrderId) {
+          workOrder = await firestore.getDocument('workOrders', project.workOrderId);
+        }
+
+        // Retrieve documents
+        const documents: any[] = [];
+        if (Array.isArray(project.documents) && project.documents.length > 0) {
+          documents.push(...project.documents);
+        }
+        if (enquiry?.resumeFileName && !documents.some((d) => d.fileName === enquiry.resumeFileName)) {
+          documents.push({
+            documentId: enquiry.resumeDocumentId || `doc_${Date.now()}`,
+            fileName: enquiry.resumeFileName,
+            fileSize: enquiry.resumeFileSize || 150000,
+            mimeType: enquiry.resumeMimeType || 'application/pdf',
+            category: 'Original Resume',
+            driveFileId: enquiry.resumeDriveFileId,
+            downloadUrl: enquiry.resumeDownloadUrl,
+            viewUrl: enquiry.resumeViewUrl,
+            uploadedAt: enquiry.submittedAt || project.createdAt,
+            uploadedBy: 'CLIENT_INTAKE',
+          });
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            project,
+            client,
+            enquiry,
+            workOrder,
+            documents,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to assemble workspace bundle.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
     // CRM: SAVE LEAD RECORD (ADMIN / RESILIENT FALLBACK API)
     // =========================================================================
     if (url.pathname === '/api/career/crm/lead/save') {
