@@ -235,6 +235,7 @@ function LeadsContent() {
 
     try {
       await saveCrmLead(newLeadRecord);
+      setLeads((prev) => [newLeadRecord, ...prev.filter((l) => l.id !== newLeadRecord.id)]);
       setShowNewLeadModal(false);
       setFullName('');
       setMobile('');

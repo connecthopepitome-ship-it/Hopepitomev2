@@ -1249,23 +1249,81 @@ export default {
           }
         }
 
-        // Seamlessly feed website enquiry into CRM Leads collection
+        // Seamlessly feed website enquiry into CRM Leads collection & Google Drive vault
         let leadId: string | undefined;
+        let documentId: string | undefined;
+        let driveFileId: string | undefined;
+        let downloadUrl: string | undefined;
+        let viewUrl: string | undefined;
+
         try {
           leadId = `LEAD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
           const nowStr = enquiry.createdAt || new Date().toISOString();
 
+          // 1. If resume file base64 was uploaded, pipe directly to Google Drive via Google Apps Script Web App
+          if (enquiry.resumeFileBase64 && enquiry.resumeFileName) {
+            try {
+              const gasResult = await callGoogleAppsScript(env, {
+                action: 'uploadFile',
+                workOrderId: leadId,
+                fileName: enquiry.resumeFileName,
+                mimeType: enquiry.resumeMimeType || 'application/pdf',
+                subfolder: 'Original Resume',
+                base64Content: enquiry.resumeFileBase64,
+              });
+
+              if (gasResult && gasResult.success) {
+                driveFileId = gasResult.fileId || '';
+                downloadUrl = gasResult.downloadUrl || '';
+                viewUrl = gasResult.viewUrl || '';
+                documentId = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+                // Save metadata record into Firestore 'documents'
+                await firestore.setDocument('documents', documentId, {
+                  documentId,
+                  leadId,
+                  referenceCode: enquiry.referenceCode,
+                  fileName: enquiry.resumeFileName,
+                  mimeType: enquiry.resumeMimeType || 'application/pdf',
+                  fileSize: enquiry.resumeFileSize || 150000,
+                  category: 'Original Resume',
+                  driveFileId: driveFileId,
+                  downloadUrl: downloadUrl,
+                  viewUrl: viewUrl,
+                  uploadedAt: nowStr,
+                  uploadedBy: 'CLIENT_INTAKE',
+                  status: 'ACTIVE',
+                });
+              } else {
+                console.warn('[GAS RESUME UPLOAD WARN]:', gasResult?.error || 'GAS upload returned unsuccessful');
+              }
+            } catch (gasErr) {
+              console.error('[GAS RESUME UPLOAD EXCEPTION]:', gasErr);
+            }
+          }
+
+          // 2. Persist lead into Firestore 'crm_leads'
           await firestore.setDocument('crm_leads', leadId, {
             id: leadId,
+            referenceCode: enquiry.referenceCode,
             fullName: enquiry.fullName,
             mobile: enquiry.phoneWhatsapp || '',
             email: enquiry.email,
-            preferredContactMethod: enquiry.preferredContactMethod || 'WHATSAPP',
-            serviceInterestedIn: enquiry.serviceRequired || 'Professional Resume Writing',
+            preferredContactMethod: enquiry.preferredContactMethod || 'WhatsApp',
+            selectedServices: enquiry.selectedServices || [enquiry.serviceRequired],
+            serviceInterestedIn: enquiry.serviceRequired || (enquiry.selectedServices && enquiry.selectedServices[0]) || 'Professional Resume Writing',
             enquiryDescription: enquiry.requirements || '',
             targetRole: enquiry.targetRole || '',
-            currentExperienceLevel: enquiry.careerStage || 'MID',
+            currentExperienceLevel: enquiry.careerStage || 'Experienced Professional',
             country: enquiry.targetCountry || '',
+            currentDesignation: enquiry.currentDesignation || '',
+            totalExperience: enquiry.totalExperience || '',
+            linkedinUrl: enquiry.linkedinUrl || '',
+            resumeFileName: enquiry.resumeFileName || null,
+            resumeDocumentId: documentId || null,
+            resumeDriveFileId: driveFileId || null,
+            resumeDownloadUrl: downloadUrl || null,
+            resumeViewUrl: viewUrl || null,
             leadSource: 'WEBSITE',
             leadOwner: 'Unassigned',
             priority: 'HIGH',
@@ -1274,12 +1332,13 @@ export default {
             updatedAt: nowStr,
           });
 
+          // 3. Log lead creation activity in 'crm_activities'
           await firestore.setDocument('crm_activities', `act_${Date.now()}`, {
             id: `act_${Date.now()}`,
             leadId: leadId,
             activityType: 'LEAD_CREATED',
-            title: `New lead captured from website enquiry (${enquiry.serviceRequired})`,
-            description: enquiry.requirements || '',
+            title: `New enquiry captured (${enquiry.serviceRequired})`,
+            description: `Services requested: ${(enquiry.selectedServices || [enquiry.serviceRequired]).join(', ')}. ${enquiry.resumeFileName ? `Resume attached: ${enquiry.resumeFileName}` : 'No resume attached.'}`,
             performedBy: 'WEBSITE_INTAKE',
             timestamp: nowStr,
           });
@@ -1292,6 +1351,8 @@ export default {
             success: true,
             referenceCode: enquiry.referenceCode,
             leadId: leadId,
+            documentId: documentId,
+            selectedServices: enquiry.selectedServices || [enquiry.serviceRequired],
             message: 'Your career consultation enquiry has been registered successfully.',
           }),
           { status: 200, headers: CORS_HEADERS }
@@ -1847,6 +1908,19 @@ export default {
     }
 
     // 5. Fallback: Serve static Next.js export assets from ./out
-    return env.ASSETS.fetch(request);
+    const assetRes = await env.ASSETS.fetch(request);
+    const contentType = assetRes.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      const freshHeaders = new Headers(assetRes.headers);
+      freshHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      freshHeaders.set('Pragma', 'no-cache');
+      freshHeaders.set('Expires', '0');
+      return new Response(assetRes.body, {
+        status: assetRes.status,
+        statusText: assetRes.statusText,
+        headers: freshHeaders,
+      });
+    }
+    return assetRes;
   },
 };

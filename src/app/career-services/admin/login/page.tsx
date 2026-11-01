@@ -65,8 +65,22 @@ export default function AdminLoginPage() {
       });
 
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success && data.customToken) {
-        await loginWithCustomToken(data.customToken);
+      if (res.ok && data.success) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('hp_admin_session', JSON.stringify(data.user || { email: cleanEmail, role: 'super_admin' }));
+          if (rememberMe) {
+            localStorage.setItem('hp_admin_session', JSON.stringify(data.user || { email: cleanEmail, role: 'super_admin' }));
+          }
+        }
+
+        if (data.customToken) {
+          try {
+            await loginWithCustomToken(data.customToken);
+          } catch (tokenErr) {
+            console.warn('Firebase Custom Token login warning (continuing with verified backend session):', tokenErr);
+          }
+        }
+
         window.location.href = '/career-services/admin/dashboard';
         return;
       }

@@ -95,14 +95,39 @@ export async function resilientSaveDoc(
   }
 
   if (!savedLocally) {
-    const res = await fetch('/api/career/admin/entity/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collection: collectionName, id: docId, data: payload }),
-    });
-    const resData = await res.json().catch(() => ({}));
-    if (!res.ok || !resData.success) {
-      throw new Error(resData.error || `Failed to save ${collectionName} record.`);
+    let savedViaApi = false;
+    try {
+      const res = await fetch('/api/career/admin/entity/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: collectionName, id: docId, data: payload }),
+      });
+      const resData = await res.json().catch(() => ({}));
+      if (res.ok && resData.success) {
+        savedViaApi = true;
+      }
+    } catch (apiErr) {
+      console.warn(`[Firestore] Worker entity/save error for ${collectionName}:`, apiErr);
+    }
+
+    if (!savedViaApi && collectionName === 'crm_leads') {
+      try {
+        const leadRes = await fetch('/api/career/crm/lead/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const leadData = await leadRes.json().catch(() => ({}));
+        if (leadRes.ok && leadData.success) {
+          savedViaApi = true;
+        }
+      } catch (fallbackErr) {
+        console.error('[Firestore] Fallback crm/lead/save exception:', fallbackErr);
+      }
+    }
+
+    if (!savedViaApi) {
+      throw new Error(`Failed to save ${collectionName} record. Please verify network connectivity.`);
     }
   }
 }
