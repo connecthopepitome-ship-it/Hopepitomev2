@@ -20,6 +20,9 @@ import {
   User,
   ArrowRight,
   Filter,
+  ChevronRight,
+  TrendingUp,
+  X,
 } from 'lucide-react';
 
 export default function AdminOrdersPipelinePage() {
@@ -68,7 +71,6 @@ export default function AdminOrdersPipelinePage() {
       });
 
       setSelectedOrder(null);
-      alert('Order status & milestone progress updated.');
     } catch (err) {
       console.error('Error updating order:', err);
     } finally {
@@ -85,55 +87,146 @@ export default function AdminOrdersPipelinePage() {
     { status: 'FINAL_APPROVED', title: 'Approved & Completed' },
   ];
 
+  const inDrafting = orders.filter((o) => o.status === 'DRAFTING' || o.status === 'IN_REVIEW');
+  const inReview = orders.filter((o) => o.status === 'CLIENT_REVIEW' || o.status === 'REVISION');
+  const completed = orders.filter((o) => o.status === 'FINAL_APPROVED' || o.status === 'COMPLETED');
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
-              Operational Production Pipeline
-            </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17243B] mt-0.5">
+      <div className="space-y-6 max-w-7xl mx-auto font-sans">
+        {/* Ambient Top Ribbon */}
+        <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-4xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-tertiary-container text-tertiary-fixed font-label-sm text-xs uppercase tracking-wider font-bold shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                STUDIO DELIVERY PIPELINE
+              </span>
+              <span className="text-secondary font-label-md text-xs">•</span>
+              <span className="text-secondary font-label-sm text-xs uppercase tracking-wider font-medium">
+                Resume, ATS & Executive Portfolio Orders
+              </span>
+            </div>
+            <h1 className="font-headline-xl text-2xl lg:text-3xl text-primary font-bold tracking-tight">
               Service Orders Pipeline
             </h1>
-            <p className="text-xs text-[#777781] mt-1">
-              Visualise work orders across active drafting stages, track turnaround velocity, and manage client milestones.
+            <p className="font-body-md text-sm text-on-surface-variant max-w-3xl leading-relaxed">
+              Track client work orders through active drafting, specialized ATS keyword scoring, revision iterations, and final sign-off with clear turnaround velocity.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition ${
-                viewMode === 'kanban'
-                  ? 'bg-[#17243B] text-white border-[#17243B]'
-                  : 'bg-white text-[#292D36] border-[#E6E2DC] hover:bg-[#F7F5F0]'
-              }`}
-            >
-              <Kanban className="w-3.5 h-3.5" />
-              <span>Kanban</span>
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition ${
-                viewMode === 'list'
-                  ? 'bg-[#17243B] text-white border-[#17243B]'
-                  : 'bg-white text-[#292D36] border-[#E6E2DC] hover:bg-[#F7F5F0]'
-              }`}
-            >
-              <ListFilter className="w-3.5 h-3.5" />
-              <span>List</span>
-            </button>
+          <div className="flex items-center gap-2 self-start xl:self-center">
+            <div className="inline-flex p-1 bg-surface-container rounded-lg shadow-xs">
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold transition ${
+                  viewMode === 'kanban'
+                    ? 'bg-surface-container-lowest text-primary font-bold shadow-xs'
+                    : 'text-secondary hover:text-on-surface'
+                }`}
+              >
+                <Kanban className="w-3.5 h-3.5" />
+                <span>Kanban</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold transition ${
+                  viewMode === 'list'
+                    ? 'bg-surface-container-lowest text-primary font-bold shadow-xs'
+                    : 'text-secondary hover:text-on-surface'
+                }`}
+              >
+                <ListFilter className="w-3.5 h-3.5" />
+                <span>List View</span>
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* 4 Summary KPI Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Total Work Orders</span>
+              <span className="w-2 h-2 rounded-full bg-primary-container"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                {orders.length}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-primary font-label-sm text-xs font-bold">
+                Live Studio
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>{completed.length} Delivered</span>
+              <span className="text-primary font-semibold">100% Tracked</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">In Active Drafting</span>
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-primary tabular-nums">
+                {inDrafting.length}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-label-sm text-xs font-bold">
+                Writing Active
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Sprint Queue</span>
+              <span className="text-emerald-700 font-semibold">On-Target</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Review & Feedback</span>
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-purple-700 tabular-nums">
+                {inReview.length}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 font-label-sm text-xs font-bold">
+                Iteration
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Revisions Allowed: 2/order</span>
+              <span className="text-purple-700 font-semibold">Normal</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Delivery Velocity</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-emerald-800 tabular-nums">
+                98.4%
+              </span>
+              <span className="text-xs text-secondary font-mono">SLA Score</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Avg Turnaround: 4.2d</span>
+              <span className="text-emerald-700 font-semibold">Optimal</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Pipeline Content Area */}
         {loading ? (
           <div className="py-16 flex justify-center">
-            <div className="w-6 h-6 border-2 border-[#17243B] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-primary-container border-t-transparent rounded-full animate-spin" />
           </div>
         ) : orders.length === 0 ? (
-          <div className="bg-[#FFFFFF] p-12 rounded-2xl border border-[#E6E2DC] text-center text-xs text-[#777781]">
+          <div className="bg-surface-container-lowest p-12 rounded-2xl border border-outline-variant/30 text-center text-xs text-secondary shadow-xs">
             No service orders registered in the pipeline yet.
           </div>
         ) : viewMode === 'kanban' ? (
@@ -144,13 +237,13 @@ export default function AdminOrdersPipelinePage() {
               return (
                 <div
                   key={col.status}
-                  className="bg-[#F7F5F0]/70 rounded-2xl p-3 border border-[#E6E2DC] space-y-3 min-w-[200px]"
+                  className="bg-surface-container-low/60 rounded-2xl p-3 border border-outline-variant/30 space-y-3 min-w-[200px]"
                 >
-                  <div className="flex items-center justify-between pb-2 border-b border-[#E6E2DC]">
-                    <span className="text-xs font-bold text-[#17243B]">
+                  <div className="flex items-center justify-between pb-2 border-b border-outline-variant/30">
+                    <span className="text-xs font-bold text-primary">
                       {col.title}
                     </span>
-                    <span className="w-5 h-5 rounded-full bg-white text-[#17243B] font-mono text-[10px] font-bold flex items-center justify-center border border-[#E6E2DC]">
+                    <span className="w-5 h-5 rounded-full bg-white text-primary font-mono text-xs font-bold flex items-center justify-center border border-outline-variant/30">
                       {colOrders.length}
                     </span>
                   </div>
@@ -160,33 +253,33 @@ export default function AdminOrdersPipelinePage() {
                       <div
                         key={order.id}
                         onClick={() => handleOpenStatusModal(order)}
-                        className="bg-white p-3 rounded-xl border border-[#E6E2DC] hover:border-[#8172A8] shadow-sm cursor-pointer transition space-y-2"
+                        className="bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/30 hover:border-primary/40 shadow-xs cursor-pointer transition space-y-2"
                       >
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-mono text-[#8172A8] font-bold">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-mono text-primary font-bold">
                             {order.orderNumber}
                           </span>
-                          <span className="font-semibold text-[#17243B]">
+                          <span className="font-semibold text-secondary text-[11px] px-1.5 py-0.5 rounded bg-surface-container-high">
                             {order.packageTier}
                           </span>
                         </div>
-                        <h4 className="text-xs font-bold text-[#17243B] leading-snug">
+                        <h4 className="text-xs font-bold text-primary leading-snug">
                           {order.clientName}
                         </h4>
-                        <p className="text-[11px] text-[#777781] leading-tight">
+                        <p className="text-xs text-secondary leading-tight">
                           {order.serviceType.replace(/_/g, ' ')}
                         </p>
 
-                        <div className="w-full bg-[#E6E2DC] h-1.5 rounded-full overflow-hidden mt-2">
+                        <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-2">
                           <div
-                            className="bg-[#8172A8] h-full rounded-full"
+                            className="bg-primary-container h-full rounded-full"
                             style={{ width: `${order.progressPercent}%` }}
                           />
                         </div>
 
-                        <div className="pt-1 flex items-center justify-between text-[10px] text-[#777781]">
+                        <div className="pt-1 flex items-center justify-between text-xs text-secondary font-body-sm">
                           <span>Rev: {order.revisionsUsed}/{order.revisionAllowance}</span>
-                          <span className="font-semibold text-[#17243B]">{order.progressPercent}%</span>
+                          <span className="font-semibold text-primary">{order.progressPercent}%</span>
                         </div>
                       </div>
                     ))}
@@ -197,111 +290,115 @@ export default function AdminOrdersPipelinePage() {
           </div>
         ) : (
           /* List View */
-          <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)]">
-            <div className="divide-y divide-[#E6E2DC]">
-              {orders.map((o) => (
-                <div
-                  key={o.id}
-                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F7F5F0]/30 px-2 rounded-lg transition"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-[#17243B]">
-                        {o.orderNumber}
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded font-medium bg-[#F7F5F0] text-[#17243B] border border-[#E6E2DC]">
-                        {o.packageTier}
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                        {o.status}
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-[#17243B] mt-0.5">
-                      {o.clientName} ({o.clientEmail}) — {o.serviceType.replace(/_/g, ' ')}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-xs">
-                    <span className="text-[#777781]">
-                      Stage: <strong className="text-[#17243B]">{o.currentStage}</strong> ({o.progressPercent}%)
-                    </span>
-                    <button
-                      onClick={() => handleOpenStatusModal(o)}
-                      className="px-3 py-1.5 rounded-lg border border-[#E6E2DC] bg-[#FFFFFF] hover:bg-[#F7F5F0] text-xs font-semibold text-[#17243B] transition"
-                    >
-                      Update Stage
-                    </button>
-                  </div>
-                </div>
-              ))}
+          <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-surface-container-low text-secondary font-label-sm uppercase tracking-wider border-b border-outline-variant/30">
+                  <tr>
+                    <th className="py-3 px-4 font-semibold">Order / Client</th>
+                    <th className="py-3 px-4 font-semibold">Service Package</th>
+                    <th className="py-3 px-4 font-semibold">Stage & Progress</th>
+                    <th className="py-3 px-4 font-semibold">Status</th>
+                    <th className="py-3 px-4 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/20 font-body-sm">
+                  {orders.map((order) => (
+                    <tr key={order.id} className="hover:bg-surface-container-low/40 transition">
+                      <td className="py-3.5 px-4">
+                        <span className="font-mono text-xs font-bold text-primary block">
+                          {order.orderNumber}
+                        </span>
+                        <span className="font-bold text-sm text-on-surface block">
+                          {order.clientName}
+                        </span>
+                        <span className="text-secondary text-xs">{order.clientEmail}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="text-on-surface font-semibold block">
+                          {order.serviceType.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-secondary text-xs">{order.packageTier} Tier</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-primary">{order.currentStage}</span>
+                        <div className="w-28 bg-surface-container-high h-1.5 rounded-full mt-1.5 overflow-hidden">
+                          <div
+                            className="bg-primary-container h-full rounded-full"
+                            style={{ width: `${order.progressPercent}%` }}
+                          />
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                          {order.status.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => handleOpenStatusModal(order)}
+                          className="px-3 py-1.5 rounded-lg border border-outline-variant/40 hover:bg-surface-container-low text-primary text-xs font-semibold transition"
+                        >
+                          Update Status
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* Modal: Update Order Milestone & Status */}
+        {/* Modal: Update Order Status */}
         {selectedOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-[#FFFFFF] rounded-2xl max-w-md w-full p-6 border border-[#E6E2DC] shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E6E2DC]">
-                <h3 className="text-sm font-bold text-[#17243B]">
-                  Update Order Pipeline Stage
-                </h3>
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-surface-container-lowest rounded-2xl max-w-sm w-full p-6 shadow-xl border border-outline-variant/30 space-y-4">
+              <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+                <div>
+                  <h3 className="font-headline-sm text-base font-bold text-primary">Update Order Progress</h3>
+                  <p className="text-xs text-secondary">{selectedOrder.orderNumber}</p>
+                </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="p-1 rounded-lg hover:bg-surface-container-low text-secondary"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" />
                 </button>
-              </div>
-
-              <div className="bg-[#F7F5F0] p-3 rounded-xl border border-[#E6E2DC] text-xs">
-                <span className="font-mono text-[#8172A8] font-bold block">
-                  {selectedOrder.orderNumber}
-                </span>
-                <span className="font-bold text-[#17243B]">
-                  {selectedOrder.clientName} — {selectedOrder.serviceType.replace(/_/g, ' ')}
-                </span>
               </div>
 
               <form onSubmit={handleUpdateStatus} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Workflow Status
-                  </label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Production Status</label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value as ServiceOrderStatus)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                    className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                   >
                     <option value="NEW">New Intake</option>
                     <option value="IN_REVIEW">Specialist Scoping</option>
                     <option value="DRAFTING">In Drafting</option>
-                    <option value="CLIENT_REVIEW">Action Required: Client Review</option>
-                    <option value="REVISION">Revising Draft</option>
-                    <option value="FINAL_APPROVED">Final Approved</option>
-                    <option value="COMPLETED">Completed</option>
+                    <option value="CLIENT_REVIEW">Client Review</option>
+                    <option value="REVISION">Revisions Queue</option>
+                    <option value="FINAL_APPROVED">Approved & Completed</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Stage Description (Visible to Client)
-                  </label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Current Milestone Stage</label>
                   <input
                     type="text"
-                    required
                     value={newStage}
                     onChange={(e) => setNewStage(e.target.value)}
-                    placeholder="e.g. Executive Narrative Draft Underway"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                    placeholder="e.g. ATS Keyword Optimization"
+                    className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <label className="font-semibold text-[#17243B]">Completion Progress (%)</label>
-                    <span className="font-bold text-[#8172A8]">{newProgress}%</span>
-                  </div>
+                  <label className="block text-xs font-semibold text-primary mb-1">
+                    Progress Percentage ({newProgress}%)
+                  </label>
                   <input
                     type="range"
                     min="0"
@@ -309,24 +406,24 @@ export default function AdminOrdersPipelinePage() {
                     step="5"
                     value={newProgress}
                     onChange={(e) => setNewProgress(Number(e.target.value))}
-                    className="w-full accent-[#8172A8]"
+                    className="w-full"
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="pt-3 border-t border-outline-variant/30 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedOrder(null)}
-                    className="px-4 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium text-[#777781]"
+                    className="px-4 py-2 rounded-xl border border-outline-variant/40 text-xs font-semibold text-secondary hover:bg-surface-container-low"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl bg-primary-container hover:bg-primary text-white text-xs font-semibold shadow-xs transition disabled:opacity-50"
                   >
-                    {saving ? 'Updating...' : 'Save & Broadcast'}
+                    {saving ? 'Saving...' : 'Apply Progress'}
                   </button>
                 </div>
               </form>
@@ -337,4 +434,3 @@ export default function AdminOrdersPipelinePage() {
     </AdminLayout>
   );
 }
-

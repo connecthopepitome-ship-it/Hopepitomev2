@@ -1057,6 +1057,8 @@ export interface SupportTicketRecord {
   ticketId: string; // TCK-YYYYMM-XXXX
   customerId: string;
   customerName: string;
+  customerEmail?: string;
+  division?: BusinessDivision;
   customerCompany?: string;
   projectId?: string;
   projectName?: string;

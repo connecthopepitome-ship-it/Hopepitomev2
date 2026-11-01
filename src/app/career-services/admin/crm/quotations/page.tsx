@@ -35,6 +35,9 @@ import {
   Sparkles,
   Send,
   Download,
+  Briefcase,
+  TrendingUp,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function QuotationsPage() {
@@ -55,7 +58,7 @@ export default function QuotationsPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
   const [division, setDivision] = useState<BusinessDivision>('IT_SERVICES');
   const [serviceName, setServiceName] = useState('Website Development');
-  const [itemDesc, setItemDesc] = useState('Full responsive business website with CMS and speed optimization');
+  const [itemDesc, setItemDesc] = useState('Full responsive enterprise website with Next.js CMS and speed optimization');
   const [itemQty, setItemQty] = useState(1);
   const [itemPrice, setItemPrice] = useState(1299);
   const [taxPercent, setTaxPercent] = useState(0);
@@ -118,39 +121,40 @@ export default function QuotationsPage() {
     const milestones: PaymentMilestone[] = [
       {
         id: `pm_1`,
-        title: 'Project Kickoff & Requirements (40%)',
+        title: 'Initial Deposit & Discovery Kick-off',
         percentage: 40,
         amount: Math.round(totalAmount * 0.4),
-        condition: 'Upon quotation acceptance and contract signing',
+        condition: 'Upon project authorization & contract signing',
         status: 'PENDING',
       },
       {
         id: `pm_2`,
-        title: 'Development Preview & Milestone Review (40%)',
+        title: 'Core Architecture & Prototype Review',
         percentage: 40,
         amount: Math.round(totalAmount * 0.4),
-        condition: 'Upon staging environment review and approval',
+        condition: 'Upon delivery of functional sandbox demo',
         status: 'PENDING',
       },
       {
         id: `pm_3`,
-        title: 'Final Deployment, UAT & Handover (20%)',
+        title: 'Final Acceptance & Production Handover',
         percentage: 20,
-        amount: Math.round(totalAmount * 0.2),
-        condition: 'Upon production go-live and credential handover',
+        amount: totalAmount - Math.round(totalAmount * 0.4) * 2,
+        condition: 'Upon successful UAT deployment and sign-off',
         status: 'PENDING',
       },
     ];
-
-    const validUntilDate = new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const newQuote: QuotationRecord = {
       id: quoteId,
       quotationNumber: quoteId,
       customerId: selectedCustomerId,
-      customerName: selectedClient?.name || 'Customer',
-      customerEmail: selectedClient?.email || 'client@example.com',
+      customerName: selectedClient?.name || 'Enterprise Customer',
+      customerEmail: selectedClient?.email || 'customer@company.com',
       division,
+      status: 'SENT',
+      validityDays,
+      validUntil: new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       lineItems,
       subtotal,
       discountAmount: 0,
@@ -159,13 +163,10 @@ export default function QuotationsPage() {
       currency: 'USD',
       paymentMilestones: milestones,
       termsAndConditions: [
-        'Quotation valid for 30 calendar days from issue date.',
-        'Payment milestones payable within 7 business days of invoice.',
-        'Standard 30-day warranty coverage included after final handover.',
+        '50% deposit required prior to technical delivery commencement.',
+        'All deliverables include 2 complimentary revision cycles within 14 days of submission.',
+        'Hosting, third-party API quotas and cloud subscriptions are billed directly by respective providers.',
       ],
-      validityDays,
-      validUntil: validUntilDate,
-      status: 'SENT',
       createdAt: now,
       updatedAt: now,
     };
@@ -173,9 +174,8 @@ export default function QuotationsPage() {
     try {
       await saveQuotation(newQuote);
       setShowModal(false);
-      setPreviewQuote(newQuote);
     } catch (err: any) {
-      alert('Error saving quotation: ' + err?.message);
+      alert('Error creating quotation: ' + err?.message);
     } finally {
       setSaving(false);
     }
@@ -244,112 +244,199 @@ export default function QuotationsPage() {
     return matchesDiv && matchesSearch;
   });
 
+  const totalPipelineVal = quotations.reduce((acc, q) => acc + (q.totalAmount || 0), 0);
+  const acceptedQuotes = quotations.filter((q) => q.status === 'ACCEPTED');
+  const avgDealSize = quotations.length > 0 ? Math.round(totalPipelineVal / quotations.length) : 0;
+
   return (
     <AdminLayout>
-      <div className="space-y-6 font-sans">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
-                Commercial Operations
+      <div className="space-y-6 max-w-7xl mx-auto font-sans">
+        {/* Ambient Top Ribbon */}
+        <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-4xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-tertiary-container text-tertiary-fixed font-label-sm text-xs uppercase tracking-wider font-bold shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                COMMERCIAL PIPELINE
               </span>
-              <span className="text-xs text-[#777781] font-medium">Proposals & Quotations</span>
+              <span className="text-secondary font-label-md text-xs">•</span>
+              <span className="text-secondary font-label-sm text-xs uppercase tracking-wider font-medium">
+                Enterprise Proposals & Contract Governance
+              </span>
             </div>
-            <h1 className="text-2xl font-bold text-[#17243B] mt-1 tracking-tight">
+            <h1 className="font-headline-xl text-2xl lg:text-3xl text-primary font-bold tracking-tight">
               Commercial Quotations & Proposals
             </h1>
-            <p className="text-xs text-[#777781] mt-0.5 max-w-2xl">
-              Create formal quotations with itemized scopes, tax calculations, and milestone schedules. Convert accepted quotes directly into delivery projects with 1 tap.
+            <p className="font-body-md text-sm text-on-surface-variant max-w-3xl leading-relaxed">
+              Generate structured client proposals with automated milestone schedules, itemized deliverables, and 1-tap conversion into enterprise delivery projects.
             </p>
           </div>
 
-          <button
-            onClick={handleOpenCreateModal}
-            className="px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5 text-[#8172A8]" />
-            <span>Create Quotation</span>
-          </button>
+          <div className="flex items-center gap-2.5 self-start xl:self-center flex-wrap">
+            <button
+              onClick={handleOpenCreateModal}
+              className="px-4 py-2 rounded-xl bg-primary-container text-white text-xs font-semibold hover:bg-primary transition shadow-md inline-flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Quotation</span>
+            </button>
+          </div>
         </div>
 
-        {/* Division Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6E2DC] pb-4">
-          <div className="flex items-center gap-2">
+        {/* 4 Summary KPI Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Total Proposals</span>
+              <span className="w-2 h-2 rounded-full bg-primary-container"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                {quotations.length}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-primary font-label-sm text-xs font-bold">
+                <FileText className="w-3.5 h-3.5" /> Active
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>{acceptedQuotes.length} Executed</span>
+              <span className="text-emerald-700 font-semibold">{quotations.length - acceptedQuotes.length} In Review</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Total Pipeline Value</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-emerald-800 tabular-nums">
+                ${totalPipelineVal.toLocaleString()}
+              </span>
+              <span className="text-xs text-secondary font-mono">USD</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Across All Divisions</span>
+              <span className="text-primary font-semibold">100% Tracked</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Acceptance Rate</span>
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                {quotations.length > 0 ? Math.round((acceptedQuotes.length / quotations.length) * 100) : 0}%
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 font-label-sm text-xs font-bold">
+                <TrendingUp className="w-3.5 h-3.5" /> High
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Industry Benchmark</span>
+              <span className="text-on-surface font-semibold">Top Tier</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Average Deal Size</span>
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                ${avgDealSize.toLocaleString()}
+              </span>
+              <span className="text-xs text-secondary font-mono">USD</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Milestone Phasing</span>
+              <span className="text-emerald-700 font-semibold">3-Stage</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Division Selector & Filter Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
             <button
               onClick={() => setDivisionFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
                 divisionFilter === 'ALL'
-                  ? 'bg-[#17243B] text-white shadow-sm'
-                  : 'bg-white text-[#777781] hover:text-[#17243B] border border-[#E6E2DC]'
+                  ? 'bg-primary-container text-white shadow-xs'
+                  : 'bg-surface-container-low text-secondary hover:text-on-surface'
               }`}
             >
-              All Quotes ({quotations.length})
+              All Proposals ({quotations.length})
             </button>
             <button
               onClick={() => setDivisionFilter('IT_SERVICES')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
                 divisionFilter === 'IT_SERVICES'
-                  ? 'bg-indigo-700 text-white shadow-sm'
-                  : 'bg-white text-[#777781] hover:text-indigo-700 border border-[#E6E2DC]'
+                  ? 'bg-primary-container text-white shadow-xs'
+                  : 'bg-surface-container-low text-secondary hover:text-on-surface'
               }`}
             >
               IT Services
             </button>
             <button
               onClick={() => setDivisionFilter('CAREER_SERVICES')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0 ${
                 divisionFilter === 'CAREER_SERVICES'
-                  ? 'bg-[#8172A8] text-white shadow-sm'
-                  : 'bg-white text-[#777781] hover:text-[#8172A8] border border-[#E6E2DC]'
+                  ? 'bg-primary-container text-white shadow-xs'
+                  : 'bg-surface-container-low text-secondary hover:text-on-surface'
               }`}
             >
               Career Services
             </button>
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#777781]" />
+          <div className="relative w-full md:w-72">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search quotation # or client..."
-              className="w-full pl-8 pr-3 py-1.5 bg-white border border-[#E6E2DC] rounded-xl text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8]"
+              className="w-full pl-8 pr-3 py-1.5 bg-surface-container-low border border-outline-variant/40 rounded-lg text-xs text-on-surface placeholder-secondary focus:outline-none focus:border-primary focus:bg-surface-container-lowest transition-all"
             />
           </div>
         </div>
 
-        {/* Quotes List */}
+        {/* Quotations Grid */}
         {loading ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-3">
-            <div className="w-8 h-8 border-2 border-[#17243B] border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-[#777781]">Loading Quotations...</p>
+          <div className="py-16 flex flex-col items-center justify-center gap-3">
+            <div className="w-8 h-8 border-2 border-primary-container border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-secondary font-medium">Loading Quotation Telemetry...</p>
           </div>
         ) : filteredQuotes.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#E6E2DC] p-12 text-center space-y-3">
-            <Receipt className="w-10 h-10 text-[#777781]/40 mx-auto" />
-            <h3 className="text-sm font-bold text-[#17243B]">No Quotations Yet</h3>
-            <p className="text-xs text-[#777781]">Create your first proposal or quotation to initiate commercial review.</p>
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-12 text-center space-y-3 shadow-xs">
+            <Receipt className="w-10 h-10 text-secondary/40 mx-auto" />
+            <h3 className="text-sm font-bold text-primary">No Quotations Found</h3>
+            <p className="text-xs text-secondary">
+              Create a formal proposal to initiate customer negotiation and milestone tracking.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredQuotes.map((q) => {
               const isAccepted = q.status === 'ACCEPTED';
               return (
                 <div
                   key={q.id}
-                  className="bg-white rounded-2xl border border-[#E6E2DC] p-5 shadow-[0_2px_8px_rgba(23,36,59,0.03)] flex flex-col justify-between space-y-4"
+                  className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-5 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#17243B] text-white">
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-surface-container-high text-primary border border-outline-variant/30">
                         {q.quotationNumber}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
+                        className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase border ${
                           isAccepted
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : 'bg-blue-50 text-blue-700 border-blue-200'
                         }`}
                       >
@@ -358,52 +445,52 @@ export default function QuotationsPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-bold text-[#17243B]">{q.customerName}</h3>
-                      <p className="text-xs text-[#777781] mt-0.5">
-                        {q.division === 'IT_SERVICES' ? 'IT Solution' : 'Career Service'}
+                      <h3 className="text-sm font-bold text-primary">{q.customerName}</h3>
+                      <p className="text-xs text-secondary mt-0.5">
+                        {q.division === 'IT_SERVICES' ? 'IT & Business Solutions' : 'Career Services Studio'}
                       </p>
                     </div>
 
-                    <div className="p-3 bg-[#F7F5F0]/60 rounded-xl space-y-1 text-xs">
-                      <div className="flex justify-between text-[#777781]">
+                    <div className="p-3 bg-surface-container-low rounded-xl space-y-1.5 text-xs font-body-sm">
+                      <div className="flex justify-between text-secondary">
                         <span>Service:</span>
-                        <span className="font-semibold text-[#17243B] truncate max-w-[160px]">
+                        <span className="font-semibold text-primary truncate max-w-[160px]">
                           {q.lineItems[0]?.serviceName}
                         </span>
                       </div>
-                      <div className="flex justify-between text-[#777781]">
-                        <span>Total Quotation:</span>
-                        <span className="font-bold text-emerald-700">
+                      <div className="flex justify-between text-secondary">
+                        <span>Total Scope:</span>
+                        <span className="font-bold text-emerald-800 tabular-nums">
                           ${q.totalAmount?.toLocaleString()} {q.currency}
                         </span>
                       </div>
-                      <div className="flex justify-between text-[#777781]">
+                      <div className="flex justify-between text-secondary">
                         <span>Valid Until:</span>
-                        <span>{q.validUntil}</span>
+                        <span className="font-medium text-on-surface">{q.validUntil}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-[#E6E2DC] flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-outline-variant/20 flex items-center justify-between gap-2">
                     <button
                       onClick={() => setPreviewQuote(q)}
-                      className="px-3 py-1.5 rounded-xl border border-[#E6E2DC] text-xs font-semibold text-[#17243B] hover:bg-[#F7F5F0] transition flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-lg border border-outline-variant/40 text-xs font-semibold text-primary hover:bg-surface-container-low transition inline-flex items-center gap-1.5"
                     >
-                      <FileText className="w-3.5 h-3.5 text-[#777781]" />
-                      <span>View Quote</span>
+                      <FileText className="w-3.5 h-3.5 text-secondary" />
+                      <span>View Scope</span>
                     </button>
 
                     {!isAccepted ? (
                       <button
                         onClick={() => handleAcceptAndConvert(q)}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center gap-1 shadow-sm"
+                        className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1 shadow-xs"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Accept & Convert</span>
                       </button>
                     ) : (
-                      <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Converted
+                      <span className="text-xs font-semibold text-emerald-800 inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Converted to Project
                       </span>
                     )}
                   </div>
@@ -415,14 +502,17 @@ export default function QuotationsPage() {
 
         {/* Modal: Create Quotation */}
         {showModal && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-[#E6E2DC] max-h-[90vh] overflow-y-auto space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E6E2DC] pb-3">
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-surface-container-lowest rounded-2xl max-w-xl w-full p-6 shadow-xl border border-outline-variant/30 max-h-[90vh] overflow-y-auto space-y-4">
+              <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
                 <div>
-                  <h3 className="text-base font-bold text-[#17243B]">Draft Commercial Quotation</h3>
-                  <p className="text-xs text-[#777781]">Select customer and itemized delivery scope.</p>
+                  <h3 className="font-headline-sm text-base font-bold text-primary">Draft Commercial Quotation</h3>
+                  <p className="font-body-sm text-xs text-secondary">Select customer and configure itemized delivery scope.</p>
                 </div>
-                <button onClick={() => setShowModal(false)} className="p-1 rounded-lg hover:bg-gray-100 text-[#777781]">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-surface-container-low text-secondary hover:text-on-surface"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -430,11 +520,11 @@ export default function QuotationsPage() {
               <form onSubmit={handleCreateQuotation} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">Select Customer *</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Select Customer *</label>
                     <select
                       value={selectedCustomerId}
                       onChange={(e) => setSelectedCustomerId(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                     >
                       {clients.map((c) => (
                         <option key={c.clientId} value={c.clientId}>
@@ -445,11 +535,11 @@ export default function QuotationsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">Division</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Division</label>
                     <select
                       value={division}
                       onChange={(e) => setDivision(e.target.value as BusinessDivision)}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                     >
                       <option value="IT_SERVICES">IT & Business Solutions</option>
                       <option value="CAREER_SERVICES">Career Services</option>
@@ -458,80 +548,80 @@ export default function QuotationsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Service Title *</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Service Title *</label>
                   <input
                     type="text"
                     required
                     value={serviceName}
                     onChange={(e) => setServiceName(e.target.value)}
                     placeholder="e.g. Website Development"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
+                    className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Scope Description</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Scope Description</label>
                   <textarea
                     rows={2}
                     value={itemDesc}
                     onChange={(e) => setItemDesc(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs focus:outline-none focus:border-[#8172A8]"
+                    className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">Price (USD) *</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Price (USD) *</label>
                     <input
                       type="number"
                       required
                       value={itemPrice}
                       onChange={(e) => setItemPrice(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">Quantity</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Quantity</label>
                     <input
                       type="number"
                       value={itemQty}
                       onChange={(e) => setItemQty(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">Validity (Days)</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Validity (Days)</label>
                     <input
                       type="number"
                       value={validityDays}
                       onChange={(e) => setValidityDays(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#F7F5F0] rounded-xl text-xs space-y-1">
-                  <div className="flex justify-between font-bold text-[#17243B]">
-                    <span>Total Quotation:</span>
-                    <span>${(itemQty * itemPrice).toLocaleString()} USD</span>
+                <div className="p-3.5 bg-surface-container-low rounded-xl text-xs space-y-1">
+                  <div className="flex justify-between font-bold text-primary">
+                    <span>Total Scope Quotation:</span>
+                    <span className="tabular-nums">${(itemQty * itemPrice).toLocaleString()} USD</span>
                   </div>
-                  <p className="text-[11px] text-[#777781]">Includes 3-phase milestone billing schedule (40% / 40% / 20%).</p>
+                  <p className="text-xs text-secondary">Includes 3-phase milestone billing schedule (40% / 40% / 20%).</p>
                 </div>
 
-                <div className="pt-3 border-t border-[#E6E2DC] flex items-center justify-end gap-2.5">
+                <div className="pt-3 border-t border-outline-variant/30 flex items-center justify-end gap-2.5">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl border border-[#E6E2DC] text-xs font-semibold text-[#777781]"
+                    className="px-4 py-2 rounded-xl border border-outline-variant/40 text-xs font-semibold text-secondary hover:bg-surface-container-low"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-5 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl bg-primary-container text-white text-xs font-semibold shadow-xs hover:bg-primary transition disabled:opacity-50"
                   >
                     {saving ? 'Generating...' : 'Issue Quotation'}
                   </button>
@@ -543,46 +633,46 @@ export default function QuotationsPage() {
 
         {/* Modal: View Quotation Print Sheet */}
         {previewQuote && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl border border-[#E6E2DC] max-h-[90vh] overflow-y-auto space-y-6">
-              <div className="flex items-center justify-between border-b border-[#E6E2DC] pb-4">
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-surface-container-lowest rounded-2xl max-w-2xl w-full p-8 shadow-2xl border border-outline-variant/30 max-h-[90vh] overflow-y-auto space-y-6">
+              <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#17243B] flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold">
                     HP
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-[#17243B]">HOPEPITOME CAREER & IT SERVICES</h2>
-                    <p className="text-[11px] text-[#777781]">Commercial Proposal & Formal Quotation</p>
+                    <h2 className="text-base font-bold text-primary">HOPEPITOME ENTERPRISE SOLUTIONS</h2>
+                    <p className="text-xs text-secondary">Commercial Proposal & Formal Quotation</p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setPreviewQuote(null)}
-                  className="p-1 rounded-lg hover:bg-gray-100 text-[#777781]"
+                  className="p-1.5 rounded-lg hover:bg-surface-container-low text-secondary"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Quote Meta */}
-              <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="grid grid-cols-2 gap-4 text-xs font-body-sm">
                 <div>
-                  <span className="text-[#777781] block text-[10px] uppercase font-bold">Issued To</span>
-                  <p className="font-bold text-[#17243B] text-sm mt-0.5">{previewQuote.customerName}</p>
-                  <p className="text-[#777781]">{previewQuote.customerEmail}</p>
+                  <span className="text-secondary block text-xs uppercase font-bold tracking-wider">Issued To</span>
+                  <p className="font-bold text-primary text-sm mt-0.5">{previewQuote.customerName}</p>
+                  <p className="text-secondary">{previewQuote.customerEmail}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[#777781] block text-[10px] uppercase font-bold">Quotation Reference</span>
-                  <p className="font-mono font-bold text-[#17243B] text-sm mt-0.5">{previewQuote.quotationNumber}</p>
-                  <p className="text-[#777781]">Date: {previewQuote.createdAt.split('T')[0]}</p>
-                  <p className="text-[#777781]">Valid Until: {previewQuote.validUntil}</p>
+                  <span className="text-secondary block text-xs uppercase font-bold tracking-wider">Quotation Reference</span>
+                  <p className="font-mono font-bold text-primary text-sm mt-0.5">{previewQuote.quotationNumber}</p>
+                  <p className="text-secondary">Date: {previewQuote.createdAt.split('T')[0]}</p>
+                  <p className="text-secondary">Valid Until: {previewQuote.validUntil}</p>
                 </div>
               </div>
 
               {/* Line Items Table */}
-              <div className="border border-[#E6E2DC] rounded-xl overflow-hidden">
+              <div className="border border-outline-variant/30 rounded-xl overflow-hidden">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#F7F5F0] text-[#17243B] font-bold border-b border-[#E6E2DC]">
+                  <thead className="bg-surface-container-low text-primary font-bold border-b border-outline-variant/30">
                     <tr>
                       <th className="p-3">Service / Scope</th>
                       <th className="p-3 text-center">Qty</th>
@@ -590,16 +680,16 @@ export default function QuotationsPage() {
                       <th className="p-3 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E6E2DC]">
+                  <tbody className="divide-y divide-outline-variant/20 font-body-sm">
                     {previewQuote.lineItems.map((item) => (
                       <tr key={item.id}>
                         <td className="p-3">
-                          <p className="font-bold text-[#17243B]">{item.serviceName}</p>
-                          <p className="text-[11px] text-[#777781] mt-0.5">{item.description}</p>
+                          <p className="font-bold text-primary">{item.serviceName}</p>
+                          <p className="text-xs text-secondary mt-0.5">{item.description}</p>
                         </td>
                         <td className="p-3 text-center">{item.quantity}</td>
-                        <td className="p-3 text-right">${item.unitPrice}</td>
-                        <td className="p-3 text-right font-bold">${item.total}</td>
+                        <td className="p-3 text-right tabular-nums">${item.unitPrice}</td>
+                        <td className="p-3 text-right font-bold text-primary tabular-nums">${item.total}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -608,30 +698,30 @@ export default function QuotationsPage() {
 
               {/* Milestones Schedule */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-[#17243B] uppercase tracking-wider">Payment Milestone Schedule</h4>
-                <div className="space-y-1.5">
+                <h4 className="text-xs font-bold text-primary uppercase tracking-wider">Payment Milestone Schedule</h4>
+                <div className="space-y-1.5 font-body-sm">
                   {previewQuote.paymentMilestones.map((pm) => (
                     <div
                       key={pm.id}
-                      className="p-2.5 rounded-xl bg-[#F7F5F0]/70 flex items-center justify-between text-xs"
+                      className="p-2.5 rounded-xl bg-surface-container-low flex items-center justify-between text-xs"
                     >
                       <div>
-                        <p className="font-semibold text-[#17243B]">{pm.title}</p>
-                        <p className="text-[10px] text-[#777781]">{pm.condition}</p>
+                        <p className="font-semibold text-primary">{pm.title}</p>
+                        <p className="text-xs text-secondary">{pm.condition}</p>
                       </div>
-                      <span className="font-bold text-emerald-700">${pm.amount} {previewQuote.currency}</span>
+                      <span className="font-bold text-emerald-800 tabular-nums">${pm.amount} {previewQuote.currency}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-4 border-t border-[#E6E2DC]">
-                <div className="text-xs text-[#777781]">
-                  Status: <span className="font-bold text-[#17243B]">{previewQuote.status}</span>
+              <div className="flex justify-between items-center pt-4 border-t border-outline-variant/30">
+                <div className="text-xs text-secondary">
+                  Status: <span className="font-bold text-primary">{previewQuote.status}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-[#777781] block">Total Amount</span>
-                  <span className="text-xl font-bold text-emerald-700">
+                  <span className="text-xs text-secondary block">Total Amount</span>
+                  <span className="text-xl font-bold text-emerald-800 tabular-nums">
                     ${previewQuote.totalAmount?.toLocaleString()} {previewQuote.currency}
                   </span>
                 </div>

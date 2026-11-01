@@ -327,9 +327,9 @@ export default function EmployeeDirectoryPage() {
         </div>
       </div>
 
-      {/* Employees Table */}
+      {/* Employees Table (Desktop) */}
       <div className="bg-[#FFFFFF] rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-[#E6E2DC] bg-[#F7F5F0]/60 text-[11px] font-semibold text-[#777781] uppercase tracking-wider">
@@ -469,6 +469,59 @@ export default function EmployeeDirectoryPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Employee Cards Transformation */}
+        <div className="md:hidden divide-y divide-[#E6E2DC] p-3 space-y-3">
+          {loading ? (
+            <div className="py-8 text-center text-xs text-[#777781]">Loading staff directory...</div>
+          ) : filteredStaff.length === 0 ? (
+            <div className="py-8 text-center text-xs text-[#777781]">No employees found.</div>
+          ) : (
+            filteredStaff.map((staff) => (
+              <div key={staff.uid} className="p-3 bg-[#F7F5F0]/30 rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-[#17243B]">{staff.employeeId || 'HP-EMP-00000'}</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                    staff.accountStatus === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
+                  }`}>
+                    {staff.accountStatus}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17243B]">{staff.fullName}</h3>
+                  <p className="text-xs text-[#777781]">{staff.designation} • {staff.departmentName}</p>
+                  <p className="text-xs text-[#8172A8] font-mono mt-0.5">{staff.email}</p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-[#E6E2DC]/80">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#8172A8]/10 text-[#8172A8]">
+                    {staff.roleName || staff.roleId}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveStaff(staff);
+                        setShowViewDrawer(true);
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-[#E6E2DC] text-xs font-medium text-[#17243B]"
+                    >
+                      Inspect
+                    </button>
+                    {hasPermission('employees', 'edit') && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(staff)}
+                        className="px-2.5 py-1 rounded-lg bg-[#17243B] text-white text-xs font-medium"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

@@ -21,6 +21,9 @@ import {
   ChevronRight,
   ArrowRight,
   MoveRight,
+  FolderKanban,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 
 const PIPELINE_STAGES: { stage: CrmPipelineStage; color: string }[] = [
@@ -99,47 +102,127 @@ export default function SalesPipelinePage() {
       });
       setSelectedLead(null);
     } catch (err) {
-      console.error('Stage change error:', err);
+      console.error('Move modal error:', err);
     }
   };
 
+  const wonLeads = leads.filter((l) => l.stage === 'Won / Ready to Convert');
+  const activeFunnel = leads.filter((l) => l.stage !== 'Won / Ready to Convert' && l.stage !== 'Lost');
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
-                Visual Funnel
+      <div className="space-y-6 max-w-7xl mx-auto font-sans">
+        {/* Ambient Top Ribbon */}
+        <div className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-4xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-tertiary-container text-tertiary-fixed font-label-sm text-xs uppercase tracking-wider font-bold shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                DEAL ENGINE & PIPELINE
               </span>
-              <span className="text-[10px] font-semibold bg-[#FAF8FC] text-[#8172A8] px-2 py-0.5 rounded border border-[#E6E2DC]">
-                12 Progression Stages
+              <span className="text-secondary font-label-md text-xs">•</span>
+              <span className="text-secondary font-label-sm text-xs uppercase tracking-wider font-medium">
+                Visual Acquisition Funnel
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17243B] mt-0.5">
-              Sales Pipeline Board
+            <h1 className="font-headline-xl text-2xl lg:text-3xl text-primary font-bold tracking-tight">
+              Enterprise Sales Pipeline Board
             </h1>
-            <p className="text-xs text-[#777781] mt-1">
-              Drag and drop prospect cards between stages to advance deals through your acquisition funnel.
+            <p className="font-body-md text-sm text-on-surface-variant max-w-3xl leading-relaxed">
+              Drag and drop prospect cards between lifecycle stages to advance deals through discovery, quotation preparation, and contract conversion.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5 self-start xl:self-center flex-wrap">
             <Link
               href="/career-services/admin/crm/leads?action=new"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-container text-white text-xs font-semibold hover:bg-primary transition shadow-md"
             >
               <Plus className="w-4 h-4" />
-              <span>New Lead</span>
+              <span>Capture New Lead</span>
             </Link>
           </div>
         </div>
 
-        {/* Kanban Board Container with horizontal scroll */}
+        {/* 4 KPI Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Active Funnel</span>
+              <span className="w-2 h-2 rounded-full bg-primary-container"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                {activeFunnel.length}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container text-primary font-label-sm text-xs font-bold">
+                In Flight
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>{leads.length} Total Captured</span>
+              <span className="text-primary font-semibold">Live CRM</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Won & Converting</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-emerald-800 tabular-nums">
+                {wonLeads.length}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-xs font-bold">
+                <TrendingUp className="w-3.5 h-3.5" /> High Velocity
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Ready for Work Order</span>
+              <span className="text-emerald-700 font-semibold">Ready</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Conversion Velocity</span>
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                {leads.length > 0 ? Math.round((wonLeads.length / leads.length) * 100) : 0}%
+              </span>
+              <span className="text-xs text-secondary font-mono">Won Rate</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Target: &gt; 25%</span>
+              <span className="text-on-surface font-semibold">Healthy</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/30 shadow-xs">
+            <div className="flex items-center justify-between text-secondary mb-2">
+              <span className="font-label-sm text-xs uppercase tracking-wider font-semibold">Consultations Logged</span>
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
+                {leads.filter((l) => l.stage.includes('Consultation')).length}
+              </span>
+              <span className="text-xs text-secondary font-mono">Sessions</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
+              <span>Diagnostic Phase</span>
+              <span className="text-emerald-700 font-semibold">Active</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Kanban Board Container with visible scroll affordance */}
         {loading ? (
           <div className="py-16 flex justify-center">
-            <div className="w-8 h-8 border-2 border-[#17243B] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-primary-container border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <div className="overflow-x-auto pb-6">
@@ -152,13 +235,13 @@ export default function SalesPipelinePage() {
                     key={stage}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleStageDrop(stage)}
-                    className="w-72 shrink-0 bg-[#FFFFFF] rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] flex flex-col max-h-[75vh]"
+                    className="w-72 shrink-0 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-xs flex flex-col max-h-[75vh]"
                   >
                     {/* Stage Header */}
-                    <div className="p-3.5 border-b border-[#E6E2DC] bg-[#FAF8FC] rounded-t-2xl flex items-center justify-between">
+                    <div className="p-3.5 border-b border-outline-variant/30 bg-surface-container-low rounded-t-2xl flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#17243B] truncate max-w-[170px]">{stage}</span>
-                        <span className="text-[10px] font-mono font-bold bg-white text-[#8172A8] px-2 py-0.5 rounded-full border border-[#E6E2DC]">
+                        <span className="text-xs font-bold text-primary truncate max-w-[170px]">{stage}</span>
+                        <span className="text-xs font-mono font-bold bg-white text-primary px-2 py-0.5 rounded-full border border-outline-variant/30">
                           {stageLeads.length}
                         </span>
                       </div>
@@ -167,7 +250,7 @@ export default function SalesPipelinePage() {
                     {/* Cards Column */}
                     <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[150px]">
                       {stageLeads.length === 0 ? (
-                        <div className="h-24 flex items-center justify-center border-2 border-dashed border-[#E6E2DC]/80 rounded-xl text-[11px] text-[#777781]/70">
+                        <div className="h-24 flex items-center justify-center border-2 border-dashed border-outline-variant/40 rounded-xl text-xs text-secondary/70">
                           Drop leads here
                         </div>
                       ) : (
@@ -176,15 +259,15 @@ export default function SalesPipelinePage() {
                             key={lead.id}
                             draggable
                             onDragStart={() => setDraggedLeadId(lead.id)}
-                            className="p-3.5 rounded-xl bg-white border border-[#E6E2DC] hover:border-[#8172A8] shadow-sm transition space-y-2 cursor-grab active:cursor-grabbing hover:shadow-md"
+                            className="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/30 hover:border-primary/40 shadow-xs transition space-y-2 cursor-grab active:cursor-grabbing hover:shadow-md"
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div>
-                                <h2 className="text-xs font-bold text-[#17243B] line-clamp-1">{lead.fullName}</h2>
-                                <span className="text-[10px] font-mono text-[#8172A8]">{lead.id}</span>
+                                <h3 className="text-xs font-bold text-primary line-clamp-1">{lead.fullName}</h3>
+                                <span className="text-xs font-mono text-secondary">{lead.id}</span>
                               </div>
                               <span
-                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                                   lead.priority === 'URGENT'
                                     ? 'bg-red-100 text-red-800'
                                     : lead.priority === 'HIGH'
@@ -196,11 +279,11 @@ export default function SalesPipelinePage() {
                               </span>
                             </div>
 
-                            <p className="text-[11px] text-[#17243B] font-medium line-clamp-1">
+                            <p className="text-xs text-on-surface font-medium line-clamp-1">
                               {lead.serviceInterestedIn}
                             </p>
 
-                            <div className="flex items-center justify-between text-[10px] text-[#777781] pt-1 border-t border-[#E6E2DC]/60">
+                            <div className="flex items-center justify-between text-xs text-secondary pt-1 border-t border-outline-variant/20">
                               <span>{lead.leadSource}</span>
                               <span>{lead.leadOwner || 'Unassigned'}</span>
                             </div>
@@ -213,19 +296,19 @@ export default function SalesPipelinePage() {
                                     href={`https://wa.me/${lead.mobile.replace(/\D/g, '')}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-1 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+                                    className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
                                     title="WhatsApp"
                                   >
-                                    <MessageSquare className="w-3 h-3" />
+                                    <MessageSquare className="w-3.5 h-3.5" />
                                   </a>
                                 )}
                                 {lead.mobile && (
                                   <a
                                     href={`tel:${lead.mobile}`}
-                                    className="p-1 rounded bg-[#F7F5F0] text-[#17243B] hover:bg-[#E6E2DC] transition"
-                                    title="Call"
+                                    className="p-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                                    title="Call Phone"
                                   >
-                                    <Phone className="w-3 h-3" />
+                                    <Phone className="w-3.5 h-3.5" />
                                   </a>
                                 )}
                               </div>
@@ -235,10 +318,10 @@ export default function SalesPipelinePage() {
                                   setSelectedLead(lead);
                                   setTargetStage(lead.stage);
                                 }}
-                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#8172A8] hover:text-[#17243B] transition"
+                                className="text-xs font-semibold text-primary hover:text-primary-container inline-flex items-center gap-0.5"
                               >
                                 <span>Move</span>
-                                <MoveRight className="w-2.5 h-2.5" />
+                                <ChevronRight className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
@@ -252,35 +335,28 @@ export default function SalesPipelinePage() {
           </div>
         )}
 
-        {/* Modal: Move Lead Stage */}
+        {/* Modal: Move Stage */}
         {selectedLead && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-[#E6E2DC] shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E6E2DC]">
-                <div>
-                  <h2 className="text-sm font-bold text-[#17243B]">Advance Lead Pipeline Stage</h2>
-                  <p className="text-[11px] text-[#777781]">{selectedLead.fullName} ({selectedLead.id})</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedLead(null)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
-                >
-                  ✕ Close
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-surface-container-lowest rounded-2xl max-w-sm w-full p-6 shadow-xl border border-outline-variant/30 space-y-4">
+              <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+                <h3 className="font-headline-sm text-base font-bold text-primary">Move Funnel Stage</h3>
+                <button onClick={() => setSelectedLead(null)} className="p-1 rounded-lg hover:bg-surface-container-low text-secondary">
+                  ✕
                 </button>
               </div>
 
               <form onSubmit={handleMoveStageModalSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">Select New Stage</label>
+                  <label className="block text-xs font-semibold text-primary mb-1">Target Stage</label>
                   <select
                     value={targetStage}
                     onChange={(e) => setTargetStage(e.target.value as CrmPipelineStage)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30"
+                    className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
                   >
-                    {PIPELINE_STAGES.map(({ stage }) => (
-                      <option key={stage} value={stage}>
-                        {stage}
+                    {PIPELINE_STAGES.map((s) => (
+                      <option key={s.stage} value={s.stage}>
+                        {s.stage}
                       </option>
                     ))}
                   </select>
@@ -288,32 +364,28 @@ export default function SalesPipelinePage() {
 
                 {targetStage === 'Lost' && (
                   <div>
-                    <label className="block text-xs font-semibold text-red-700 mb-1">Reason for Loss</label>
-                    <select
+                    <label className="block text-xs font-semibold text-primary mb-1">Reason for Lost Deal</label>
+                    <input
+                      type="text"
                       value={lostReason}
                       onChange={(e) => setLostReason(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-red-200 text-xs text-[#17243B] bg-red-50/30"
-                    >
-                      <option value="Price too high / Budget mismatch">Price too high / Budget mismatch</option>
-                      <option value="Went with competitor">Went with competitor</option>
-                      <option value="No response after multiple attempts">No response after multiple attempts</option>
-                      <option value="Postponed job search indefinitely">Postponed job search indefinitely</option>
-                      <option value="Already secured employment">Already secured employment</option>
-                    </select>
+                      placeholder="e.g. Budget mismatch or selected alternative"
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-low text-xs font-medium focus:outline-none focus:border-primary"
+                    />
                   </div>
                 )}
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-[#E6E2DC]">
+                <div className="pt-3 border-t border-outline-variant/30 flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedLead(null)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-[#777781] hover:text-[#17243B]"
+                    className="px-4 py-2 rounded-xl border border-outline-variant/40 text-xs font-semibold text-secondary hover:bg-surface-container-low"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-[#17243B] hover:bg-[#292D36] transition shadow-sm"
+                    className="px-5 py-2 rounded-xl bg-primary-container hover:bg-primary text-white text-xs font-semibold shadow-xs transition"
                   >
                     Update Stage
                   </button>
@@ -326,4 +398,3 @@ export default function SalesPipelinePage() {
     </AdminLayout>
   );
 }
-
