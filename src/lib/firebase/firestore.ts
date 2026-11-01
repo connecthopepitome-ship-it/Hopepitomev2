@@ -43,6 +43,16 @@ import type {
   StaffDepartment,
   StaffActivityLog,
   StaffLoginLog,
+  ServiceItem,
+  EnterpriseProjectRecord,
+  QuotationRecord,
+  SupportTicketRecord,
+  MaintenanceContractRecord,
+  DiscoveryRecord,
+  UniversalTaskRecord,
+  CommercialInvoiceRecord,
+  CommercialPaymentRecord,
+  ClientRecord,
 } from '../career/types';
 
 // Helper to sanitize undefined values before saving to Firestore
@@ -78,6 +88,19 @@ export async function setCareerUser(user: CareerUser): Promise<void> {
 }
 
 // 2. Client Profile & Extended Data
+export function subscribeClients(callback: (clients: ClientRecord[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'clients'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ clientId: d.id, ...d.data() } as ClientRecord));
+    list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    callback(list);
+  });
+}
+
 export async function getCareerClient(clientId: string): Promise<CareerClient | null> {
   if (!db) return null;
   try {
@@ -640,6 +663,162 @@ export async function logStaffLogin(log: Omit<StaffLoginLog, 'id' | 'timestamp'>
   } catch (e) {
     console.warn('logStaffLogin warning:', e);
   }
+}
+
+// =============================================================================
+// MULTI-SERVICE PLATFORM FIRESTORE OPERATIONS (IT & CAREER DIVISIONS)
+// =============================================================================
+
+// 19. Service Catalogue
+export function subscribeServiceCatalogue(callback: (items: ServiceItem[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'service_catalogue'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as ServiceItem));
+    list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    callback(list);
+  });
+}
+
+export async function saveServiceItem(item: ServiceItem): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'service_catalogue', item.id), cleanData(item), { merge: true });
+}
+
+// 20. Projects & Milestones
+export function subscribeProjects(callback: (projects: EnterpriseProjectRecord[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'projects'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as EnterpriseProjectRecord));
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(list);
+  });
+}
+
+export async function saveProject(project: EnterpriseProjectRecord): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'projects', project.id), cleanData(project), { merge: true });
+}
+
+export async function getProjectById(projectId: string): Promise<EnterpriseProjectRecord | null> {
+  if (!db || !projectId) return null;
+  try {
+    const snap = await getDoc(doc(db, 'projects', projectId));
+    return snap.exists() ? ({ id: snap.id, ...snap.data() } as EnterpriseProjectRecord) : null;
+  } catch (e) {
+    console.error('getProjectById error:', e);
+    return null;
+  }
+}
+
+// 21. Proposals & Quotations
+export function subscribeQuotations(callback: (quotes: QuotationRecord[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'quotations'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as QuotationRecord));
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(list);
+  });
+}
+
+export async function saveQuotation(quote: QuotationRecord): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'quotations', quote.id), cleanData(quote), { merge: true });
+}
+
+// 22. Support Tickets
+export function subscribeSupportTickets(callback: (tickets: SupportTicketRecord[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'support_tickets'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ ticketId: d.id, ...d.data() } as SupportTicketRecord));
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(list);
+  });
+}
+
+export async function saveSupportTicket(ticket: SupportTicketRecord): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'support_tickets', ticket.ticketId), cleanData(ticket), { merge: true });
+}
+
+// 23. Maintenance Contracts
+export function subscribeMaintenanceContracts(callback: (contracts: MaintenanceContractRecord[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'maintenance_contracts'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ contractId: d.id, ...d.data() } as MaintenanceContractRecord));
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(list);
+  });
+}
+
+export async function saveMaintenanceContract(contract: MaintenanceContractRecord): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'maintenance_contracts', contract.contractId), cleanData(contract), { merge: true });
+}
+
+// 24. Technical Discoveries
+export function subscribeDiscoveries(callback: (discoveries: DiscoveryRecord[]) => void): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'discoveries'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ discoveryId: d.id, ...d.data() } as DiscoveryRecord));
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(list);
+  });
+}
+
+export async function saveDiscoveryRecord(discovery: DiscoveryRecord): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'discoveries', discovery.discoveryId), cleanData(discovery), { merge: true });
+}
+
+// 25. Universal Tasks
+export function subscribeUniversalTasks(
+  entityType?: string,
+  entityId?: string,
+  callback?: (tasks: UniversalTaskRecord[]) => void
+): () => void {
+  const cb = callback || ((() => {}) as any);
+  if (!db) {
+    cb([]);
+    return () => {};
+  }
+  let q = query(collection(db, 'universal_tasks'));
+  if (entityType && entityId) {
+    q = query(collection(db, 'universal_tasks'), where('entityType', '==', entityType), where('entityId', '==', entityId));
+  }
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ taskId: d.id, ...d.data() } as UniversalTaskRecord));
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    cb(list);
+  });
+}
+
+export async function saveUniversalTask(task: UniversalTaskRecord): Promise<void> {
+  if (!db) return;
+  await setDoc(doc(db, 'universal_tasks', task.taskId), cleanData(task), { merge: true });
 }
 
 

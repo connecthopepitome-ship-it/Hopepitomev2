@@ -112,6 +112,46 @@ service cloud.firestore {
     }
 
     // =========================================================================
+    // MULTI-SERVICE PLATFORM COLLECTIONS (IT SERVICES & CAREER SERVICES)
+    // =========================================================================
+
+    match /service_catalogue/{serviceId} {
+      allow read: if true; // Publicly readable for catalogue & enquiries
+      allow write: if isStaff();
+    }
+    match /projects/{projectId} {
+      allow read: if isStaff() || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+    match /quotations/{quotationId} {
+      allow read: if isStaff() || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+    match /discoveries/{discoveryId} {
+      allow read, write: if isStaff();
+    }
+    match /universal_tasks/{taskId} {
+      allow read, write: if isStaff();
+    }
+    match /support_tickets/{ticketId} {
+      allow read: if isStaff() || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+      allow create: if isAuthenticated();
+      allow update, delete: if isStaff();
+    }
+    match /maintenance_contracts/{contractId} {
+      allow read: if isStaff() || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+    match /commercial_invoices/{invoiceId} {
+      allow read: if isStaff() || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+    match /commercial_payments/{paymentId} {
+      allow read: if isStaff() || (isAuthenticated() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+
+    // =========================================================================
     // EMPLOYEE MANAGEMENT & ACCESS CONTROL COLLECTIONS
     // =========================================================================
 

@@ -31,6 +31,11 @@ import {
   KeyRound,
   AlertCircle,
   CheckCircle2,
+  Layers,
+  LifeBuoy,
+  MoreHorizontal,
+  X,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -233,34 +238,38 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
+  const [showMobileMore, setShowMobileMore] = useState(false);
+
   const crmNavItems = [
-    { label: 'CRM Dashboard', href: '/career-services/admin/crm', icon: LayoutDashboard },
+    { label: 'CRM Overview', href: '/career-services/admin/crm', icon: LayoutDashboard },
     { label: 'Leads Inbox', href: '/career-services/admin/crm/leads', icon: Inbox },
     { label: 'Sales Pipeline (Kanban)', href: '/career-services/admin/crm/pipeline', icon: Kanban },
+    { label: 'Commercial Quotations', href: '/career-services/admin/crm/quotations', icon: Receipt },
     { label: 'Follow-ups & Calls', href: '/career-services/admin/crm/follow-ups', icon: PhoneCall },
     { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: Calendar },
-    { label: 'Reports & Analytics', href: '/career-services/admin/crm/reports', icon: BarChart3 },
+    { label: 'Sales Analytics', href: '/career-services/admin/crm/reports', icon: BarChart3 },
     { label: 'CRM Settings', href: '/career-services/admin/crm/settings', icon: Settings },
   ];
 
-  const opsNavItems = [
-    { label: 'Operations Dashboard', href: '/career-services/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Client Directory (360°)', href: '/career-services/admin/clients', icon: Users },
-    { label: 'Service Orders Pipeline', href: '/career-services/admin/orders', icon: Briefcase },
+  const deliveryNavItems = [
+    { label: 'Project Management & Board', href: '/career-services/admin/projects', icon: Briefcase },
+    { label: 'Service Catalogue Engine', href: '/career-services/admin/services', icon: Layers },
+    { label: 'Customer 360 Directory', href: '/career-services/admin/clients', icon: Users },
     { label: 'Staff Task Board', href: '/career-services/admin/tasks', icon: CheckSquare },
-    { label: 'Deliverables & Drafts', href: '/career-services/admin/deliverables', icon: FileBox },
-    { label: 'Revisions Queue', href: '/career-services/admin/revisions', icon: RotateCcw },
-    { label: 'Finance & Invoices', href: '/career-services/admin/finance', icon: Receipt },
+    { label: 'Deliverables & Vault', href: '/career-services/admin/deliverables', icon: FileBox },
+    { label: 'Career Work Orders', href: '/career-services/admin/orders', icon: RotateCcw },
+    { label: 'SLA Support & Maintenance', href: '/career-services/admin/support', icon: LifeBuoy },
+    { label: 'Finance & Invoicing', href: '/career-services/admin/finance', icon: Receipt },
     { label: 'Audit Trail & Logs', href: '/career-services/admin/audit', icon: History },
   ];
 
   const empNavItems = [
     { label: 'Employee Dashboard', href: '/career-services/admin/employees', icon: LayoutDashboard },
-    { label: 'All Employees Directory', href: '/career-services/admin/employees/directory', icon: Users },
+    { label: 'Employee Directory', href: '/career-services/admin/employees/directory', icon: Users },
     { label: 'Add Employee', href: '/career-services/admin/employees/new', icon: UserPlus },
     { label: 'Roles & Permissions', href: '/career-services/admin/employees/roles', icon: Shield },
     { label: 'Departments', href: '/career-services/admin/employees/departments', icon: Building2 },
-    { label: 'Account Activity & Logs', href: '/career-services/admin/employees/activity', icon: Activity },
+    { label: 'Activity Logs', href: '/career-services/admin/employees/activity', icon: Activity },
   ];
 
   const canManageEmployees = hasPermission('employees', 'view');
@@ -269,46 +278,44 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-[#F7F5F0] text-[#292D36] flex flex-col font-sans selection:bg-[#8172A8]/20 selection:text-[#17243B]">
       <AdminHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col md:flex-row gap-8">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0 space-y-5">
-          {/* Employee Management Navigation Group (Visible if authorized) */}
-          {canManageEmployees && (
-            <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
-              <div className="flex items-center justify-between px-3 py-1 mb-0.5">
-                <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-700">
-                  Employee Management
-                </span>
-                <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
-                  HR & Access
-                </span>
-              </div>
-              {empNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
-                      isActive
-                        ? 'bg-[#17243B] text-white shadow-sm'
-                        : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-600'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
-                  </Link>
-                );
-              })}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6 pb-24 md:pb-8">
+        {/* Desktop Sidebar (Hidden on small screens) */}
+        <aside className="hidden md:block w-64 shrink-0 space-y-4">
+          {/* Service Catalogue & Delivery Group */}
+          <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
+            <div className="flex items-center justify-between px-3 py-1 mb-0.5">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-700">
+                Delivery & Projects
+              </span>
+              <span className="text-[9px] font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
+                IT & Multi-Service
+              </span>
             </div>
-          )}
+            {deliveryNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
+                    isActive
+                      ? 'bg-[#17243B] text-white shadow-sm font-semibold'
+                      : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-indigo-600'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
+                </Link>
+              );
+            })}
+          </div>
 
           {/* CRM Navigation Group */}
-          <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
+          <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
             <div className="flex items-center justify-between px-3 py-1 mb-0.5">
               <span className="text-[10px] font-bold tracking-wider uppercase text-[#8172A8]">
                 CRM & Sales
@@ -324,9 +331,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
                     isActive
-                      ? 'bg-[#17243B] text-white shadow-sm'
+                      ? 'bg-[#17243B] text-white shadow-sm font-semibold'
                       : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
                   }`}
                 >
@@ -340,38 +347,197 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             })}
           </div>
 
-          {/* Operations Navigation Group */}
-          <div className="bg-[#FFFFFF] p-3 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
-            <span className="text-[10px] font-bold tracking-wider uppercase text-[#777781] px-3 py-1 block">
-              Fulfillment & Operations
-            </span>
-            {opsNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
-                    isActive
-                      ? 'bg-[#17243B] text-white shadow-sm'
-                      : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#777781]'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
-                </Link>
-              );
-            })}
-          </div>
+          {/* Employee Management Navigation Group (Visible if authorized) */}
+          {canManageEmployees && (
+            <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
+              <div className="flex items-center justify-between px-3 py-1 mb-0.5">
+                <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-700">
+                  Team & Organization
+                </span>
+                <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Staff & Access
+                </span>
+              </div>
+              {empNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
+                      isActive
+                        ? 'bg-[#17243B] text-white shadow-sm font-semibold'
+                        : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-600'}`} />
+                      <span>{item.label}</span>
+                    </div>
+                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </aside>
 
         {/* Main Workspace Area */}
         <main className="flex-1 min-w-0">{children}</main>
       </div>
+
+      {/* Persistent Mobile Bottom Navigation Bar (< md) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E6E2DC] shadow-[0_-2px_10px_rgba(23,36,59,0.06)] px-3 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <Link
+          href="/career-services/admin/dashboard"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname === '/career-services/admin/dashboard'
+              ? 'text-[#17243B] font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Home</span>
+        </Link>
+
+        <Link
+          href="/career-services/admin/crm/leads"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname.startsWith('/career-services/admin/crm')
+              ? 'text-[#8172A8] font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <Inbox className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">CRM</span>
+        </Link>
+
+        <Link
+          href="/career-services/admin/projects"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname.startsWith('/career-services/admin/projects')
+              ? 'text-indigo-600 font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <Briefcase className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Projects</span>
+        </Link>
+
+        <Link
+          href="/career-services/admin/employees/directory"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname.startsWith('/career-services/admin/employees')
+              ? 'text-emerald-700 font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <Users className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Team</span>
+        </Link>
+
+        <button
+          onClick={() => setShowMobileMore(true)}
+          className="flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl text-[#777781] hover:text-[#17243B] transition"
+        >
+          <MoreHorizontal className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">More</span>
+        </button>
+      </nav>
+
+      {/* Mobile "More" Drawer / Action Sheet */}
+      {showMobileMore && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex flex-col justify-end">
+          <div className="bg-white rounded-t-3xl p-5 border-t border-[#E6E2DC] shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#E6E2DC] pb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
+                Navigation Drawer
+              </span>
+              <button
+                onClick={() => setShowMobileMore(false)}
+                className="p-1 rounded-full hover:bg-gray-100 text-[#777781]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <Link
+                href="/career-services/admin/services"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <Layers className="w-4 h-4 text-indigo-600" />
+                <span>Service Catalogue</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/crm/quotations"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <Receipt className="w-4 h-4 text-purple-600" />
+                <span>Quotations</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/support"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <LifeBuoy className="w-4 h-4 text-rose-600" />
+                <span>Support & SLAs</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/finance"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <Receipt className="w-4 h-4 text-emerald-600" />
+                <span>Finance & Invoices</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/tasks"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <CheckSquare className="w-4 h-4 text-blue-600" />
+                <span>Task Board</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/deliverables"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <FileBox className="w-4 h-4 text-amber-600" />
+                <span>Deliverables Vault</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/clients"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <Users className="w-4 h-4 text-indigo-700" />
+                <span>Customers 360</span>
+              </Link>
+
+              <Link
+                href="/career-services/admin/crm/settings"
+                onClick={() => setShowMobileMore(false)}
+                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+              >
+                <Settings className="w-4 h-4 text-gray-700" />
+                <span>CRM Settings</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

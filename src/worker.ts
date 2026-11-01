@@ -590,6 +590,24 @@ export default {
     }
 
     // =========================================================================
+    // MULTI-SERVICE CATALOGUE API
+    // =========================================================================
+    if (url.pathname === '/api/career/services/catalogue') {
+      try {
+        const docs = await firestore.listDocuments('service_catalogue');
+        return new Response(JSON.stringify({ success: true, services: docs || [] }), {
+          status: 200,
+          headers: CORS_HEADERS,
+        });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ success: false, error: err?.message }), {
+          status: 500,
+          headers: CORS_HEADERS,
+        });
+      }
+    }
+
+    // =========================================================================
     // CRM: SAVE LEAD RECORD (ADMIN / RESILIENT FALLBACK API)
     // =========================================================================
     if (url.pathname === '/api/career/crm/lead/save') {

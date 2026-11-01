@@ -197,5 +197,9 @@ export class EdgeFirestoreClient {
 
     return docs;
   }
+
+  async listDocuments(collectionName: string, limit = 100): Promise<Record<string, any>[]> {
+    return this.queryCollection(collectionName, undefined, limit);
+  }
 }
 

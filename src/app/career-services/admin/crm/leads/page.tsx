@@ -72,13 +72,24 @@ const LEAD_SOURCES: CrmLeadSource[] = [
 ];
 
 const SERVICES_LIST = [
+  // IT & Business Technology Services
+  'Website Development',
+  'Ecommerce Store Development',
+  'Custom Web Application Development',
+  'ERP Implementation & Consulting (ERPNext / Infor M3 / Infor LN)',
+  'CRM Implementation & Customisation',
+  'Workflow Automation & Process Engineering',
+  'API & System Integrations',
+  'Business Dashboards & Analytics (Power BI / Birst)',
+  'Cloud Hosting & SLA Support Maintenance',
+  // Career Services
   'Professional Resume Writing',
   'ATS Resume Optimisation',
   'LinkedIn Profile Makeover',
   'Personal Portfolio Websites',
   'Managed Job Search & Applications',
   'Executive Career Transition',
-  'General Career Consultation',
+  'Multi-Service Business Technology & Career Package',
 ];
 
 function LeadsContent() {

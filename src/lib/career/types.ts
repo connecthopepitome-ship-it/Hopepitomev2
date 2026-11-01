@@ -402,6 +402,7 @@ export interface ClientRecord {
   clientId: string;
   name: string;
   mobile: string;
+  email?: string;
   createdAt: string;
   updatedAt: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
@@ -777,6 +778,368 @@ export interface StaffLoginLog {
   result: 'SUCCESS' | 'FAILED';
   failureReason?: string;
   safeMetadata?: string;
+}
+
+// =============================================================================
+// MULTI-SERVICE BUSINESS PLATFORM TYPES (IT SERVICES & CAREER SERVICES)
+// =============================================================================
+
+export type BusinessDivision = 'IT_SERVICES' | 'CAREER_SERVICES';
+
+export type ServiceCategoryCode =
+  | 'WEBSITE_DEV'
+  | 'ECOMMERCE_DEV'
+  | 'CUSTOM_APP_DEV'
+  | 'ERP_CONSULTING'
+  | 'CRM_SOLUTIONS'
+  | 'WORKFLOW_AUTOMATION'
+  | 'API_INTEGRATIONS'
+  | 'BUSINESS_ANALYTICS'
+  | 'CLOUD_SUPPORT'
+  | 'RESUME_WRITING'
+  | 'ATS_OPTIMISATION'
+  | 'LINKEDIN_MAKEOVER'
+  | 'PORTFOLIO_WEBSITE'
+  | 'MANAGED_JOB_SEARCH';
+
+export type PricingModel =
+  | 'FIXED_PRICE'
+  | 'HOURLY'
+  | 'DAILY'
+  | 'MILESTONE_BASED'
+  | 'MONTHLY_RETAINER'
+  | 'ANNUAL_MAINTENANCE'
+  | 'SUBSCRIPTION'
+  | 'CUSTOM_QUOTATION';
+
+export interface ServicePackage {
+  id: string;
+  serviceId: string;
+  name: string;
+  tier: 'STARTER' | 'BUSINESS' | 'ENTERPRISE' | 'CUSTOM';
+  price: number;
+  currency: string;
+  durationDays: number;
+  features: string[];
+  deliverables: string[];
+}
+
+export interface ServiceItem {
+  id: string;
+  code: string;
+  name: string;
+  division: BusinessDivision;
+  categoryCode: ServiceCategoryCode;
+  categoryName: string;
+  description: string;
+  scopeOfWork: string[];
+  deliverables: string[];
+  defaultDurationDays: number;
+  pricingModel: PricingModel;
+  defaultPackages: ServicePackage[];
+  requiredRequirements?: string[];
+  optionalRequirements?: string[];
+  defaultMilestones?: string[];
+  applicableRoles?: string[];
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface Customer360Record {
+  id: string; // matches uid or clientId
+  clientCode: string; // CL-XXXX or CUST-XXXX
+  customerType: 'BUSINESS' | 'INDIVIDUAL';
+  fullName: string;
+  email: string;
+  phone?: string;
+  companyName?: string;
+  industry?: string;
+  website?: string;
+  companySize?: string;
+  taxId?: string;
+  billingAddress?: string;
+  city?: string;
+  country?: string;
+  contactPersonName?: string;
+  contactPersonDesignation?: string;
+  activeDivisions: BusinessDivision[];
+  totalOpportunities?: number;
+  totalProjects?: number;
+  totalInvoiced?: number;
+  totalPaid?: number;
+  outstandingBalance?: number;
+  activeContracts?: number;
+  accountManagerName?: string;
+  notes?: string;
+  currentWorkOrderId?: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DiscoveryRecord {
+  discoveryId: string;
+  leadId: string;
+  customerId?: string;
+  customerName: string;
+  customerCompany?: string;
+  division: BusinessDivision;
+  serviceId: string;
+  serviceName: string;
+  businessProblem: string;
+  currentProcess: string;
+  proposedSolution: string;
+  functionalRequirements: string[];
+  nonFunctionalRequirements: string[];
+  userRoles: string[];
+  integrations: string[];
+  dataMigrationDetails?: string;
+  reportingRequirements?: string[];
+  hostingPreference?: string;
+  estimatedTimelineWeeks?: number;
+  budgetRange?: string;
+  risks: string[];
+  assumptions: string[];
+  outOfScope: string[];
+  attachments?: string[];
+  completenessScore: number;
+  preparedBy: string;
+  approvedBy?: string;
+  status: 'DRAFT' | 'IN_REVIEW' | 'APPROVED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuotationLineItem {
+  id: string;
+  serviceName: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  discount: number;
+  taxRate: number;
+  total: number;
+  isRecurring?: boolean;
+  recurringFrequency?: 'MONTHLY' | 'ANNUAL';
+}
+
+export interface PaymentMilestone {
+  id: string;
+  title: string;
+  percentage: number;
+  amount: number;
+  dueDate?: string;
+  condition: string;
+  status: 'PENDING' | 'INVOICED' | 'PAID';
+}
+
+export interface QuotationRecord {
+  id: string;
+  quotationNumber: string; // QT-YYYYMM-XXXX
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  customerCompany?: string;
+  opportunityId?: string;
+  leadId?: string;
+  division: BusinessDivision;
+  lineItems: QuotationLineItem[];
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  totalAmount: number;
+  currency: string;
+  paymentMilestones: PaymentMilestone[];
+  termsAndConditions: string[];
+  validityDays: number;
+  validUntil: string;
+  status: 'DRAFT' | 'INTERNAL_REVIEW' | 'APPROVED' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  approvedBy?: string;
+  clientAcceptedAt?: string;
+  clientAcceptanceNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProjectStatus =
+  | 'DRAFT'
+  | 'AWAITING_PAYMENT'
+  | 'READY_TO_START'
+  | 'IN_PROGRESS'
+  | 'ON_HOLD'
+  | 'INTERNAL_REVIEW'
+  | 'CLIENT_UAT'
+  | 'REVISION'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export interface ProjectMilestoneRecord {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  orderIndex: number;
+  status: 'PENDING' | 'IN_PROGRESS' | 'READY_FOR_UAT' | 'CLIENT_APPROVED' | 'COMPLETED';
+  dueDate?: string;
+  completedAt?: string;
+  paymentMilestoneId?: string;
+  deliverablesSummary?: string;
+}
+
+export interface EnterpriseProjectRecord {
+  id: string; // PRJ-YYYY-XXXXX
+  name: string;
+  customerId: string;
+  customerName: string;
+  customerCompany?: string;
+  division: BusinessDivision;
+  serviceId: string;
+  serviceName: string;
+  projectManagerId: string;
+  projectManagerName: string;
+  teamMembers: { uid: string; name: string; role: string }[];
+  startDate: string;
+  plannedEndDate: string;
+  actualEndDate?: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  status: ProjectStatus;
+  budget: number;
+  contractValue: number;
+  progressPercent: number;
+  currency: string;
+  billingMethod: PricingModel;
+  milestones: ProjectMilestoneRecord[];
+  driveFolderId?: string;
+  driveFolderPath?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type BusinessProjectRecord = EnterpriseProjectRecord;
+
+export interface UniversalTaskRecord {
+  taskId: string;
+  entityType: 'PROJECT' | 'LEAD' | 'OPPORTUNITY' | 'CUSTOMER' | 'SUPPORT_TICKET' | 'CAREER_ORDER';
+  entityId: string;
+  entityTitle: string;
+  title: string;
+  description?: string;
+  assignedToId: string;
+  assignedToName: string;
+  createdBy: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status: 'OPEN' | 'IN_PROGRESS' | 'WAITING' | 'BLOCKED' | 'INTERNAL_REVIEW' | 'COMPLETED' | 'CANCELLED';
+  dueDate?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  checklist: { id: string; text: string; completed: boolean }[];
+  createdAt: string;
+  completedAt?: string;
+}
+
+export type SupportTicketCategory =
+  | 'BUG_FIX'
+  | 'CHANGE_REQUEST'
+  | 'SERVICE_REQUEST'
+  | 'INCIDENT'
+  | 'MAINTENANCE';
+
+export type SupportTicketStatus =
+  | 'OPEN'
+  | 'ACKNOWLEDGED'
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'WAITING_CUSTOMER'
+  | 'RESOLVED'
+  | 'CLOSED';
+
+export interface SupportTicketRecord {
+  ticketId: string; // TCK-YYYYMM-XXXX
+  customerId: string;
+  customerName: string;
+  customerCompany?: string;
+  projectId?: string;
+  projectName?: string;
+  serviceId?: string;
+  serviceName?: string;
+  subject: string;
+  description: string;
+  category: SupportTicketCategory;
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  status: SupportTicketStatus;
+  responseDeadline?: string;
+  resolutionDeadline?: string;
+  resolutionNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+}
+
+export interface MaintenanceContractRecord {
+  contractId: string; // MNT-YYYY-XXXX
+  customerId: string;
+  customerName: string;
+  customerCompany?: string;
+  projectId?: string;
+  projectName?: string;
+  coveredServices: string[];
+  startDate: string;
+  endDate: string;
+  renewalDate: string;
+  fee: number;
+  currency: string;
+  billingFrequency: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
+  supportHoursIncluded: number;
+  supportHoursUsed: number;
+  slaHours: number;
+  status: 'ACTIVE' | 'PENDING_RENEWAL' | 'EXPIRED' | 'CANCELLED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommercialInvoiceRecord {
+  invoiceId: string; // INV-YYYYMM-XXXX
+  customerId: string;
+  customerName: string;
+  customerCompany?: string;
+  quotationId?: string;
+  projectId?: string;
+  division: BusinessDivision;
+  issueDate: string;
+  dueDate: string;
+  lineItems: InvoiceLineItem[];
+  subtotal: number;
+  discount: number;
+  taxes: number;
+  total: number;
+  paidAmount: number;
+  outstandingBalance: number;
+  status: 'DRAFT' | 'ISSUED' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'CANCELLED';
+  paymentMilestoneId?: string;
+  currency: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommercialPaymentRecord {
+  paymentId: string; // PAY-YYYYMM-XXXX
+  invoiceId: string;
+  invoiceNumber: string;
+  customerId: string;
+  customerName: string;
+  amount: number;
+  currency: string;
+  paymentDate: string;
+  paymentMethod: 'BANK_TRANSFER' | 'CREDIT_CARD' | 'UPI' | 'CASH' | 'CHEQUE' | 'OTHER';
+  transactionReference?: string;
+  recordedByName: string;
+  recordedByUid: string;
+  notes?: string;
+  status: 'CONFIRMED' | 'PENDING_RECONCILIATION' | 'FAILED';
+  createdAt: string;
 }
 
 

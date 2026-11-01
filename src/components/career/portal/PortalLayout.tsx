@@ -62,9 +62,9 @@ export function PortalLayout({ children }: PortalLayoutProps) {
     <div className="min-h-screen bg-[#F7F5F0] text-[#292D36] flex flex-col font-sans selection:bg-[#8172A8]/20 selection:text-[#17243B]">
       <PortalHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col md:flex-row gap-8">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6 pb-24 md:pb-8">
+        {/* Sidebar (Desktop) */}
+        <aside className="hidden md:block w-64 shrink-0 space-y-6">
           {/* Client badge card */}
           <div className="bg-[#FFFFFF] p-4 rounded-xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)]">
             <div className="flex items-center gap-3">
@@ -159,6 +159,69 @@ export function PortalLayout({ children }: PortalLayoutProps) {
         {/* Main Content Area */}
         <main className="flex-1 min-w-0">{children}</main>
       </div>
+
+      {/* Persistent Mobile Bottom Navigation Bar (< md) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E6E2DC] shadow-[0_-2px_10px_rgba(23,36,59,0.06)] px-3 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <Link
+          href="/career-services/portal/dashboard"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname === '/career-services/portal/dashboard'
+              ? 'text-[#17243B] font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Home</span>
+        </Link>
+
+        <Link
+          href="/career-services/portal/orders"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname === '/career-services/portal/orders'
+              ? 'text-[#8172A8] font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <Briefcase className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">My Work</span>
+        </Link>
+
+        <Link
+          href="/career-services/portal/documents"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname === '/career-services/portal/documents'
+              ? 'text-indigo-600 font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <FileBox className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Uploads</span>
+        </Link>
+
+        <Link
+          href="/career-services/portal/messages"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname === '/career-services/portal/messages'
+              ? 'text-emerald-700 font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <MessageSquare className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Messages</span>
+        </Link>
+
+        <Link
+          href="/career-services/portal/onboarding"
+          className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
+            pathname === '/career-services/portal/onboarding'
+              ? 'text-purple-700 font-bold'
+              : 'text-[#777781] hover:text-[#17243B]'
+          }`}
+        >
+          <UserCheck className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] leading-tight">Profile</span>
+        </Link>
+      </nav>
     </div>
   );
 }
