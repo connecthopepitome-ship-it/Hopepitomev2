@@ -2,268 +2,234 @@
 
 import React from 'react';
 import {
-  FileText,
-  Search,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Star,
+  Zap,
+  CheckCircle2,
   Linkedin,
   Globe,
-  Briefcase,
-  CheckCircle2,
-  ArrowRight,
-  Sparkles,
-  ExternalLink,
+  FileText,
+  Award,
+  TrendingUp,
+  Layers,
 } from 'lucide-react';
 
-const supportingPoints = [
-  {
-    icon: FileText,
-    label: 'Professional Resume Writing',
-    desc: 'Structured for clarity and career impact',
-  },
-  {
-    icon: Search,
-    label: 'ATS Resume Optimisation',
-    desc: 'Keyword alignment & recruiter readability',
-  },
-  {
-    icon: Linkedin,
-    label: 'LinkedIn Profile Makeover',
-    desc: 'Stronger headline, summary & story',
-  },
-  {
-    icon: Globe,
-    label: 'Personal Portfolio Websites',
-    desc: 'Dedicated showcase for your work & projects',
-  },
-  {
-    icon: Briefcase,
-    label: 'Managed Job Search & Applications',
-    desc: 'Practical search organisation & vacancy tracking',
-  },
-];
-
 export function CareerHeroSection() {
-  return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-[#F7F5F0]">
-      {/* Subtle Editorial Background Grid Elements */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.035]"
-        style={{
-          backgroundImage: `radial-gradient(#17243B 1px, transparent 1px)`,
-          backgroundSize: '24px 24px',
-        }}
-        aria-hidden="true"
-      />
+  const scrollTo = (id: string) => {
+    const el = document.querySelector(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+  return (
+    <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20 bg-gradient-to-b from-[#F5F2FF] via-[#F8F6FF] to-[#FAF8FF]">
+      {/* Subtle Background Glows */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#7357F5]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-32 w-96 h-96 bg-[#FF7187]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 left-1/3 w-80 h-80 bg-[#48C7E8]/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          {/* Left Column: Value Proposition & CTAs */}
-          <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC]">
-                <Sparkles className="w-3 h-3 text-[#8172A8]" />
-                CAREER SERVICES · PROFESSIONAL BRANDING
-              </span>
+          
+          {/* =========================================================================
+              LEFT COLUMN: HEADLINE, DESCRIPTION & ACTIONS
+             ========================================================================= */}
+          <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
+            {/* Studio Pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-[#7357F5]/20 shadow-sm text-xs font-bold text-[#17152F]">
+              <span className="w-2 h-2 rounded-full bg-[#7357F5] animate-pulse" />
+              <span>DIGITAL CAREER STUDIO</span>
+              <span className="text-[#7357F5]/40">•</span>
+              <span className="text-[#7357F5]">Tailored Executive Branding</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl text-[#17243B] tracking-tight leading-[1.08]">
-              Your experience deserves a{' '}
-              <span className="relative whitespace-nowrap text-[#17243B]">
-                stronger
-                <span className="absolute bottom-1.5 left-0 right-0 h-3 bg-[#A69ACB]/25 -z-10 rounded-sm" />
-              </span>{' '}
-              presentation.
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-[#17152F] leading-[1.12]">
+              Your Next Career Move{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#48C7E8]">
+                Starts Here.
+              </span>
             </h1>
 
-            {/* Supporting Copy */}
-            <p className="text-lg sm:text-xl text-[#292D36]/90 leading-relaxed font-sans max-w-2xl">
-              From professionally written resumes to LinkedIn profiles, personal portfolio websites
-              and job search assistance, we help you present your experience and take your next
-              career step with confidence.
+            {/* Supporting Text */}
+            <p className="text-base sm:text-lg text-[#24233A]/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+              Resume. LinkedIn. Portfolio. Job Search.{' '}
+              <span className="text-[#17152F] font-semibold">
+                Everything you need to present yourself with confidence.
+              </span>
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-              <a
-                href="#services"
-                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide bg-[#17243B] text-white hover:bg-[#292D36] active:scale-95 transition-all shadow-md group"
+            {/* Dual Action CTAs */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+              <button
+                type="button"
+                onClick={() => scrollTo('#intake')}
+                className="w-full sm:w-auto px-7 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#7357F5] hover:opacity-95 shadow-lg shadow-[#7357F5]/30 flex items-center justify-center gap-2.5 transition transform active:scale-95"
               >
-                <span>Explore Our Services</span>
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </a>
+                <span>Build My Career Profile</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
 
-              <a
-                href="#contact"
-                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide bg-white text-[#17243B] border border-[#E6E2DC] hover:border-[#8172A8] hover:bg-[#FAF8FC] active:scale-95 transition-all shadow-sm"
+              <button
+                type="button"
+                onClick={() => scrollTo('#services')}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl text-sm font-bold text-[#17152F] bg-white hover:bg-white/90 border border-[#7357F5]/20 hover:border-[#7357F5]/40 shadow-sm transition"
               >
-                Get Started
-              </a>
+                Explore Services
+              </button>
             </div>
 
-            {/* Supporting Points Grid */}
-            <div className="pt-8 border-t border-[#E6E2DC]/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {supportingPoints.map((pt, idx) => {
-                const Icon = pt.icon;
-                return (
-                  <div key={idx} className="flex items-start space-x-2.5">
-                    <div className="p-1.5 rounded-lg bg-white border border-[#E6E2DC] text-[#8172A8] shrink-0 mt-0.5 shadow-2xs">
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <h2 className="text-xs font-semibold text-[#17243B] leading-snug">{pt.label}</h2>
-                      <p className="text-[11px] text-[#777781] leading-tight mt-0.5">{pt.desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Trust Metrics Bar */}
+            <div className="pt-4 border-t border-[#7357F5]/10 flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs text-[#24233A]/75 font-semibold">
+              <div className="flex items-center gap-1.5">
+                <div className="flex text-amber-400">
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                </div>
+                <span>4.9/5 Rating</span>
+              </div>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <div className="flex items-center gap-1 text-[#65DDB5]">
+                <Zap className="w-3.5 h-3.5 fill-[#65DDB5]" />
+                <span className="text-[#24233A]">98% ATS Pass Rate</span>
+              </div>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <div className="flex items-center gap-1 text-[#7357F5]">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="text-[#24233A]">1,200+ Careers Elevated</span>
+              </div>
             </div>
           </div>
 
-          {/* Right Column: Layered Editorial Document Composition */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative mx-auto max-w-md lg:max-w-none">
-              {/* Decorative Subtle Shadow Backdrop */}
-              <div
-                className="absolute -inset-4 bg-gradient-to-tr from-[#A69ACB]/15 via-white/40 to-transparent rounded-3xl -z-10 blur-xl"
-                aria-hidden="true"
-              />
-
-              {/* Document 1: Main Realistic Executive Resume Preview Sheet */}
-              <div className="bg-white rounded-2xl border border-[#E6E2DC] shadow-xl p-6 sm:p-7 relative z-20">
-                {/* Document Top Bar */}
-                <div className="flex items-center justify-between pb-3.5 border-b border-[#E6E2DC]/80 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#8172A8]/60" />
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold">
-                      Illustrative Concept Sample · Fictional Profile
-                    </span>
+          {/* =========================================================================
+              RIGHT COLUMN: CREATIVE VISUAL PROFILE COMPOSITION
+             ========================================================================= */}
+          <div className="lg:col-span-6 relative flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-lg">
+              
+              {/* Layer 1: Main Executive Resume Card (Centered Base) */}
+              <div className="relative bg-white rounded-3xl p-6 sm:p-7 border border-[#7357F5]/15 shadow-2xl shadow-[#7357F5]/10 space-y-4">
+                
+                {/* Resume Header Area */}
+                <div className="flex items-start justify-between pb-3.5 border-b border-slate-100">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-black text-[#17152F] tracking-tight">
+                        Alex Morgan
+                      </h3>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Executive Ready
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-[#7357F5]">
+                      VP of Product Strategy & Enterprise Scale
+                    </p>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    Clean Structure
-                  </span>
+
+                  {/* ATS Compatibility Score Pill */}
+                  <div className="text-right">
+                    <div className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>98% ATS Match</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Resume Header */}
+                {/* Executive Summary Excerpt */}
                 <div className="space-y-1">
-                  <h2 className="font-display font-bold text-xl text-[#17243B] tracking-tight">
-                    SARAH CHEN
-                  </h2>
-                  <p className="text-xs font-medium text-[#8172A8] font-mono tracking-wide uppercase">
-                    SENIOR PRODUCT STRATEGIST
-                  </p>
-                  <p className="text-[11px] text-[#777781] font-sans">
-                    Singapore · sample.chen@example.com · linkedin.com/in/sample-sarahchen
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Executive Narrative
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed font-sans">
+                    12+ years driving hyper-scale product innovation, expanding enterprise ARR from $8M to $44M. Expert in cloud transformation and cross-functional leadership.
                   </p>
                 </div>
 
-                {/* Profile Summary */}
-                <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60">
-                  <h3 className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold mb-1">
-                    Professional Summary
-                  </h3>
-                  <p className="text-xs text-[#292D36] leading-relaxed">
-                    Product leader with 9+ years managing software development roadmaps, coordinating
-                    cross-functional teams, and delivering enterprise digital products.
-                  </p>
-                </div>
-
-                {/* Sample Experience Entries */}
-                <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60">
-                  <h3 className="text-[10px] font-mono uppercase tracking-wider text-[#777781] font-semibold mb-2">
-                    Key Experience Highlights
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="bg-[#FAF8FC] p-2.5 rounded-lg border border-[#E6E2DC]/80">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-[#17243B]">
-                          Product Modernisation
-                        </span>
-                        <span className="text-[10px] font-mono text-[#8172A8] font-semibold">
-                          Platform Lead
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-[#777781] mt-0.5">
-                        Led platform unification across 3 core business units with zero unplanned downtime.
-                      </p>
+                {/* Experience Snapshot */}
+                <div className="space-y-2 pt-1">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Featured Impact
+                  </div>
+                  <div className="p-3 rounded-2xl bg-[#F5F2FF]/70 border border-[#7357F5]/10 space-y-1">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#17152F]">
+                      <span>Head of Cloud Solutions</span>
+                      <span className="text-[10px] text-slate-500 font-normal">2021 — Present</span>
                     </div>
-
-                    <div className="bg-[#FAF8FC] p-2.5 rounded-lg border border-[#E6E2DC]/80">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-[#17243B]">
-                          Workflow Optimization
-                        </span>
-                        <span className="text-[10px] font-mono text-[#8172A8] font-semibold">
-                          Operations Lead
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-[#777781] mt-0.5">
-                        Streamlined client onboarding steps and automated monthly status reporting.
-                      </p>
-                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      Architected global AI workflow engine accelerating time-to-market by 35%.
+                    </p>
                   </div>
                 </div>
 
-                {/* Core Competencies */}
-                <div className="mt-4 pt-3 border-t border-[#E6E2DC]/60 flex flex-wrap gap-1.5">
-                  {[
-                    'Product Roadmapping',
-                    'Systems Architecture',
-                    'Agile Delivery',
-                    'Stakeholder Management',
-                  ].map((skill) => (
+                {/* Skill Badges */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {['Cloud & AI Strategy', 'P&L Management', 'Cross-Functional Scale', 'ATS Keyword Optimized'].map((tag) => (
                     <span
-                      key={skill}
-                      className="px-2 py-0.5 bg-[#F2EFF7] text-[#8172A8] text-[10px] font-medium rounded-sm border border-[#E6E2DC]"
+                      key={tag}
+                      className="text-[10px] font-semibold text-[#17152F] bg-slate-100/90 px-2.5 py-1 rounded-lg"
                     >
-                      {skill}
+                      {tag}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Document 2: Floating Card — LinkedIn Profile Calibrated Card */}
-              <div className="sm:absolute -bottom-7 -left-7 sm:w-64 bg-[#FAF8FC] rounded-xl border border-[#E6E2DC] shadow-lg p-3.5 z-30 mt-4 sm:mt-0">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center space-x-1.5">
-                    <Linkedin className="w-3.5 h-3.5 text-[#0077B5]" />
-                    <span className="text-[10px] font-mono font-semibold uppercase text-[#17243B]">
-                      LinkedIn Makeover
-                    </span>
+              {/* Layer 2: Floating LinkedIn Profile Preview Card (Top-Right Overlay) */}
+              <div className="absolute -top-6 -right-3 sm:-right-6 bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-[#7357F5]/20 shadow-xl shadow-slate-900/10 space-y-2 max-w-[210px] sm:max-w-[230px] hidden xs:block">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7357F5] to-[#48C7E8] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                    AM
                   </div>
-                  <span className="text-[9px] font-mono text-[#777781] bg-white px-1.5 py-0.5 rounded border border-[#E6E2DC]">
-                    Concept
-                  </span>
+                  <div className="truncate">
+                    <div className="text-xs font-bold text-[#17152F] flex items-center gap-1">
+                      <span>Alex Morgan</span>
+                      <Linkedin className="w-3 h-3 text-[#0077B5]" />
+                    </div>
+                    <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span>All-Star Profile</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs font-medium text-[#17243B]">
-                  &ldquo;Senior Systems Lead | Enterprise ERP & Transformation&rdquo;
-                </p>
-                <p className="text-[10px] text-[#777781] mt-1">
-                  Structured About section, search keywords and skills hierarchy.
-                </p>
+
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-[10px] text-slate-600">
+                  <span className="font-bold text-[#7357F5]">+142%</span> Recruiter search appearances this week.
+                </div>
               </div>
 
-              {/* Document 3: Floating Card — Personal Portfolio Preview */}
-              <div className="sm:absolute -top-6 -right-6 sm:w-60 bg-white rounded-xl border border-[#E6E2DC] shadow-lg p-3.5 z-30 hidden sm:block">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center space-x-1.5">
-                    <Globe className="w-3.5 h-3.5 text-[#8172A8]" />
-                    <span className="text-[10px] font-mono font-semibold uppercase text-[#17243B]">
-                      Portfolio Website
-                    </span>
-                  </div>
-                  <ExternalLink className="w-3 h-3 text-[#777781]" />
+              {/* Layer 3: Floating Portfolio Card (Bottom-Left Overlay) */}
+              <div className="absolute -bottom-6 -left-3 sm:-left-6 bg-[#17152F] text-white rounded-2xl p-3.5 border border-white/10 shadow-2xl space-y-2 max-w-[210px] sm:max-w-[230px]">
+                <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                  <span className="flex items-center gap-1 text-[#48C7E8]">
+                    <Globe className="w-3 h-3" />
+                    <span>alexmorgan.dev</span>
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 </div>
-                <p className="text-xs font-semibold text-[#17243B]">
-                  sarahchen.sample / portfolio
-                </p>
-                <p className="text-[10px] text-[#777781] mt-0.5">
-                  Clean responsive portfolio displaying project case studies.
-                </p>
+
+                <div className="text-xs font-bold text-white">
+                  Interactive Portfolio Live
+                </div>
+                <div className="text-[10px] text-slate-300">
+                  Case studies, architectural diagrams & executive testimonials.
+                </div>
               </div>
+
+              {/* Floating Decorative Skill Tag */}
+              <div className="absolute -bottom-10 right-4 bg-gradient-to-r from-[#FF7187] to-[#9B6BFF] text-white px-3 py-1 rounded-full text-[10px] font-bold shadow-md shadow-[#FF7187]/20 hidden sm:flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                <span>Executive Narrative Verified</span>
+              </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </section>

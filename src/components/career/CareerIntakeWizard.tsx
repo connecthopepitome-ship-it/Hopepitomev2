@@ -3,11 +3,11 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
-  FileText,
+  FileUser,
   ScanSearch,
   Linkedin,
-  Globe,
-  Briefcase,
+  MonitorSmartphone,
+  BriefcaseBusiness,
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
@@ -28,138 +28,104 @@ import {
   Zap,
 } from 'lucide-react';
 
-interface ServiceOption {
+interface ServiceCardOption {
   id: string;
   name: string;
-  badge?: string;
-  badgeColor?: string;
   icon: any;
   color: string;
   bgLight: string;
   borderColor: string;
+  accentBadge: string;
   description: string;
-  features: string[];
 }
 
-const CAREER_SERVICES: ServiceOption[] = [
+const SERVICES_CATALOGUE: ServiceCardOption[] = [
   {
     id: 'Professional Resume Writing',
     name: 'Professional Resume Writing',
-    badge: 'Most Popular',
-    badgeColor: 'bg-violet-600 text-white',
-    icon: FileText,
-    color: '#7C3AED',
-    bgLight: 'bg-violet-50/70',
-    borderColor: 'border-violet-200',
-    description: 'Executive, leadership & mid-level resumes tailored to showcase your authentic career trajectory.',
-    features: ['Custom Value Proposition', 'ATS Keyword Engineering', 'Achievement-led Storytelling'],
+    icon: FileUser,
+    color: '#7357F5', // Electric violet
+    bgLight: 'bg-[#7357F5]/5',
+    borderColor: 'border-[#7357F5]/30',
+    accentBadge: 'bg-[#7357F5]/10 text-[#7357F5]',
+    description: 'Build a professional resume that tells your story.',
   },
   {
     id: 'ATS Resume Optimisation',
     name: 'ATS Resume Optimisation',
-    badge: 'High Demand',
-    badgeColor: 'bg-emerald-600 text-white',
     icon: ScanSearch,
-    color: '#059669',
-    bgLight: 'bg-emerald-50/70',
-    borderColor: 'border-emerald-200',
-    description: 'Format re-structuring and parser alignment to score 95%+ on enterprise applicant tracking systems.',
-    features: ['Format Re-engineering', 'Job Description Mapping', 'ATS Scanner Report'],
+    color: '#48C7E8', // Bright cyan
+    bgLight: 'bg-[#48C7E8]/5',
+    borderColor: 'border-[#48C7E8]/30',
+    accentBadge: 'bg-[#48C7E8]/10 text-[#0E7490]',
+    description: 'Improve structure, readability and role relevance.',
   },
   {
     id: 'LinkedIn Profile Makeover',
     name: 'LinkedIn Profile Makeover',
-    badge: 'High Impact',
-    badgeColor: 'bg-blue-600 text-white',
     icon: Linkedin,
-    color: '#2563EB',
-    bgLight: 'bg-blue-50/70',
-    borderColor: 'border-blue-200',
-    description: 'All-star profile positioning with strategic keywords to turn your LinkedIn into a recruiter magnet.',
-    features: ['High-Converting Headline', 'Search-Optimized About Story', 'Featured Section Strategy'],
+    color: '#9B6BFF', // Vibrant purple
+    bgLight: 'bg-[#9B6BFF]/5',
+    borderColor: 'border-[#9B6BFF]/30',
+    accentBadge: 'bg-[#9B6BFF]/10 text-[#9B6BFF]',
+    description: 'Strengthen your professional online presence.',
   },
   {
-    id: 'Personal Portfolio Websites',
+    id: 'Personal Portfolio Website',
     name: 'Personal Portfolio Website',
-    badge: 'Executive',
-    badgeColor: 'bg-purple-600 text-white',
-    icon: Globe,
-    color: '#9333EA',
-    bgLight: 'bg-purple-50/70',
-    borderColor: 'border-purple-200',
-    description: 'Sleek, responsive digital showcase presenting your leadership credentials and case studies.',
-    features: ['Interactive Case Studies', 'Custom Domain Ready', 'Mobile & Desktop Optimized'],
+    icon: MonitorSmartphone,
+    color: '#FF7187', // Coral
+    bgLight: 'bg-[#FF7187]/5',
+    borderColor: 'border-[#FF7187]/30',
+    accentBadge: 'bg-[#FF7187]/10 text-[#E11D48]',
+    description: 'Showcase your projects, skills and achievements.',
   },
   {
     id: 'Managed Job Search & Applications',
     name: 'Managed Job Search & Applications',
-    badge: 'Full Concierge',
-    badgeColor: 'bg-rose-600 text-white',
-    icon: Briefcase,
-    color: '#E11D48',
-    bgLight: 'bg-rose-50/70',
-    borderColor: 'border-rose-200',
-    description: 'Dedicated search specialists actively filtering and submitting targeted applications weekly.',
-    features: ['Weekly Targeted Submissions', 'Application Audit Sheet', 'Direct Recruiter Outreach'],
-  },
-];
-
-const FAQS = [
-  {
-    q: 'How fast will I receive my initial consultation and draft?',
-    a: 'Within 2 hours of submitting your request, our lead career strategist will connect with you via WhatsApp or Email. First drafts are typically delivered within 48 to 72 hours.',
-  },
-  {
-    q: 'Can I select multiple services together?',
-    a: 'Yes! You can choose any combination—such as Resume Writing + LinkedIn Makeover. Bundled requests automatically receive priority scheduling.',
-  },
-  {
-    q: 'What if I do not have an updated resume right now?',
-    a: 'No problem! You can select "Skip for Now" or share brief notes. We conduct an intake questionnaire or consultation call to build your profile from scratch.',
-  },
-  {
-    q: 'How many revisions do I get?',
-    a: 'Every engagement includes unlimited revisions within 14 days of first draft delivery to guarantee 100% satisfaction and ATS compliance.',
-  },
-  {
-    q: 'How are my documents kept secure?',
-    a: 'Your resume and personal details are encrypted and stored in an isolated, private Google Drive cloud vault. We never share or sell your career data.',
+    icon: BriefcaseBusiness,
+    color: '#65DDB5', // Mint
+    bgLight: 'bg-[#65DDB5]/5',
+    borderColor: 'border-[#65DDB5]/30',
+    accentBadge: 'bg-[#65DDB5]/15 text-[#047857]',
+    description: 'Organise your job search and application activity.',
   },
 ];
 
 export function CareerIntakeWizard() {
-  // Step state: 1 = Services, 2 = Resume/Details, 3 = Contact, 4 = Confirmation
+  // Step state: 1 = Services, 2 = Resume/Profile, 3 = Contact, 4 = Confirmation
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
-  // Step 1: Selected services (supports multi-select)
+  // Step 1: Selected services (multi-selection)
   const [selectedServices, setSelectedServices] = useState<string[]>(['Professional Resume Writing']);
 
-  // Step 2: Intake mode ('upload' | 'manual' | 'both' | 'skip')
-  const [intakeMode, setIntakeMode] = useState<'upload' | 'manual' | 'both' | 'skip'>('upload');
+  // Step 2: Resume upload and optional profile
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeBase64, setResumeBase64] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [skipResume, setSkipResume] = useState(false);
 
-  // Optional career details
-  const [targetRole, setTargetRole] = useState('');
+  // Step 2: Optional career fields
   const [currentDesignation, setCurrentDesignation] = useState('');
-  const [totalExperience, setTotalExperience] = useState('');
-  const [targetCountry, setTargetCountry] = useState('');
+  const [yearsOfExperience, setYearsOfExperience] = useState('');
+  const [targetJobRole, setTargetJobRole] = useState('');
+  const [preferredCountry, setPreferredCountry] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
-  const [additionalNotes, setAdditionalNotes] = useState('');
-  const [showNotesAccordion, setShowNotesAccordion] = useState(false);
+  const [additionalRequirements, setAdditionalRequirements] = useState('');
+  const [showOptionalDetails, setShowOptionalDetails] = useState(false);
 
   // Step 3: Contact information
   const [fullName, setFullName] = useState('');
-  const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
+  const [phoneWhatsapp, setPhoneWhatsapp] = useState('');
   const [preferredContact, setPreferredContact] = useState<'WhatsApp' | 'Phone Call' | 'Email'>('WhatsApp');
-  const [whatsappUpdates, setWhatsappUpdates] = useState(true);
+  const [consent, setConsent] = useState(true);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submittedData, setSubmittedData] = useState<{
+  const [submittedResult, setSubmittedResult] = useState<{
     referenceCode: string;
     leadId?: string;
     services: string[];
@@ -167,17 +133,14 @@ export function CareerIntakeWizard() {
     submittedAt: string;
   } | null>(null);
 
-  // FAQ open/close state
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Toggle service selection
   const toggleService = (serviceId: string) => {
     setSelectedServices((prev) => {
       if (prev.includes(serviceId)) {
-        if (prev.length === 1) return prev; // Keep at least one selected
+        if (prev.length === 1) return prev; // keep at least 1
         return prev.filter((s) => s !== serviceId);
       } else {
         return [...prev, serviceId];
@@ -186,33 +149,35 @@ export function CareerIntakeWizard() {
   };
 
   // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFile = (file: File | null) => {
     if (!file) return;
-
     setFileError(null);
+    setSkipResume(false);
+
     if (file.size > 8 * 1024 * 1024) {
-      setFileError('File size exceeds 8MB. Please choose a smaller document.');
+      setFileError('File size exceeds 8MB. Please select a smaller document.');
       return;
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (!['pdf', 'docx', 'doc', 'rtf'].includes(ext || '')) {
-      setFileError('Please upload a PDF or Microsoft Word (.docx/.doc) document.');
+      setFileError('Please select a valid PDF, DOCX, DOC, or RTF document.');
       return;
     }
 
     setResumeFile(file);
+    setUploadProgress(40);
 
-    // Convert to Base64
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      const base64Only = result.split(',')[1] || result;
-      setResumeBase64(base64Only);
+      const base64 = result.split(',')[1] || result;
+      setResumeBase64(base64);
+      setUploadProgress(100);
     };
     reader.onerror = () => {
-      setFileError('Failed to read file. Please try again.');
+      setFileError('Failed to read file. Please retry.');
+      setUploadProgress(0);
     };
     reader.readAsDataURL(file);
   };
@@ -220,6 +185,7 @@ export function CareerIntakeWizard() {
   const removeFile = () => {
     setResumeFile(null);
     setResumeBase64(null);
+    setUploadProgress(0);
     setFileError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -232,17 +198,22 @@ export function CareerIntakeWizard() {
     setSubmitError(null);
 
     if (!fullName.trim() || fullName.trim().length < 2) {
-      setSubmitError('Please enter your full legal name (minimum 2 characters).');
+      setSubmitError('Please provide your full name (at least 2 characters).');
       return;
     }
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setSubmitError('Please enter a valid email address.');
+      setSubmitError('Please provide a valid email address.');
       return;
     }
 
-    if (!mobile.trim() || mobile.trim().length < 6) {
-      setSubmitError('Please enter a valid mobile or WhatsApp number.');
+    if (!phoneWhatsapp.trim() || phoneWhatsapp.trim().length < 6) {
+      setSubmitError('Please provide a valid contact / WhatsApp number.');
+      return;
+    }
+
+    if (!consent) {
+      setSubmitError('Please agree to allow us to process your consultation enquiry.');
       return;
     }
 
@@ -252,20 +223,20 @@ export function CareerIntakeWizard() {
       const payload = {
         fullName: fullName.trim(),
         email: email.trim().toLowerCase(),
-        phoneWhatsapp: mobile.trim(),
+        phoneWhatsapp: phoneWhatsapp.trim(),
         selectedServices,
         serviceRequired: selectedServices[0] || 'Professional Resume Writing',
-        targetRole: targetRole.trim() || undefined,
+        targetRole: targetJobRole.trim() || undefined,
         currentDesignation: currentDesignation.trim() || undefined,
-        totalExperience: totalExperience.trim() || undefined,
-        targetCountry: targetCountry.trim() || undefined,
+        totalExperience: yearsOfExperience.trim() || undefined,
+        targetCountry: preferredCountry.trim() || undefined,
         linkedinUrl: linkedinUrl.trim() || undefined,
-        requirements: additionalNotes.trim() || `Consultation requested for: ${selectedServices.join(', ')}`,
+        requirements: additionalRequirements.trim() || `Consultation requested for: ${selectedServices.join(', ')}`,
         preferredContactMethod: preferredContact,
-        resumeFileName: resumeFile?.name || undefined,
-        resumeFileSize: resumeFile?.size || undefined,
-        resumeMimeType: resumeFile?.type || (resumeFile?.name.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/pdf'),
-        resumeFileBase64: resumeBase64 || undefined,
+        resumeFileName: (!skipResume && resumeFile) ? resumeFile.name : undefined,
+        resumeFileSize: (!skipResume && resumeFile) ? resumeFile.size : undefined,
+        resumeMimeType: (!skipResume && resumeFile) ? (resumeFile.type || 'application/pdf') : undefined,
+        resumeFileBase64: (!skipResume && resumeBase64) ? resumeBase64 : undefined,
         consent: true,
       };
 
@@ -278,14 +249,14 @@ export function CareerIntakeWizard() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        throw new Error(data?.errors ? Object.values(data.errors).join(', ') : (data?.error || 'Submission failed. Please retry.'));
+        throw new Error(data?.errors ? Object.values(data.errors).join(', ') : (data?.error || 'Failed to submit enquiry.'));
       }
 
-      setSubmittedData({
+      setSubmittedResult({
         referenceCode: data.referenceCode,
         leadId: data.leadId,
         services: selectedServices,
-        fileName: resumeFile?.name || null,
+        fileName: (!skipResume && resumeFile) ? resumeFile.name : null,
         submittedAt: new Date().toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
@@ -296,101 +267,83 @@ export function CareerIntakeWizard() {
       });
 
       setStep(4);
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+      const intakeElement = document.getElementById('intake');
+      if (intakeElement) {
+        intakeElement.scrollIntoView({ behavior: 'smooth' });
+      }
     } catch (err: any) {
-      console.error('Submission error:', err);
-      setSubmitError(err?.message || 'Failed to submit career request. Please check your internet connection.');
+      console.error('Enquiry submission error:', err);
+      setSubmitError(err?.message || 'Error submitting enquiry. Please check your connection.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const copyRefCode = () => {
-    if (submittedData?.referenceCode) {
-      navigator.clipboard.writeText(submittedData.referenceCode);
+    if (submittedResult?.referenceCode) {
+      navigator.clipboard.writeText(submittedResult.referenceCode);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
     }
   };
 
   return (
-    <div className="w-full">
-      {/* 1. HERO BANNER */}
-      <section className="relative overflow-hidden pt-8 pb-10 sm:pt-12 sm:pb-14 bg-gradient-to-b from-[#FAF8F5] via-[#F3EEFF] to-[#FAF8F5]">
-        <div className="absolute inset-0 opacity-40 pointer-events-none bg-[radial-gradient(#8B5CF6_1px,transparent_1px)] [background-size:24px_24px]" />
+    <section id="intake" className="py-12 sm:py-16 bg-[#FAF8FF]">
+      <div id="services" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative text-center">
-          {/* Top Floating Badges */}
-          <div className="inline-flex flex-wrap items-center justify-center gap-2 mb-4 p-1.5 px-3 rounded-full bg-white/90 border border-violet-100 shadow-sm text-xs font-semibold text-slate-700">
-            <span className="flex items-center gap-1 text-amber-500">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              <span>4.9/5 Rating</span>
-            </span>
-            <span className="text-slate-300">•</span>
-            <span className="flex items-center gap-1 text-emerald-600">
-              <Zap className="w-3.5 h-3.5" />
-              <span>98% ATS Pass Rate</span>
-            </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-violet-700">1,200+ Careers Elevated</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[#0F172A] leading-tight mb-3">
-            Accelerate Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600">Career Trajectory</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Select your service, share your resume or basic goals, and our executive career strategists will tailor a bespoke consultation roadmap within 2 hours.
-          </p>
-
-          {/* Stepper Progress Bar */}
+        {/* Card Shell */}
+        <div className="bg-white rounded-3xl border border-[#7357F5]/15 shadow-xl shadow-[#7357F5]/5 p-5 sm:p-8 md:p-10 transition-all">
+          
+          {/* Header & Step Indicator */}
           {step < 4 && (
-            <div className="mt-8 max-w-md mx-auto">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-600 mb-2">
-                <span className={step >= 1 ? 'text-violet-700 font-extrabold' : 'text-slate-400'}>1. Select Services</span>
-                <span className={step >= 2 ? 'text-violet-700 font-extrabold' : 'text-slate-400'}>2. Resume & Details</span>
-                <span className={step >= 3 ? 'text-violet-700 font-extrabold' : 'text-slate-400'}>3. Contact & Submit</span>
-              </div>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 h-full transition-all duration-300 ease-out"
-                  style={{ width: `${(step / 3) * 100}%` }}
-                />
+            <div className="pb-6 border-b border-slate-100 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#7357F5] bg-[#7357F5]/10 px-3 py-1 rounded-full mb-1.5">
+                    <span>Interactive Career Intake</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#17152F] tracking-tight">
+                    {step === 1 && 'Step 1 — Choose Your Service'}
+                    {step === 2 && 'Step 2 — Share Your Resume or Profile'}
+                    {step === 3 && 'Step 3 — Your Details & Consultation'}
+                  </h2>
+                </div>
+
+                {/* Modern Progress Pill: 01 Services → 02 Resume → 03 Contact */}
+                <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-slate-400 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 self-start sm:self-center">
+                  <span className={`px-2.5 py-1 rounded-xl transition ${step === 1 ? 'bg-[#7357F5] text-white shadow-sm' : step > 1 ? 'text-[#7357F5]' : 'text-slate-400'}`}>
+                    01 Services
+                  </span>
+                  <span>→</span>
+                  <span className={`px-2.5 py-1 rounded-xl transition ${step === 2 ? 'bg-[#7357F5] text-white shadow-sm' : step > 2 ? 'text-[#7357F5]' : 'text-slate-400'}`}>
+                    02 Resume
+                  </span>
+                  <span>→</span>
+                  <span className={`px-2.5 py-1 rounded-xl transition ${step === 3 ? 'bg-[#7357F5] text-white shadow-sm' : 'text-slate-400'}`}>
+                    03 Contact
+                  </span>
+                </div>
               </div>
             </div>
           )}
-        </div>
-      </section>
 
-      {/* 2. MAIN WIZARD CONTAINER */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-16">
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-violet-500/5 p-5 sm:p-8">
-          
           {/* =========================================================================
-              STEP 1: SERVICE SELECTION
+              STEP 1: CHOOSE YOUR SERVICE
              ========================================================================= */}
           {step === 1 && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4 border-b border-slate-100">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#0F172A] flex items-center gap-2">
-                    <span>Step 1: Choose Your Career Services</span>
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-700">
-                      Multi-select enabled
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Click to select one or multiple services you wish to consult on.
-                  </p>
-                </div>
-                <div className="text-xs font-semibold text-violet-700 bg-violet-50 px-3 py-1.5 rounded-xl self-start sm:self-center border border-violet-100">
-                  {selectedServices.length} {selectedServices.length === 1 ? 'Service' : 'Services'} Selected
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                  Select one or multiple services. We will build a unified consultation proposal covering your exact goals.
+                </p>
+                <div className="text-xs font-bold text-[#7357F5] bg-[#7357F5]/10 px-3 py-1 rounded-xl border border-[#7357F5]/20 self-start sm:self-center">
+                  {selectedServices.length} {selectedServices.length === 1 ? 'Service Selected' : 'Services Selected'}
                 </div>
               </div>
 
-              {/* Service Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {CAREER_SERVICES.map((srv) => {
+              {/* Five Service Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {SERVICES_CATALOGUE.map((srv) => {
                   const isSelected = selectedServices.includes(srv.id);
                   const Icon = srv.icon;
 
@@ -398,76 +351,70 @@ export function CareerIntakeWizard() {
                     <div
                       key={srv.id}
                       onClick={() => toggleService(srv.id)}
-                      className={`relative p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                      className={`relative p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 select-none flex flex-col justify-between ${
                         isSelected
-                          ? 'border-violet-600 bg-gradient-to-br from-violet-50/80 via-white to-purple-50/40 shadow-md ring-2 ring-violet-500/20'
+                          ? 'border-[#7357F5] bg-gradient-to-br from-[#7357F5]/5 via-white to-[#9B6BFF]/5 shadow-md shadow-[#7357F5]/10 ring-2 ring-[#7357F5]/20'
                           : 'border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50/50'
                       }`}
                     >
-                      {/* Top Row: Icon + Badge + Checkmark */}
-                      <div className="flex items-start justify-between gap-3 mb-2.5">
-                        <div className="flex items-center gap-2.5">
+                      <div>
+                        {/* Top Row: Icon + Checkmark */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
                             style={{ backgroundColor: `${srv.color}15`, color: srv.color }}
                           >
                             <Icon className="w-5 h-5" />
                           </div>
-                          <div>
-                            <h3 className="text-sm font-bold text-[#0F172A] leading-snug">
-                              {srv.name}
-                            </h3>
-                            {srv.badge && (
-                              <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md mt-0.5 ${srv.badgeColor}`}>
-                                {srv.badge}
-                              </span>
-                            )}
+
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
+                              isSelected
+                                ? 'bg-[#7357F5] border-[#7357F5] text-white'
+                                : 'border-slate-300 bg-white text-transparent'
+                            }`}
+                          >
+                            <Check className="w-3.5 h-3.5" />
                           </div>
                         </div>
 
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors shrink-0 ${
-                            isSelected
-                              ? 'bg-violet-600 border-violet-600 text-white'
-                              : 'border-slate-300 bg-white text-transparent'
-                          }`}
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </div>
+                        {/* Title & Description */}
+                        <h3 className="text-sm font-bold text-[#17152F] leading-snug mb-1.5">
+                          {srv.name}
+                        </h3>
+                        <p className="text-xs text-slate-600 leading-relaxed font-sans mb-3">
+                          {srv.description}
+                        </p>
                       </div>
 
-                      <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                        {srv.description}
-                      </p>
-
-                      {/* Micro Features */}
-                      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
-                        {srv.features.map((f) => (
-                          <span
-                            key={f}
-                            className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded-md"
-                          >
-                            <CheckCircle2 className="w-2.5 h-2.5 text-violet-600" />
-                            <span>{f}</span>
+                      {/* Small visual accent pill */}
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold">
+                        <span className={`px-2 py-0.5 rounded-md ${srv.accentBadge}`}>
+                          {isSelected ? 'Selected' : 'Click to Select'}
+                        </span>
+                        {isSelected && (
+                          <span className="text-[#7357F5] flex items-center gap-0.5">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Included in Scope</span>
                           </span>
-                        ))}
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Bottom Action Bar */}
+              {/* Bottom CTA for Step 1 */}
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
-                <div className="text-xs text-slate-500 text-center sm:text-left">
-                  💡 You can change or customize these services with your strategist anytime.
-                </div>
+                <span className="text-xs text-slate-500 text-center sm:text-left">
+                  Multiple services will be consolidated into a single seamless consultation proposal.
+                </span>
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-md shadow-violet-500/25 flex items-center justify-center gap-2 transition"
+                  className="w-full sm:w-auto px-7 py-3 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] to-[#9B6BFF] hover:opacity-95 shadow-md shadow-[#7357F5]/25 flex items-center justify-center gap-2 transition"
                 >
-                  <span>Continue to Step 2</span>
+                  <span>Continue</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -475,249 +422,241 @@ export function CareerIntakeWizard() {
           )}
 
           {/* =========================================================================
-              STEP 2: RESUME UPLOAD & CAREER DETAILS (100% OPTIONAL)
+              STEP 2: SHARE RESUME OR PROFILE
              ========================================================================= */}
           {step === 2 && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#0F172A] flex items-center gap-2">
-                    <span>Step 2: Share Resume or Career Goals</span>
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      100% Optional
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Upload your existing resume, enter target details manually, or skip ahead.
-                  </p>
-                </div>
+              <div>
+                <p className="text-xs sm:text-sm text-slate-600">
+                  Sharing an existing document helps our strategists assess your experience faster. All career fields are completely optional.
+                </p>
               </div>
 
-              {/* 4 Intake Options Selector */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { id: 'upload', label: 'Upload Resume', icon: Upload, desc: 'PDF / Word' },
-                  { id: 'manual', label: 'Enter Details', icon: FileText, desc: 'Target Role' },
-                  { id: 'both', label: 'Upload + Details', icon: Sparkles, desc: 'Full Intake' },
-                  { id: 'skip', label: 'Skip for Now', icon: ArrowRight, desc: 'Call Discussion' },
-                ].map((tab) => {
-                  const active = intakeMode === tab.id;
-                  const Icon = tab.icon;
-                  return (
+              {/* Upload Card Area */}
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-sm font-bold text-[#17152F]">
+                    Have an existing resume?
+                  </h3>
+                  <span className="text-[11px] text-slate-400">Supported: PDF, DOCX, RTF (Max 8MB)</span>
+                </div>
+
+                {!resumeFile ? (
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      handleFile(e.dataTransfer.files?.[0] || null);
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-3xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
+                      skipResume
+                        ? 'border-slate-200 bg-slate-50/50 opacity-60'
+                        : 'border-[#7357F5]/30 hover:border-[#7357F5] bg-[#7357F5]/5 hover:bg-[#7357F5]/10'
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.docx,.doc,.rtf"
+                      onChange={(e) => handleFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+
+                    <div className="w-12 h-12 mx-auto rounded-2xl bg-white shadow-sm flex items-center justify-center text-[#7357F5] mb-3">
+                      <Upload className="w-6 h-6" />
+                    </div>
+
+                    <div className="text-sm font-bold text-[#17152F]">
+                      Upload it and let our team understand your experience.
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                      Drag & drop your file here, or click to browse from your device.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                        <FileCheck className="w-5 h-5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="text-xs sm:text-sm font-bold text-emerald-950 truncate">
+                          {resumeFile.name}
+                        </div>
+                        <div className="text-[11px] text-emerald-700 flex items-center gap-2">
+                          <span>{(resumeFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                          <span>•</span>
+                          <span className="font-semibold text-emerald-800">Ready for secure upload</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <button
-                      key={tab.id}
                       type="button"
-                      onClick={() => setIntakeMode(tab.id as any)}
-                      className={`p-3 rounded-2xl border text-center transition-all ${
-                        active
-                          ? 'border-violet-600 bg-violet-50/80 text-violet-900 shadow-sm font-bold ring-1 ring-violet-500/30'
-                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                      }`}
+                      onClick={removeFile}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition shrink-0"
+                      title="Remove file"
                     >
-                      <Icon className={`w-4 h-4 mx-auto mb-1 ${active ? 'text-violet-700' : 'text-slate-400'}`} />
-                      <div className="text-xs leading-snug">{tab.label}</div>
-                      <div className="text-[10px] text-slate-400 font-normal">{tab.desc}</div>
+                      <X className="w-5 h-5" />
                     </button>
-                  );
-                })}
+                  </div>
+                )}
+
+                {fileError && (
+                  <div className="text-xs text-red-600 font-semibold">{fileError}</div>
+                )}
+
+                {/* Alternative Quick Options */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removeFile();
+                      setSkipResume(true);
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-xl border transition ${
+                      skipResume
+                        ? 'bg-[#7357F5] text-white border-[#7357F5] font-bold'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    I don't have a resume yet
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removeFile();
+                      setSkipResume(true);
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-xl border transition ${
+                      skipResume
+                        ? 'bg-[#7357F5] text-white border-[#7357F5] font-bold'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    I'll share my resume later
+                  </button>
+                </div>
               </div>
 
-              {/* OPTION A: UPLOAD RESUME */}
-              {(intakeMode === 'upload' || intakeMode === 'both') && (
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-slate-800">
-                    Upload Existing Resume (PDF or DOCX, max 8MB)
-                  </label>
-
-                  {!resumeFile ? (
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-violet-200 hover:border-violet-400 rounded-2xl p-6 text-center bg-violet-50/30 hover:bg-violet-50/60 cursor-pointer transition"
-                    >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,.docx,.doc,.rtf"
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
-                      <div className="w-12 h-12 mx-auto rounded-2xl bg-white shadow-sm flex items-center justify-center text-violet-600 mb-2">
-                        <Upload className="w-6 h-6" />
-                      </div>
-                      <div className="text-xs font-bold text-slate-800">
-                        Click to select or drag & drop your resume file
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-1">
-                        Supported: PDF, DOCX, DOC (up to 8MB) • Direct secure Google Drive upload
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                          <FileCheck className="w-5 h-5" />
-                        </div>
-                        <div className="truncate">
-                          <div className="text-xs font-bold text-emerald-900 truncate">
-                            {resumeFile.name}
-                          </div>
-                          <div className="text-[10px] text-emerald-700">
-                            {(resumeFile.size / 1024 / 1024).toFixed(2)} MB • Ready for secure upload
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={removeFile}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition shrink-0"
-                        title="Remove file"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  {fileError && (
-                    <div className="text-xs text-red-600 font-medium">{fileError}</div>
-                  )}
-                </div>
-              )}
-
-              {/* OPTION B: ENTER DETAILS MANUALLY */}
-              {(intakeMode === 'manual' || intakeMode === 'both') && (
-                <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80">
-                  <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-violet-600" />
-                    <span>Target Career Details (Optional)</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Target Role / Industry
-                      </label>
-                      <input
-                        type="text"
-                        value={targetRole}
-                        onChange={(e) => setTargetRole(e.target.value)}
-                        placeholder="e.g. VP of Product, Cloud Architect"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Current Designation
-                      </label>
-                      <input
-                        type="text"
-                        value={currentDesignation}
-                        onChange={(e) => setCurrentDesignation(e.target.value)}
-                        placeholder="e.g. Senior Product Manager"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Total Experience
-                      </label>
-                      <select
-                        value={totalExperience}
-                        onChange={(e) => setTotalExperience(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                      >
-                        <option value="">Select Experience (Optional)</option>
-                        <option value="Entry Level (0-2 years)">Entry Level (0-2 years)</option>
-                        <option value="Mid Career (3-7 years)">Mid Career (3-7 years)</option>
-                        <option value="Senior Professional (8-14 years)">Senior Professional (8-14 years)</option>
-                        <option value="Executive / Leadership (15+ years)">Executive / Leadership (15+ years)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        Target Country / Region
-                      </label>
-                      <input
-                        type="text"
-                        value={targetCountry}
-                        onChange={(e) => setTargetCountry(e.target.value)}
-                        placeholder="e.g. Singapore, UAE, UK, India"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                        LinkedIn Profile URL (Optional)
-                      </label>
-                      <input
-                        type="url"
-                        value={linkedinUrl}
-                        onChange={(e) => setLinkedinUrl(e.target.value)}
-                        placeholder="https://linkedin.com/in/yourname"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* OPTION D: SKIP FOR NOW MESSAGE */}
-              {intakeMode === 'skip' && (
-                <div className="p-5 rounded-2xl bg-violet-50/50 border border-violet-100 text-center space-y-2">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-violet-100 flex items-center justify-center text-violet-700">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-xs font-bold text-slate-800">No problem! We've got you covered.</h4>
-                  <p className="text-xs text-slate-600 max-w-md mx-auto">
-                    You do not need to prepare anything right now. Our senior career consultant will connect with you to understand your background and goals directly.
-                  </p>
-                </div>
-              )}
-
-              {/* Expandable Notes Accordion */}
-              <div className="border border-slate-200/80 rounded-2xl overflow-hidden">
+              {/* Optional Profile Information Accordion */}
+              <div className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
                 <button
                   type="button"
-                  onClick={() => setShowNotesAccordion(!showNotesAccordion)}
-                  className="w-full p-3.5 px-4 text-left flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                  onClick={() => setShowOptionalDetails(!showOptionalDetails)}
+                  className="w-full p-4 text-left flex items-center justify-between text-xs sm:text-sm font-bold text-[#17152F] hover:bg-slate-100/60 transition"
                 >
                   <span className="flex items-center gap-2">
-                    <span>➕ Add Specific Requirements or Notes (Optional)</span>
+                    <Sparkles className="w-4 h-4 text-[#7357F5]" />
+                    <span>Optional: Add Current Role & Goals</span>
                   </span>
-                  {showNotesAccordion ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                  {showOptionalDetails ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                 </button>
-                {showNotesAccordion && (
-                  <div className="p-4 pt-1 bg-slate-50/50 border-t border-slate-100">
-                    <textarea
-                      rows={3}
-                      value={additionalNotes}
-                      onChange={(e) => setAdditionalNotes(e.target.value)}
-                      placeholder="Share any target companies, career transition details, or questions..."
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                    />
+
+                {showOptionalDetails && (
+                  <div className="p-4 pt-1 border-t border-slate-200/80 bg-white space-y-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          Current Designation
+                        </label>
+                        <input
+                          type="text"
+                          value={currentDesignation}
+                          onChange={(e) => setCurrentDesignation(e.target.value)}
+                          placeholder="e.g. Senior Product Manager"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          Years of Experience
+                        </label>
+                        <input
+                          type="text"
+                          value={yearsOfExperience}
+                          onChange={(e) => setYearsOfExperience(e.target.value)}
+                          placeholder="e.g. 8 years"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          Target Job Role
+                        </label>
+                        <input
+                          type="text"
+                          value={targetJobRole}
+                          onChange={(e) => setTargetJobRole(e.target.value)}
+                          placeholder="e.g. VP of Product Strategy"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          Preferred Country / Market
+                        </label>
+                        <input
+                          type="text"
+                          value={preferredCountry}
+                          onChange={(e) => setPreferredCountry(e.target.value)}
+                          placeholder="e.g. Singapore, UAE, UK, India"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          LinkedIn URL (Optional)
+                        </label>
+                        <input
+                          type="url"
+                          value={linkedinUrl}
+                          onChange={(e) => setLinkedinUrl(e.target.value)}
+                          placeholder="https://linkedin.com/in/username"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-semibold text-slate-700 mb-1">
+                          Additional Requirements or Notes
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={additionalRequirements}
+                          onChange={(e) => setAdditionalRequirements(e.target.value)}
+                          placeholder="Brief notes on timeline, dream companies or target focus..."
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Navigation Buttons */}
+              {/* Navigation */}
               <div className="pt-4 flex items-center justify-between gap-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition"
+                  className="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Back</span>
+                  <span>Back to Services</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-md shadow-violet-500/25 flex items-center gap-2 transition"
+                  className="px-7 py-3 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] to-[#9B6BFF] hover:opacity-95 shadow-md shadow-[#7357F5]/25 flex items-center gap-2 transition"
                 >
-                  <span>Continue to Contact Info</span>
+                  <span>Continue</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -725,72 +664,53 @@ export function CareerIntakeWizard() {
           )}
 
           {/* =========================================================================
-              STEP 3: CONTACT INFORMATION & SUBMISSION
+              STEP 3: CONTACT & SUBMISSION
              ========================================================================= */}
           {step === 3 && (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#0F172A] flex items-center gap-2">
-                    <span>Step 3: Where Should We Send Your Consultation?</span>
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    We will send your bespoke package recommendations, pricing, and next steps here.
-                  </p>
-                </div>
+              <div>
+                <p className="text-xs sm:text-sm text-slate-600">
+                  Please provide your contact details so our lead career strategist can deliver your consultation plan and quote.
+                </p>
               </div>
 
               {submitError && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
+                <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
                   {submitError}
                 </div>
               )}
 
-              {/* Selected Services Summary Pill */}
-              <div className="p-3 rounded-2xl bg-violet-50/70 border border-violet-100 flex flex-wrap items-center justify-between gap-2">
-                <div className="text-xs font-semibold text-violet-900">
-                  <span className="font-bold">Requesting:</span> {selectedServices.join(' • ')}
+              {/* Summary Pill of selections */}
+              <div className="p-3.5 rounded-2xl bg-[#7357F5]/5 border border-[#7357F5]/15 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="text-[#17152F]">
+                  <span className="font-bold text-[#7357F5]">Selected:</span> {selectedServices.join(', ')}
                 </div>
-                {resumeFile && (
-                  <div className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                    <FileCheck className="w-3 h-3" />
-                    <span>{resumeFile.name} attached</span>
+                {resumeFile && !skipResume && (
+                  <div className="font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1 text-[11px]">
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>{resumeFile.name}</span>
                   </div>
                 )}
               </div>
 
-              {/* Contact Inputs */}
+              {/* Required Inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-800 mb-1">
-                    Full Legal Name *
+                  <label className="block font-bold text-[#17152F] mb-1">
+                    Full Name *
                   </label>
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Ramsal R R"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
+                    placeholder="e.g. Alex Morgan"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-800 mb-1">
-                    Mobile / WhatsApp Number *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={mobile}
-                    onChange={(e) => setMobile(e.target.value)}
-                    placeholder="e.g. +91 99612 34378"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-800 mb-1">
+                  <label className="block font-bold text-[#17152F] mb-1">
                     Email Address *
                   </label>
                   <input
@@ -798,22 +718,36 @@ export function CareerIntakeWizard() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. ramsal.rr@wsa.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-violet-600"
+                    placeholder="e.g. alex@example.com"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#17152F] mb-1">
+                    WhatsApp / Contact Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={phoneWhatsapp}
+                    onChange={(e) => setPhoneWhatsapp(e.target.value)}
+                    placeholder="e.g. +91 99612 34378"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#7357F5]"
                   />
                 </div>
               </div>
 
-              {/* Preferred Contact Method */}
+              {/* Preferred Channel */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 mb-2">
+                <label className="block text-xs font-bold text-[#17152F] mb-2">
                   Preferred Contact Channel
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { id: 'WhatsApp', label: 'WhatsApp', icon: MessageSquare, color: 'text-emerald-600' },
                     { id: 'Phone Call', label: 'Phone Call', icon: Phone, color: 'text-blue-600' },
-                    { id: 'Email', label: 'Email', icon: Mail, color: 'text-violet-600' },
+                    { id: 'Email', label: 'Email', icon: Mail, color: 'text-[#7357F5]' },
                   ].map((ch) => {
                     const active = preferredContact === ch.id;
                     const Icon = ch.icon;
@@ -824,7 +758,7 @@ export function CareerIntakeWizard() {
                         onClick={() => setPreferredContact(ch.id as any)}
                         className={`p-2.5 rounded-xl border text-center transition flex items-center justify-center gap-1.5 ${
                           active
-                            ? 'border-violet-600 bg-violet-50 text-violet-900 font-bold'
+                            ? 'border-[#7357F5] bg-[#7357F5]/10 text-[#7357F5] font-bold'
                             : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         }`}
                       >
@@ -836,26 +770,19 @@ export function CareerIntakeWizard() {
                 </div>
               </div>
 
-              {/* WhatsApp Toggle & Privacy Consent */}
-              <div className="space-y-2.5 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+              {/* Consent Checkbox */}
+              <div className="pt-2">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-slate-600">
                   <input
                     type="checkbox"
-                    checked={whatsappUpdates}
-                    onChange={(e) => setWhatsappUpdates(e.target.checked)}
-                    className="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 border-slate-300"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-[#7357F5] focus:ring-[#7357F5] border-slate-300"
                   />
-                  <span className="text-xs text-slate-700">
-                    Receive instant consultation updates, sample links, and quotes on WhatsApp
+                  <span>
+                    I consent to having Hopepitome process my enquiry and contact me regarding career services. Documents are handled strictly in confidence.
                   </span>
                 </label>
-
-                <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>
-                    Your contact information and documents are strictly confidential and protected by enterprise NDAs.
-                  </span>
-                </div>
               </div>
 
               {/* Action Buttons */}
@@ -863,24 +790,25 @@ export function CareerIntakeWizard() {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition"
+                  className="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 transition"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
                 </button>
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-8 py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-violet-500/30 flex items-center gap-2 transition disabled:opacity-50"
+                  className="px-8 py-3.5 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#7357F5] hover:opacity-95 shadow-lg shadow-[#7357F5]/30 flex items-center gap-2 transition disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Transmitting Request...</span>
+                      <span>Submitting...</span>
                     </>
                   ) : (
                     <>
-                      <span>Submit Career Request 🚀</span>
+                      <span>Submit My Enquiry</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -892,146 +820,111 @@ export function CareerIntakeWizard() {
           {/* =========================================================================
               STEP 4: CONFIRMATION SCREEN
              ========================================================================= */}
-          {step === 4 && submittedData && (
-            <div className="text-center py-6 space-y-6">
+          {step === 4 && submittedResult && (
+            <div className="text-center py-6 sm:py-8 space-y-6">
               <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-md">
                 <CheckCircle2 className="w-9 h-9" />
               </div>
 
               <div className="space-y-1.5 max-w-md mx-auto">
                 <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                  Request Confirmed & Synchronized
+                  Enquiry Logged Successfully
                 </span>
-                <h2 className="text-xl sm:text-2xl font-black text-[#0F172A]">
+                <h3 className="text-2xl font-black text-[#17152F]">
                   Thank You, {fullName.split(' ')[0]}!
-                </h2>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Your career consultation has been logged in the Hopepitome Career Hub. A dedicated senior strategist is reviewing your submission.
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
+                  Your enquiry has been securely registered in the Hopepitome Studio. Our lead career strategist will connect with your proposal within 2 hours.
                 </p>
               </div>
 
               {/* Reference Code Card */}
-              <div className="max-w-md mx-auto p-4 rounded-2xl bg-gradient-to-br from-violet-50 via-white to-purple-50 border border-violet-200 text-left space-y-3">
+              <div className="max-w-md mx-auto p-4 rounded-2xl bg-gradient-to-br from-[#7357F5]/5 via-white to-[#9B6BFF]/5 border border-[#7357F5]/20 text-left space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Reference Code
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Enquiry Reference ID
                     </div>
-                    <div className="text-base font-black text-violet-700 tracking-wide">
-                      {submittedData.referenceCode}
+                    <div className="text-base font-black text-[#7357F5] tracking-wide">
+                      {submittedResult.referenceCode}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={copyRefCode}
-                    className="p-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-violet-700 shadow-sm flex items-center gap-1 transition"
+                    className="p-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-[#7357F5] shadow-sm flex items-center gap-1 transition"
                   >
                     {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedCode ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
 
-                <div className="pt-2 border-t border-violet-100 text-xs space-y-1">
-                  <div className="text-slate-600 flex items-center justify-between">
-                    <span>Services:</span>
-                    <span className="font-bold text-slate-800">{submittedData.services.join(', ')}</span>
+                <div className="pt-2 border-t border-[#7357F5]/10 text-xs space-y-1 text-slate-600">
+                  <div className="flex items-center justify-between">
+                    <span>Requested Services:</span>
+                    <span className="font-bold text-[#17152F]">{submittedResult.services.join(', ')}</span>
                   </div>
-                  {submittedData.fileName && (
-                    <div className="text-slate-600 flex items-center justify-between">
+                  {submittedResult.fileName && (
+                    <div className="flex items-center justify-between">
                       <span>Resume File:</span>
-                      <span className="font-bold text-emerald-700">{submittedData.fileName}</span>
+                      <span className="font-bold text-emerald-700">{submittedResult.fileName}</span>
                     </div>
                   )}
-                  <div className="text-slate-600 flex items-center justify-between">
-                    <span>Submitted On:</span>
-                    <span className="font-bold text-slate-800">{submittedData.submittedAt}</span>
+                  <div className="flex items-center justify-between">
+                    <span>Submitted:</span>
+                    <span className="font-bold text-[#17152F]">{submittedResult.submittedAt}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Next Steps Roadmap */}
-              <div className="max-w-md mx-auto text-left space-y-3 pt-2">
-                <div className="text-xs font-bold text-slate-800">What Happens Next:</div>
+              {/* What Happens Next Roadmap */}
+              <div className="max-w-md mx-auto text-left space-y-2.5 pt-2">
+                <div className="text-xs font-bold text-[#17152F]">What Happens Next:</div>
                 <div className="space-y-2">
                   {[
-                    { step: '1', title: 'Review within 2 hours', desc: 'Our lead strategist audits your profile & requirements.' },
-                    { step: '2', title: 'Consultation & Roadmap', desc: `We contact you via ${preferredContact} with recommended scope and options.` },
-                    { step: '3', title: 'Drafting & Deliverables', desc: 'Work begins with unlimited revisions and ATS compliance guarantee.' },
+                    { num: '01', title: 'Consultation & Review', desc: 'Strategist audits your profile against target roles.' },
+                    { num: '02', title: 'Proposal & Scope', desc: 'Direct WhatsApp/Email discussion with customized timeline.' },
+                    { num: '03', title: 'Preparation & Unlimited Revisions', desc: 'Complete drafting with 14-day revision guarantee.' },
                   ].map((s) => (
-                    <div key={s.step} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                      <div className="w-6 h-6 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                        {s.step}
-                      </div>
+                    <div key={s.num} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                      <span className="w-6 h-6 rounded-lg bg-[#7357F5] text-white font-bold text-[11px] flex items-center justify-center shrink-0">
+                        {s.num}
+                      </span>
                       <div>
-                        <div className="text-xs font-bold text-slate-800">{s.title}</div>
-                        <div className="text-[11px] text-slate-500">{s.desc}</div>
+                        <div className="text-xs font-bold text-[#17152F]">{s.title}</div>
+                        <div className="text-[11px] text-slate-500 font-sans">{s.desc}</div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Actions */}
+              {/* Action Buttons */}
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href="/career-services/portal/login"
-                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition shadow-sm"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#17152F] hover:bg-slate-800 transition shadow-sm"
                 >
-                  Access Client Portal
+                  Client Portal
                 </Link>
                 <button
                   type="button"
                   onClick={() => {
                     setStep(1);
-                    setSubmittedData(null);
+                    setSubmittedResult(null);
                     setResumeFile(null);
                     setResumeBase64(null);
                   }}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-[#17152F] bg-slate-100 hover:bg-slate-200 transition"
                 >
-                  Submit Another Request
+                  Submit Another Enquiry
                 </button>
               </div>
             </div>
           )}
 
         </div>
-      </section>
-
-      {/* 3. CONCISE FAQS ACCORDION */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-16">
-        <div className="text-center mb-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A]">Frequently Asked Questions</h2>
-          <p className="text-xs text-slate-500 mt-1">Clear, transparent answers about our career consulting engagements.</p>
-        </div>
-
-        <div className="space-y-2.5">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openFaq === idx;
-            return (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm transition"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full p-4 text-left flex items-center justify-between text-xs sm:text-sm font-bold text-slate-800 hover:text-violet-700 transition"
-                >
-                  <span>{faq.q}</span>
-                  {isOpen ? <ChevronUp className="w-4 h-4 text-violet-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
-                </button>
-                {isOpen && (
-                  <div className="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-50 bg-slate-50/30">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
-
