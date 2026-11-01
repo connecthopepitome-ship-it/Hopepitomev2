@@ -123,6 +123,7 @@ function LeadsContent() {
   const [budget, setBudget] = useState('');
   const [enquiryDescription, setEnquiryDescription] = useState('');
   const [creatingLead, setCreatingLead] = useState(false);
+  const [leadFormError, setLeadFormError] = useState<string | null>(null);
 
   // Follow-up Form
   const [followUpTitle, setFollowUpTitle] = useState('Call back client to discuss package options');
@@ -177,8 +178,9 @@ function LeadsContent() {
   // Handle Create Lead
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLeadFormError(null);
     if (!fullName.trim() || (!mobile.trim() && !email.trim())) {
-      alert('Please provide full name and at least one contact method (Mobile or Email).');
+      setLeadFormError('Please provide full name and at least one contact method (Mobile or Email).');
       return;
     }
 
@@ -205,13 +207,17 @@ function LeadsContent() {
 
     try {
       await saveCrmLead(newLeadRecord);
-      await logCrmActivity({
-        leadId,
-        activityType: 'LEAD_CREATED',
-        title: `Manual lead created: ${fullName}`,
-        description: `Source: ${leadSource}, Priority: ${priority}, Interested in: ${serviceInterestedIn}`,
-        performedBy: adminProfile?.displayName || 'Admin',
-      });
+      try {
+        await logCrmActivity({
+          leadId,
+          activityType: 'LEAD_CREATED',
+          title: `Manual lead created: ${fullName}`,
+          description: `Source: ${leadSource}, Priority: ${priority}, Interested in: ${serviceInterestedIn}`,
+          performedBy: adminProfile?.displayName || 'Admin',
+        });
+      } catch (actErr) {
+        console.warn('Activity logging warning:', actErr);
+      }
 
       setShowNewLeadModal(false);
       setFullName('');
@@ -220,10 +226,11 @@ function LeadsContent() {
       setTargetRole('');
       setBudget('');
       setEnquiryDescription('');
+      setLeadFormError(null);
       setActiveLead(newLeadRecord);
     } catch (err: any) {
       console.error('Error saving lead:', err);
-      alert(err?.message || 'Failed to save lead record.');
+      setLeadFormError(err?.message || 'Failed to save lead record. Please check your connection and try again.');
     } finally {
       setCreatingLead(false);
     }
@@ -857,6 +864,13 @@ function LeadsContent() {
                   ✕ Close
                 </button>
               </div>
+
+              {leadFormError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                  <span>{leadFormError}</span>
+                </div>
+              )}
 
               <form onSubmit={handleCreateLead} className="space-y-4">
                 <div>

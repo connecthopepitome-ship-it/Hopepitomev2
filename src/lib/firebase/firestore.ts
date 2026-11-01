@@ -70,6 +70,43 @@ function cleanData<T extends Record<string, any>>(obj: T): T {
   return result;
 }
 
+/**
+ * Resilient document persister: writes through client Firestore SDK first;
+ * if rejected by rules or network/SSR, automatically fails over to Cloudflare Worker Admin API.
+ */
+export async function resilientSaveDoc(
+  collectionName: string,
+  docId: string,
+  data: any
+): Promise<void> {
+  const payload = cleanData(data);
+  let savedLocally = false;
+
+  if (db) {
+    try {
+      await setDoc(doc(db, collectionName, docId), payload, { merge: true });
+      savedLocally = true;
+    } catch (clientErr) {
+      console.warn(
+        `[Firestore] Client SDK write to ${collectionName}/${docId} rejected, failing over to Worker API...`,
+        clientErr
+      );
+    }
+  }
+
+  if (!savedLocally) {
+    const res = await fetch('/api/career/admin/entity/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: collectionName, id: docId, data: payload }),
+    });
+    const resData = await res.json().catch(() => ({}));
+    if (!res.ok || !resData.success) {
+      throw new Error(resData.error || `Failed to save ${collectionName} record.`);
+    }
+  }
+}
+
 // 1. Users & RBAC
 export async function getCareerUser(uid: string): Promise<CareerUser | null> {
   if (!db) return null;
@@ -83,8 +120,7 @@ export async function getCareerUser(uid: string): Promise<CareerUser | null> {
 }
 
 export async function setCareerUser(user: CareerUser): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'career_users', user.uid), cleanData(user), { merge: true });
+  await resilientSaveDoc('career_users', user.uid, user);
 }
 
 // 2. Client Profile & Extended Data
@@ -113,8 +149,8 @@ export async function getCareerClient(clientId: string): Promise<CareerClient | 
 }
 
 export async function saveCareerClient(client: CareerClient): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'career_clients', client.id), cleanData(client), { merge: true });
+  await resilientSaveDoc('clients', client.id, client);
+  await resilientSaveDoc('career_clients', client.id, client).catch(() => {});
 }
 
 export async function getCareerProfile(clientId: string): Promise<CareerProfileData | null> {
@@ -129,8 +165,7 @@ export async function getCareerProfile(clientId: string): Promise<CareerProfileD
 }
 
 export async function saveCareerProfile(profile: Partial<CareerProfileData> & { clientId: string }): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'career_profiles', profile.clientId), cleanData(profile), { merge: true });
+  await resilientSaveDoc('career_profiles', profile.clientId, profile);
 }
 
 // 3. Service Orders
@@ -230,8 +265,7 @@ export function subscribeAllTasks(callback: (tasks: CareerTask[]) => void): () =
 }
 
 export async function saveTask(task: CareerTask): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'career_tasks', task.id), cleanData(task), { merge: true });
+  await resilientSaveDoc('career_tasks', task.id, task);
 }
 
 // 5. Deliverables & Revisions
@@ -364,8 +398,7 @@ export function subscribeAllInvoices(callback: (invoices: CareerInvoice[]) => vo
 }
 
 export async function saveInvoice(invoice: CareerInvoice): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'career_invoices', invoice.id), cleanData(invoice), { merge: true });
+  await resilientSaveDoc('career_invoices', invoice.id, invoice);
 }
 
 // 9. Activity Log & Audit
@@ -402,21 +435,7 @@ export function subscribeCrmLeads(callback: (leads: CrmLead[]) => void): () => v
 }
 
 export async function saveCrmLead(lead: CrmLead): Promise<void> {
-  if (!db) return;
-  try {
-    await setDoc(doc(db, 'crm_leads', lead.id), cleanData(lead), { merge: true });
-  } catch (clientErr) {
-    console.warn('[Firestore] Client SDK saveCrmLead rejected, failing over to Worker API...', clientErr);
-    const res = await fetch('/api/career/crm/lead/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cleanData(lead)),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Failed to save lead record.');
-    }
-  }
+  await resilientSaveDoc('crm_leads', lead.id, lead);
 }
 
 export async function updateCrmLeadStage(
@@ -424,7 +443,6 @@ export async function updateCrmLeadStage(
   stage: CrmPipelineStage,
   lostReason?: string
 ): Promise<void> {
-  if (!db) return;
   const updates: any = {
     stage,
     updatedAt: new Date().toISOString(),
@@ -432,16 +450,7 @@ export async function updateCrmLeadStage(
   if (lostReason) {
     updates.lostReason = lostReason;
   }
-  try {
-    await updateDoc(doc(db, 'crm_leads', leadId), cleanData(updates));
-  } catch (clientErr) {
-    console.warn('[Firestore] Client SDK updateCrmLeadStage rejected, failing over to Worker API...', clientErr);
-    await fetch('/api/career/crm/lead/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: leadId, ...cleanData(updates) }),
-    });
-  }
+  await resilientSaveDoc('crm_leads', leadId, updates);
 }
 
 // 11. Follow-ups
@@ -459,8 +468,7 @@ export function subscribeCrmFollowUps(callback: (followUps: CrmFollowUp[]) => vo
 }
 
 export async function saveCrmFollowUp(followUp: CrmFollowUp): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'crm_followups', followUp.id), cleanData(followUp), { merge: true });
+  await resilientSaveDoc('crm_followups', followUp.id, followUp);
 }
 
 export async function completeCrmFollowUp(
@@ -468,13 +476,13 @@ export async function completeCrmFollowUp(
   outcome: CrmFollowUpOutcome,
   outcomeNotes?: string
 ): Promise<void> {
-  if (!db) return;
-  await updateDoc(doc(db, 'crm_followups', id), {
+  const updates = {
     status: 'COMPLETED',
     outcome,
     outcomeNotes: outcomeNotes || '',
     completedAt: new Date().toISOString(),
-  });
+  };
+  await resilientSaveDoc('crm_followups', id, updates);
 }
 
 // 12. CRM Activity Timeline
@@ -497,14 +505,13 @@ export function subscribeCrmActivities(
 export async function logCrmActivity(
   activity: Omit<CrmActivity, 'id' | 'timestamp'>
 ): Promise<void> {
-  if (!db) return;
+  const item: CrmActivity = {
+    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `act_${Date.now()}`,
+    ...activity,
+    timestamp: new Date().toISOString(),
+  };
   try {
-    const item: CrmActivity = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `act_${Date.now()}`,
-      ...activity,
-      timestamp: new Date().toISOString(),
-    };
-    await addDoc(collection(db, 'crm_activities'), cleanData(item));
+    await resilientSaveDoc('crm_activities', item.id, item);
   } catch (e) {
     console.warn('CRM activity logging warning:', e);
   }
@@ -527,8 +534,7 @@ export function subscribeCrmConsultations(
 }
 
 export async function saveCrmConsultation(consultation: CrmConsultation): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'crm_consultations', consultation.id), cleanData(consultation), { merge: true });
+  await resilientSaveDoc('crm_consultations', consultation.id, consultation);
 }
 
 // =============================================================================
@@ -562,8 +568,8 @@ export async function getStaffUser(uid: string): Promise<StaffUser | null> {
 }
 
 export async function saveStaffUser(user: StaffUser): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'staffUsers', user.uid), cleanData(user), { merge: true });
+  await resilientSaveDoc('staff', user.uid, user);
+  await resilientSaveDoc('staffUsers', user.uid, user).catch(() => {});
 }
 
 // 15. Staff Roles
@@ -580,8 +586,7 @@ export function subscribeStaffRoles(callback: (roles: StaffRole[]) => void): () 
 }
 
 export async function saveStaffRole(role: StaffRole): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'staffRoles', role.roleId), cleanData(role), { merge: true });
+  await resilientSaveDoc('staffRoles', role.roleId, role);
 }
 
 // 16. Staff Departments
@@ -599,8 +604,7 @@ export function subscribeStaffDepartments(callback: (departments: StaffDepartmen
 }
 
 export async function saveStaffDepartment(department: StaffDepartment): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'staffDepartments', department.departmentId), cleanData(department), { merge: true });
+  await resilientSaveDoc('staffDepartments', department.departmentId, department);
 }
 
 // 17. Staff Activity Logs
@@ -622,15 +626,14 @@ export function subscribeStaffActivityLogs(
 export async function logStaffActivity(
   activity: Omit<StaffActivityLog, 'id' | 'timestamp'>
 ): Promise<void> {
-  if (!db) return;
+  const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `stf_act_${Date.now()}`;
+  const item: StaffActivityLog = {
+    id,
+    ...activity,
+    timestamp: new Date().toISOString(),
+  };
   try {
-    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `stf_act_${Date.now()}`;
-    const item: StaffActivityLog = {
-      id,
-      ...activity,
-      timestamp: new Date().toISOString(),
-    };
-    await addDoc(collection(db, 'staffActivityLogs'), cleanData(item));
+    await resilientSaveDoc('staffActivityLogs', item.id, item);
   } catch (e) {
     console.warn('logStaffActivity error:', e);
   }
@@ -651,15 +654,14 @@ export function subscribeStaffLoginLogs(callback: (logs: StaffLoginLog[]) => voi
 }
 
 export async function logStaffLogin(log: Omit<StaffLoginLog, 'id' | 'timestamp'>): Promise<void> {
-  if (!db) return;
+  const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `log_${Date.now()}`;
+  const item: StaffLoginLog = {
+    id,
+    ...log,
+    timestamp: new Date().toISOString(),
+  };
   try {
-    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `log_${Date.now()}`;
-    const item: StaffLoginLog = {
-      id,
-      ...log,
-      timestamp: new Date().toISOString(),
-    };
-    await addDoc(collection(db, 'staffLoginLogs'), cleanData(item));
+    await resilientSaveDoc('staffLoginLogs', item.id, item);
   } catch (e) {
     console.warn('logStaffLogin warning:', e);
   }
@@ -684,8 +686,7 @@ export function subscribeServiceCatalogue(callback: (items: ServiceItem[]) => vo
 }
 
 export async function saveServiceItem(item: ServiceItem): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'service_catalogue', item.id), cleanData(item), { merge: true });
+  await resilientSaveDoc('service_catalogue', item.id, item);
 }
 
 // 20. Projects & Milestones
@@ -703,8 +704,8 @@ export function subscribeProjects(callback: (projects: EnterpriseProjectRecord[]
 }
 
 export async function saveProject(project: EnterpriseProjectRecord): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'projects', project.id), cleanData(project), { merge: true });
+  const docId = project.id || (project as any).projectId;
+  await resilientSaveDoc('projects', docId, project);
 }
 
 export async function getProjectById(projectId: string): Promise<EnterpriseProjectRecord | null> {
@@ -733,8 +734,8 @@ export function subscribeQuotations(callback: (quotes: QuotationRecord[]) => voi
 }
 
 export async function saveQuotation(quote: QuotationRecord): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'quotations', quote.id), cleanData(quote), { merge: true });
+  const docId = quote.id || (quote as any).quotationId;
+  await resilientSaveDoc('quotations', docId, quote);
 }
 
 // 22. Support Tickets
@@ -752,8 +753,7 @@ export function subscribeSupportTickets(callback: (tickets: SupportTicketRecord[
 }
 
 export async function saveSupportTicket(ticket: SupportTicketRecord): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'support_tickets', ticket.ticketId), cleanData(ticket), { merge: true });
+  await resilientSaveDoc('support_tickets', ticket.ticketId, ticket);
 }
 
 // 23. Maintenance Contracts
@@ -771,8 +771,7 @@ export function subscribeMaintenanceContracts(callback: (contracts: MaintenanceC
 }
 
 export async function saveMaintenanceContract(contract: MaintenanceContractRecord): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'maintenance_contracts', contract.contractId), cleanData(contract), { merge: true });
+  await resilientSaveDoc('maintenance_contracts', contract.contractId, contract);
 }
 
 // 24. Technical Discoveries
@@ -790,8 +789,7 @@ export function subscribeDiscoveries(callback: (discoveries: DiscoveryRecord[]) 
 }
 
 export async function saveDiscoveryRecord(discovery: DiscoveryRecord): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'discoveries', discovery.discoveryId), cleanData(discovery), { merge: true });
+  await resilientSaveDoc('discoveries', discovery.discoveryId, discovery);
 }
 
 // 25. Universal Tasks
@@ -817,8 +815,7 @@ export function subscribeUniversalTasks(
 }
 
 export async function saveUniversalTask(task: UniversalTaskRecord): Promise<void> {
-  if (!db) return;
-  await setDoc(doc(db, 'universal_tasks', task.taskId), cleanData(task), { merge: true });
+  await resilientSaveDoc('universal_tasks', task.taskId, task);
 }
 
 

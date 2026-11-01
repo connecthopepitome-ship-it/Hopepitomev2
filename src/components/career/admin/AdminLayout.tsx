@@ -36,6 +36,8 @@ import {
   MoreHorizontal,
   X,
   FileSpreadsheet,
+  ArrowUpRight,
+  HelpCircle,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -46,6 +48,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, loading, isAuthorized, mustChangePassword, staffProfile, hasPermission, refreshStaffProfile } = useAdminAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Mobile navigation drawer states
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showMobileMore, setShowMobileMore] = useState(false);
 
   // Mandatory first-login password state
   const [newPassword, setNewPassword] = useState('');
@@ -59,13 +65,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [user, loading, router]);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setShowMobileMenu(false);
+    setShowMobileMore(false);
+  }, [pathname]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F9FB] flex items-center justify-center font-['Manrope',sans-serif]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#17243B] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-medium text-[#777781] tracking-wide">
-            Verifying Staff Authorization...
+          <div className="w-8 h-8 border-2 border-[#00236F] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[13px] font-semibold text-slate-500 tracking-wide">
+            Verifying Enterprise Authorization...
           </p>
         </div>
       </div>
@@ -78,19 +90,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center p-4 font-sans">
-        <div className="bg-white p-8 rounded-2xl border border-[#E6E2DC] shadow-xl max-w-md w-full text-center space-y-4">
+      <div className="min-h-screen bg-[#F7F9FB] flex items-center justify-center p-4 font-['Manrope',sans-serif]">
+        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xl max-w-md w-full text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-700 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
           </div>
-          <h2 className="text-lg font-bold text-[#17243B]">Access Restricted</h2>
-          <p className="text-xs text-[#777781] leading-relaxed">
+          <h2 className="text-lg font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">Access Restricted</h2>
+          <p className="text-[13px] text-slate-600 leading-relaxed">
             Your account ({user.email}) does not have active staff permissions. Please contact your system administrator or log in with corporate credentials.
           </p>
           <div className="pt-2">
             <Link
               href="/career-services/admin/login"
-              className="inline-flex px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36]"
+              className="inline-flex px-4 py-2.5 rounded-xl bg-[#00236F] text-white text-[13px] font-semibold hover:bg-[#1e3a8a] transition"
             >
               Return to Login
             </Link>
@@ -121,10 +133,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     setChangingPass(true);
     try {
       if (!auth?.currentUser) throw new Error('Authentication state not found.');
-      // 1. Update password in Firebase Auth
       await updatePassword(auth.currentUser, newPassword);
 
-      // 2. Call backend Worker API to clear mustChangePassword and log event
       const res = await fetch('/api/career/admin/employees/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,24 +158,23 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
   };
 
-  // If employee must change password, strictly block access until updated
   if (mustChangePassword) {
     return (
-      <div className="min-h-screen bg-[#F7F5F0] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="min-h-screen bg-[#F7F9FB] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-['Manrope',sans-serif]">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="w-12 h-12 rounded-2xl bg-[#17243B] flex items-center justify-center text-white mx-auto shadow-sm mb-4">
-            <KeyRound className="w-6 h-6 text-[#8172A8]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#00236F] flex items-center justify-center text-white mx-auto shadow-sm mb-4">
+            <KeyRound className="w-6 h-6 text-emerald-400" />
           </div>
-          <h2 className="text-center text-xl font-bold tracking-tight text-[#17243B]">
+          <h2 className="text-center text-xl font-bold tracking-tight text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
             Mandatory Password Setup
           </h2>
-          <p className="mt-1 text-center text-xs text-[#777781] max-w-sm mx-auto">
-            Welcome to Hopepitome, {staffProfile?.fullName || 'Colleague'}. Because this is your first sign-in or a temporary password was assigned, please set your new private password before continuing.
+          <p className="mt-1 text-center text-[13px] text-slate-600 max-w-sm mx-auto">
+            Welcome to Hopepitome, {staffProfile?.fullName || 'Colleague'}. Please set your new private password before continuing.
           </p>
 
-          <div className="mt-6 bg-[#FFFFFF] py-8 px-6 sm:px-10 rounded-2xl border border-[#E6E2DC] shadow-[0_4px_20px_rgba(23,36,59,0.04)]">
+          <div className="mt-6 bg-white py-8 px-6 sm:px-10 rounded-2xl border border-slate-200 shadow-sm">
             {passError && (
-              <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200/80 flex items-start gap-2.5 text-xs text-red-700">
+              <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200/80 flex items-start gap-2.5 text-[13px] text-red-700">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{passError}</span>
               </div>
@@ -173,11 +182,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
             <form onSubmit={handleFirstTimePasswordChange} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#17243B] mb-1.5">
+                <label className="block text-[13px] font-semibold text-slate-800 mb-1.5">
                   New Private Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#777781]">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -186,17 +195,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimum 12 characters"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8] focus:ring-1 focus:ring-[#8172A8]"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-[13px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#17243B] mb-1.5">
+                <label className="block text-[13px] font-semibold text-slate-800 mb-1.5">
                   Confirm New Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#777781]">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -205,22 +214,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter your new password"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8] focus:ring-1 focus:ring-[#8172A8]"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-[13px] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#00236F] focus:ring-1 focus:ring-[#00236F]"
                   />
                 </div>
-              </div>
-
-              <div className="p-3 bg-[#F7F5F0] rounded-xl text-[11px] text-[#777781] space-y-1">
-                <p className="font-semibold text-[#17243B]">Password Policy Guidelines:</p>
-                <p>• At least 12 characters in length</p>
-                <p>• Include uppercase & lowercase letters</p>
-                <p>• Include numbers and special symbols (!@#$%^&*)</p>
               </div>
 
               <button
                 type="submit"
                 disabled={changingPass}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#00236F] hover:bg-[#1e3a8a] text-white text-[13px] font-semibold shadow-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {changingPass ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -238,7 +240,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  const [showMobileMore, setShowMobileMore] = useState(false);
+  const deliveryNavItems = [
+    { label: 'Project Management & Board', href: '/career-services/admin/projects', icon: Briefcase },
+    { label: 'Service Catalogue Engine', href: '/career-services/admin/services', icon: Layers },
+    { label: 'Customer 360 Directory', href: '/career-services/admin/clients', icon: Users },
+    { label: 'Staff Task Board', href: '/career-services/admin/tasks', icon: CheckSquare },
+    { label: 'Deliverables Vault', href: '/career-services/admin/deliverables', icon: FileBox },
+    { label: 'Career Work Orders', href: '/career-services/admin/orders', icon: RotateCcw },
+    { label: 'SLA Support & Maintenance', href: '/career-services/admin/support', icon: LifeBuoy },
+    { label: 'Audit Trail & Logs', href: '/career-services/admin/audit', icon: History },
+  ];
 
   const crmNavItems = [
     { label: 'CRM Overview', href: '/career-services/admin/crm', icon: LayoutDashboard },
@@ -249,18 +260,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: Calendar },
     { label: 'Sales Analytics', href: '/career-services/admin/crm/reports', icon: BarChart3 },
     { label: 'CRM Settings', href: '/career-services/admin/crm/settings', icon: Settings },
-  ];
-
-  const deliveryNavItems = [
-    { label: 'Project Management & Board', href: '/career-services/admin/projects', icon: Briefcase },
-    { label: 'Service Catalogue Engine', href: '/career-services/admin/services', icon: Layers },
-    { label: 'Customer 360 Directory', href: '/career-services/admin/clients', icon: Users },
-    { label: 'Staff Task Board', href: '/career-services/admin/tasks', icon: CheckSquare },
-    { label: 'Deliverables & Vault', href: '/career-services/admin/deliverables', icon: FileBox },
-    { label: 'Career Work Orders', href: '/career-services/admin/orders', icon: RotateCcw },
-    { label: 'SLA Support & Maintenance', href: '/career-services/admin/support', icon: LifeBuoy },
-    { label: 'Finance & Invoicing', href: '/career-services/admin/finance', icon: Receipt },
-    { label: 'Audit Trail & Logs', href: '/career-services/admin/audit', icon: History },
   ];
 
   const empNavItems = [
@@ -274,155 +273,141 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const canManageEmployees = hasPermission('employees', 'view');
 
+  const renderNavSection = (title: string, tag: string, items: typeof deliveryNavItems) => (
+    <div className="bg-white p-3 rounded-xl border border-[#E0E3E5] shadow-sm space-y-1">
+      <div className="flex items-center justify-between px-3 py-1 mb-1">
+        <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
+          {title}
+        </span>
+        <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+          {tag}
+        </span>
+      </div>
+      {items.map((item) => {
+        const Icon = item.icon;
+        const isActive = pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex items-center justify-between px-3 py-2 rounded-lg text-[13px] transition font-['Manrope',sans-serif] ${
+              isActive
+                ? 'bg-[#1e3a8a] text-white shadow-sm font-semibold'
+                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+              <span>{item.label}</span>
+            </div>
+            {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
+          </Link>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-[#F7F5F0] text-[#292D36] flex flex-col font-sans selection:bg-[#8172A8]/20 selection:text-[#17243B]">
-      <AdminHeader />
+    <div className="min-h-screen bg-[#F7F9FB] text-slate-800 flex flex-col font-['Manrope',sans-serif] selection:bg-[#dae2fd] selection:text-[#00164e]">
+      <AdminHeader
+        onToggleMobileMenu={() => setShowMobileMenu(!showMobileMenu)}
+        isMobileMenuOpen={showMobileMenu}
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6 pb-24 md:pb-8">
-        {/* Desktop Sidebar (Hidden on small screens) */}
-        <aside className="hidden md:block w-64 shrink-0 space-y-4">
-          {/* Service Catalogue & Delivery Group */}
-          <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
-            <div className="flex items-center justify-between px-3 py-1 mb-0.5">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-indigo-700">
-                Delivery & Projects
-              </span>
-              <span className="text-[9px] font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
-                IT & Multi-Service
-              </span>
+      {/* Main Workspace Frame */}
+      <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full flex-1 flex flex-col md:flex-row gap-5 pb-28 md:pb-8">
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:flex flex-col w-64 shrink-0 space-y-4">
+          {renderNavSection('DELIVERY & PROJECTS', 'OPS', deliveryNavItems)}
+          {renderNavSection('CRM & SALES', 'ACQ', crmNavItems)}
+          {canManageEmployees && renderNavSection('TEAM & ORG', 'STAFF', empNavItems)}
+
+          {/* Operational Cluster Diagnostic Card */}
+          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white/60 shadow-sm mt-auto space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500">
+              <span>Enterprise Cluster</span>
+              <span className="text-[#00236F] font-bold">92.4%</span>
             </div>
-            {deliveryNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                    isActive
-                      ? 'bg-[#17243B] text-white shadow-sm font-semibold'
-                      : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-indigo-600'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
-                </Link>
-              );
-            })}
+            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+              <div className="bg-[#1e3a8a] h-full rounded-full" style={{ width: '92.4%' }} />
+            </div>
+            <div className="flex justify-between text-[11px] text-slate-500 pt-0.5">
+              <span>Storage: 4.6TB / 5.0TB</span>
+              <span className="text-emerald-700 font-bold">Optimal</span>
+            </div>
           </div>
-
-          {/* CRM Navigation Group */}
-          <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
-            <div className="flex items-center justify-between px-3 py-1 mb-0.5">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-[#8172A8]">
-                CRM & Sales
-              </span>
-              <span className="text-[9px] font-semibold bg-[#8172A8]/10 text-[#8172A8] px-1.5 py-0.5 rounded">
-                Acquisition
-              </span>
-            </div>
-            {crmNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                    isActive
-                      ? 'bg-[#17243B] text-white shadow-sm font-semibold'
-                      : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#8172A8]'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Employee Management Navigation Group (Visible if authorized) */}
-          {canManageEmployees && (
-            <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_3px_rgba(23,36,59,0.03)] space-y-1">
-              <div className="flex items-center justify-between px-3 py-1 mb-0.5">
-                <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-700">
-                  Team & Organization
-                </span>
-                <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
-                  Staff & Access
-                </span>
-              </div>
-              {empNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                      isActive
-                        ? 'bg-[#17243B] text-white shadow-sm font-semibold'
-                        : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-600'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/70" />}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
         </aside>
 
-        {/* Main Workspace Area */}
+        {/* Main Content Area */}
         <main className="flex-1 min-w-0">{children}</main>
       </div>
 
+      {/* Slide-out Navigation Drawer for Mobile/Tablet (< md) */}
+      {showMobileMenu && (
+        <div className="md:hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex justify-start">
+          <div className="w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-left duration-200">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#00236F] text-white flex items-center justify-center font-bold text-xs font-['Plus_Jakarta_Sans',sans-serif]">
+                  HP
+                </div>
+                <span className="font-bold text-slate-900 text-sm font-['Plus_Jakarta_Sans',sans-serif]">
+                  Operations Navigation
+                </span>
+              </div>
+              <button
+                onClick={() => setShowMobileMenu(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4 flex-1">
+              {renderNavSection('DELIVERY & PROJECTS', 'OPS', deliveryNavItems)}
+              {renderNavSection('CRM & SALES', 'ACQ', crmNavItems)}
+              {canManageEmployees && renderNavSection('TEAM & ORG', 'STAFF', empNavItems)}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Persistent Mobile Bottom Navigation Bar (< md) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E6E2DC] shadow-[0_-2px_10px_rgba(23,36,59,0.06)] px-3 py-1.5 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-2px_10px_rgba(0,35,111,0.06)] px-3 py-1 flex items-center justify-around pb-[max(0.5rem,env(safe-area-inset-bottom))] font-['Manrope',sans-serif]">
         <Link
           href="/career-services/admin/dashboard"
           className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
             pathname === '/career-services/admin/dashboard'
-              ? 'text-[#17243B] font-bold'
-              : 'text-[#777781] hover:text-[#17243B]'
+              ? 'text-[#00236F] font-bold'
+              : 'text-slate-500 hover:text-slate-900 font-medium'
           }`}
         >
           <LayoutDashboard className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] leading-tight">Home</span>
+          <span className="text-[11px] leading-tight">Home</span>
         </Link>
 
         <Link
           href="/career-services/admin/crm/leads"
           className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
             pathname.startsWith('/career-services/admin/crm')
-              ? 'text-[#8172A8] font-bold'
-              : 'text-[#777781] hover:text-[#17243B]'
+              ? 'text-[#00236F] font-bold'
+              : 'text-slate-500 hover:text-slate-900 font-medium'
           }`}
         >
           <Inbox className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] leading-tight">CRM</span>
+          <span className="text-[11px] leading-tight">CRM</span>
         </Link>
 
         <Link
           href="/career-services/admin/projects"
           className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
             pathname.startsWith('/career-services/admin/projects')
-              ? 'text-indigo-600 font-bold'
-              : 'text-[#777781] hover:text-[#17243B]'
+              ? 'text-[#00236F] font-bold'
+              : 'text-slate-500 hover:text-slate-900 font-medium'
           }`}
         >
           <Briefcase className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] leading-tight">Projects</span>
+          <span className="text-[11px] leading-tight">Projects</span>
         </Link>
 
         <Link
@@ -430,33 +415,33 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           className={`flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl transition ${
             pathname.startsWith('/career-services/admin/employees')
               ? 'text-emerald-700 font-bold'
-              : 'text-[#777781] hover:text-[#17243B]'
+              : 'text-slate-500 hover:text-slate-900 font-medium'
           }`}
         >
           <Users className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] leading-tight">Team</span>
+          <span className="text-[11px] leading-tight">Team</span>
         </Link>
 
         <button
           onClick={() => setShowMobileMore(true)}
-          className="flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl text-[#777781] hover:text-[#17243B] transition"
+          className="flex flex-col items-center justify-center p-1.5 min-w-[56px] min-h-[48px] rounded-xl text-slate-500 hover:text-slate-900 font-medium transition"
         >
           <MoreHorizontal className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] leading-tight">More</span>
+          <span className="text-[11px] leading-tight">More</span>
         </button>
       </nav>
 
-      {/* Mobile "More" Drawer / Action Sheet */}
+      {/* Mobile "More" Drawer Action Sheet */}
       {showMobileMore && (
-        <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex flex-col justify-end">
-          <div className="bg-white rounded-t-3xl p-5 border-t border-[#E6E2DC] shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#E6E2DC] pb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                Navigation Drawer
+        <div className="md:hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex flex-col justify-end">
+          <div className="bg-white rounded-t-3xl p-5 border-t border-slate-200 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-slate-800 font-['Plus_Jakarta_Sans',sans-serif]">
+                Operations Menu
               </span>
               <button
                 onClick={() => setShowMobileMore(false)}
-                className="p-1 rounded-full hover:bg-gray-100 text-[#777781]"
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-500"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -466,16 +451,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Link
                 href="/career-services/admin/services"
                 onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 text-[13px] font-semibold text-slate-900 transition"
               >
-                <Layers className="w-4 h-4 text-indigo-600" />
+                <Layers className="w-4 h-4 text-[#00236F]" />
                 <span>Service Catalogue</span>
               </Link>
 
               <Link
                 href="/career-services/admin/crm/quotations"
                 onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 text-[13px] font-semibold text-slate-900 transition"
               >
                 <Receipt className="w-4 h-4 text-purple-600" />
                 <span>Quotations</span>
@@ -484,55 +469,37 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Link
                 href="/career-services/admin/support"
                 onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 text-[13px] font-semibold text-slate-900 transition"
               >
                 <LifeBuoy className="w-4 h-4 text-rose-600" />
                 <span>Support & SLAs</span>
               </Link>
 
               <Link
-                href="/career-services/admin/finance"
-                onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
-              >
-                <Receipt className="w-4 h-4 text-emerald-600" />
-                <span>Finance & Invoices</span>
-              </Link>
-
-              <Link
                 href="/career-services/admin/tasks"
                 onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 text-[13px] font-semibold text-slate-900 transition"
               >
                 <CheckSquare className="w-4 h-4 text-blue-600" />
-                <span>Task Board</span>
-              </Link>
-
-              <Link
-                href="/career-services/admin/deliverables"
-                onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
-              >
-                <FileBox className="w-4 h-4 text-amber-600" />
-                <span>Deliverables Vault</span>
+                <span>Staff Task Board</span>
               </Link>
 
               <Link
                 href="/career-services/admin/clients"
                 onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 text-[13px] font-semibold text-slate-900 transition"
               >
-                <Users className="w-4 h-4 text-indigo-700" />
+                <Users className="w-4 h-4 text-emerald-700" />
                 <span>Customers 360</span>
               </Link>
 
               <Link
-                href="/career-services/admin/crm/settings"
+                href="/career-services/admin/finance"
                 onClick={() => setShowMobileMore(false)}
-                className="p-3 bg-[#F7F5F0] rounded-xl flex items-center gap-2.5 text-xs font-semibold text-[#17243B]"
+                className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 text-[13px] font-semibold text-slate-900 transition"
               >
-                <Settings className="w-4 h-4 text-gray-700" />
-                <span>CRM Settings</span>
+                <Receipt className="w-4 h-4 text-emerald-600" />
+                <span>Finance & Billing</span>
               </Link>
             </div>
           </div>

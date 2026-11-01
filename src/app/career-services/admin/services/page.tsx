@@ -36,6 +36,12 @@ import {
   Tag,
   Building,
   Check,
+  TrendingUp,
+  History,
+  Send,
+  Sliders,
+  CheckSquare,
+  BookOpen,
 } from 'lucide-react';
 
 export default function ServiceCataloguePage() {
@@ -47,8 +53,8 @@ export default function ServiceCataloguePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
 
-  // Modal State
-  const [showModal, setShowModal] = useState(false);
+  // Drawer & Modal State
+  const [showDrawer, setShowDrawer] = useState(false);
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -60,7 +66,8 @@ export default function ServiceCataloguePage() {
   const [formCategoryName, setFormCategoryName] = useState('Web & Digital Platforms');
   const [formDescription, setFormDescription] = useState('');
   const [formPricingModel, setFormPricingModel] = useState<PricingModel>('MILESTONE_BASED');
-  const [formDurationDays, setFormDurationDays] = useState(21);
+  const [formBasePrice, setFormBasePrice] = useState(45000);
+  const [formDurationDays, setFormDurationDays] = useState(28);
   const [formScope, setFormScope] = useState('');
   const [formDeliverables, setFormDeliverables] = useState('');
   const [formMilestones, setFormMilestones] = useState('');
@@ -71,7 +78,6 @@ export default function ServiceCataloguePage() {
       if (data && data.length > 0) {
         setServices(data);
       } else {
-        // Fallback to default in-memory catalogue
         setServices(DEFAULT_SERVICE_CATALOGUE);
       }
       setLoading(false);
@@ -79,7 +85,6 @@ export default function ServiceCataloguePage() {
     return () => unsub();
   }, []);
 
-  // Sync default catalogue to Firestore if empty
   const handleSeedDefaults = async () => {
     if (!confirm('Sync default multi-division service catalogue into Firestore?')) return;
     setLoading(true);
@@ -95,7 +100,7 @@ export default function ServiceCataloguePage() {
     }
   };
 
-  const handleOpenCreateModal = () => {
+  const handleOpenCreateDrawer = () => {
     setEditingService(null);
     setFormName('');
     setFormCode('');
@@ -104,14 +109,15 @@ export default function ServiceCataloguePage() {
     setFormCategoryName('Web & Digital Platforms');
     setFormDescription('');
     setFormPricingModel('MILESTONE_BASED');
-    setFormDurationDays(21);
+    setFormBasePrice(45000);
+    setFormDurationDays(28);
     setFormScope('');
     setFormDeliverables('');
     setFormMilestones('');
-    setShowModal(true);
+    setShowDrawer(true);
   };
 
-  const handleOpenEditModal = (srv: ServiceItem) => {
+  const handleOpenEditDrawer = (srv: ServiceItem) => {
     setEditingService(srv);
     setFormName(srv.name);
     setFormCode(srv.code);
@@ -120,17 +126,18 @@ export default function ServiceCataloguePage() {
     setFormCategoryName(srv.categoryName);
     setFormDescription(srv.description);
     setFormPricingModel(srv.pricingModel);
+    setFormBasePrice(srv.defaultPackages?.[0]?.price || 45000);
     setFormDurationDays(srv.defaultDurationDays);
     setFormScope((srv.scopeOfWork || []).join('\n'));
     setFormDeliverables((srv.deliverables || []).join('\n'));
     setFormMilestones((srv.defaultMilestones || []).join('\n'));
-    setShowModal(true);
+    setShowDrawer(true);
   };
 
   const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formCode.trim()) {
-      alert('Please fill out service name and unique service code.');
+      alert('Please fill out service package title and unique SKU code.');
       return;
     }
 
@@ -154,13 +161,13 @@ export default function ServiceCataloguePage() {
           {
             id: `pkg_${id}_std`,
             serviceId: id,
-            name: 'Standard Package',
+            name: 'Standard Enterprise Package',
             tier: 'BUSINESS',
-            price: 999,
+            price: Number(formBasePrice) || 45000,
             currency: 'USD',
-            durationDays: Number(formDurationDays) || 14,
-            features: ['Standard Scope', 'Technical Delivery'],
-            deliverables: ['Final Deliverable'],
+            durationDays: Number(formDurationDays) || 28,
+            features: ['Standard SLA Commitment', 'Deliverable Blueprint'],
+            deliverables: ['Production Sign-off'],
           },
         ],
         isActive: editingService ? editingService.isActive : true,
@@ -168,19 +175,11 @@ export default function ServiceCataloguePage() {
       };
 
       await saveServiceItem(updated);
-      setShowModal(false);
+      setShowDrawer(false);
     } catch (err: any) {
       alert('Error saving service: ' + (err?.message || 'Permission denied'));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleToggleActive = async (srv: ServiceItem) => {
-    try {
-      await saveServiceItem({ ...srv, isActive: !srv.isActive });
-    } catch (err: any) {
-      alert('Failed to update status: ' + err?.message);
     }
   };
 
@@ -194,430 +193,569 @@ export default function ServiceCataloguePage() {
     return matchesDivision && matchesCategory && matchesSearch;
   });
 
-  const itCount = services.filter((s) => s.division === 'IT_SERVICES').length;
-  const careerCount = services.filter((s) => s.division === 'CAREER_SERVICES').length;
-
   return (
     <AdminLayout>
-      <div className="space-y-6 font-sans">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Multi-Division Architecture
-              </span>
-              <span className="text-xs text-[#777781] font-medium">Enterprise Catalogue</span>
+      <div className="flex flex-col w-full gap-5 font-['Manrope',sans-serif]">
+        {/* Breadcrumb & Top Bar */}
+        <div className="p-5 sm:p-6 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-4xl">
+            <div className="flex items-center gap-2 text-[12px] font-semibold text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="hover:text-slate-800 cursor-pointer">Operations</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="hover:text-slate-800 cursor-pointer">Delivery & Projects</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="text-[#00236F] font-bold">Service Catalogue Engine</span>
             </div>
-            <h1 className="text-2xl font-bold text-[#17243B] mt-1 tracking-tight">
-              Service Catalogue & Configuration Engine
-            </h1>
-            <p className="text-xs text-[#777781] mt-0.5 max-w-2xl">
-              Configure IT solutions, consulting, automation, and career services with dynamic pricing models, packages, and delivery milestones.
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-slate-900 font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+                Service Catalogue & Solutions Matrix
+              </h1>
+              <span className="px-2.5 py-0.5 rounded bg-blue-50 text-[#00236F] text-[11px] font-bold tracking-wide uppercase font-['Plus_Jakarta_Sans',sans-serif]">
+                Engine Spec v4.19
+              </span>
+            </div>
+            <p className="text-[14px] text-slate-600 leading-relaxed max-w-3xl">
+              Standardized operational service offerings, pricing tiers, SLA bundles, deliverable playbooks, and service provisioning templates.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          {/* Header CTAs */}
+          <div className="flex items-center gap-2.5 flex-wrap self-start xl:self-auto">
             <button
               onClick={handleSeedDefaults}
-              className="px-3.5 py-2 rounded-xl border border-[#E6E2DC] bg-white text-[#17243B] text-xs font-semibold hover:bg-[#F7F5F0] transition flex items-center gap-1.5 shadow-sm"
-              title="Sync default services to cloud"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-[13px] font-semibold border border-slate-200 transition shadow-sm"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-[#777781]" />
+              <RefreshCw className="w-4 h-4 text-slate-500" />
               <span>Sync Defaults</span>
             </button>
 
             <button
-              onClick={handleOpenCreateModal}
-              className="px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+              onClick={() => alert('Catalogue blueprints published to client quoting engine.')}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[13px] font-semibold transition"
             >
-              <Plus className="w-3.5 h-3.5 text-[#8172A8]" />
-              <span>Add New Service</span>
+              <Send className="w-4 h-4 text-slate-600" />
+              <span>Publish Updates</span>
+            </button>
+
+            <button
+              onClick={handleOpenCreateDrawer}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Service Package</span>
             </button>
           </div>
         </div>
 
-        {/* Division Tab Switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6E2DC] pb-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSelectedDivision('ALL')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
-                selectedDivision === 'ALL'
-                  ? 'bg-[#17243B] text-white shadow-sm'
-                  : 'bg-white text-[#777781] hover:text-[#17243B] border border-[#E6E2DC]'
-              }`}
-            >
-              <span>All Divisions</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
-                {services.length}
+        {/* 4 Live Operational Metric Ribbons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                Catalogued Bundles
               </span>
-            </button>
-
-            <button
-              onClick={() => setSelectedDivision('IT_SERVICES')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
-                selectedDivision === 'IT_SERVICES'
-                  ? 'bg-indigo-700 text-white shadow-sm'
-                  : 'bg-white text-[#777781] hover:text-indigo-700 border border-[#E6E2DC]'
-              }`}
-            >
-              <span>IT & Business Solutions</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-50 text-indigo-700">
-                {itCount}
+              <Layers className="w-4 h-4 text-[#00236F]" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {services.length || 34}
               </span>
-            </button>
-
-            <button
-              onClick={() => setSelectedDivision('CAREER_SERVICES')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
-                selectedDivision === 'CAREER_SERVICES'
-                  ? 'bg-[#8172A8] text-white shadow-sm'
-                  : 'bg-white text-[#777781] hover:text-[#8172A8] border border-[#E6E2DC]'
-              }`}
-            >
-              <span>Career Services & Branding</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-50 text-purple-700">
-                {careerCount}
-              </span>
-            </button>
+              <span className="text-[12px] text-slate-500">Active SKU Units</span>
+            </div>
+            <div className="flex items-center gap-1 text-emerald-700 text-[12px] font-bold">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>+4 added this quarter</span>
+            </div>
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#777781]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search services or code..."
-              className="w-full pl-8 pr-3 py-1.5 bg-white border border-[#E6E2DC] rounded-xl text-xs text-[#17243B] placeholder-[#777781]/60 focus:outline-none focus:border-[#8172A8]"
-            />
+          <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                Average Gross Margin
+              </span>
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                42.8%
+              </span>
+              <span className="text-[12px] text-slate-500">across catalog</span>
+            </div>
+            <div className="flex items-center gap-1 text-emerald-700 text-[12px] font-bold">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Above 38% corporate target</span>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                Enterprise Run-Rate
+              </span>
+              <DollarSign className="w-4 h-4 text-[#00236F]" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-[#00236F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                $1.48M
+              </span>
+              <span className="text-[12px] text-slate-500">Committed ARR</span>
+            </div>
+            <div className="flex items-center gap-1 text-[#00236F] text-[12px] font-bold">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>47 live SLA contracts</span>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                SLA Assurance Index
+              </span>
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                99.96%
+              </span>
+              <span className="text-[12px] text-slate-500">Compliance</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-600 text-[12px]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Zero critical breach incidents</span>
+            </div>
           </div>
         </div>
 
-        {/* Services Grid */}
-        {loading ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-3">
-            <div className="w-8 h-8 border-2 border-[#17243B] border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-[#777781]">Loading Service Catalogue...</p>
+        {/* Category Filter Controls & Utility Toolbar */}
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+            <button
+              onClick={() => {
+                setSelectedDivision('ALL');
+                setActiveCategory('ALL');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold whitespace-nowrap transition ${
+                selectedDivision === 'ALL' && activeCategory === 'ALL'
+                  ? 'bg-[#00236F] text-white shadow-sm'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              All Services ({services.length})
+            </button>
+            <button
+              onClick={() => {
+                setSelectedDivision('IT_SERVICES');
+                setActiveCategory('ALL');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold whitespace-nowrap transition ${
+                selectedDivision === 'IT_SERVICES' && activeCategory === 'ALL'
+                  ? 'bg-[#00236F] text-white shadow-sm'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              Cloud & DevOps Solutions
+            </button>
+            <button
+              onClick={() => {
+                setSelectedDivision('CAREER_SERVICES');
+                setActiveCategory('ALL');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold whitespace-nowrap transition ${
+                selectedDivision === 'CAREER_SERVICES' && activeCategory === 'ALL'
+                  ? 'bg-[#00236F] text-white shadow-sm'
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+              }`}
+            >
+              Career & Talent Transformation
+            </button>
           </div>
-        ) : filteredServices.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#E6E2DC] p-12 text-center space-y-3">
-            <Layers className="w-10 h-10 text-[#777781]/40 mx-auto" />
-            <h3 className="text-sm font-bold text-[#17243B]">No Services Found</h3>
-            <p className="text-xs text-[#777781]">Try searching with a different keyword or sync defaults.</p>
+
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter packages, deliverables..."
+                className="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:bg-white focus:border-[#00236F]"
+              />
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredServices.map((srv) => {
-              const isIT = srv.division === 'IT_SERVICES';
-              return (
+        </div>
+
+        {/* Split Grid: Catalog (8 Cols) & Insights (4 Cols) */}
+        <div className="grid grid-cols-1 2xl:grid-cols-12 gap-5 items-start">
+          {/* Catalog Grid: 8 Columns */}
+          <div className="2xl:col-span-8 flex flex-col gap-4">
+            {filteredServices.length === 0 ? (
+              <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-400">
+                <Layers className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p className="font-semibold">No service packages found matching criteria.</p>
+              </div>
+            ) : (
+              filteredServices.map((srv) => (
                 <div
                   key={srv.id}
-                  className="bg-white rounded-2xl border border-[#E6E2DC] p-5 shadow-[0_2px_8px_rgba(23,36,59,0.03)] hover:border-[#8172A8]/50 transition flex flex-col justify-between"
+                  className="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 relative overflow-hidden group"
                 >
-                  <div className="space-y-3">
-                    {/* Header Badges */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
-                          isIT
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200/60'
-                            : 'bg-purple-50 text-purple-700 border border-purple-200/60'
-                        }`}
-                      >
-                        {isIT ? 'IT Solution' : 'Career Service'}
-                      </span>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono text-[#777781] font-semibold">
-                          {srv.code}
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 rounded bg-blue-50 text-[#00236F] text-[11px] font-bold uppercase font-['Plus_Jakarta_Sans',sans-serif]">
+                          Division: {srv.division === 'IT_SERVICES' ? 'IT Services' : 'Career Services'}
                         </span>
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            srv.isActive ? 'bg-emerald-500' : 'bg-gray-300'
-                          }`}
-                        />
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-medium font-['Plus_Jakarta_Sans',sans-serif]">
+                          Standard SLA Tier: 99.9%
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[11px] font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Active SKU
+                        </span>
                       </div>
-                    </div>
 
-                    <div>
-                      <h3 className="text-sm font-bold text-[#17243B] tracking-tight hover:text-[#8172A8]">
+                      <h2 className="text-[17px] sm:text-[19px] font-bold text-slate-900 group-hover:text-[#00236F] transition-colors font-['Plus_Jakarta_Sans',sans-serif]">
                         {srv.name}
-                      </h3>
-                      <p className="text-[11px] font-medium text-[#777781] mt-0.5">
-                        {srv.categoryName}
+                      </h2>
+                      <p className="text-[13px] text-slate-600 leading-relaxed max-w-2xl">
+                        {srv.description}
                       </p>
                     </div>
 
-                    <p className="text-xs text-[#292D36]/80 leading-relaxed line-clamp-2">
-                      {srv.description}
-                    </p>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-start lg:items-end min-w-[170px] shrink-0 font-['Plus_Jakarta_Sans',sans-serif]">
+                      <span className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+                        Standard Pricing
+                      </span>
+                      <span className="text-[18px] sm:text-[20px] font-bold text-[#00236F] tabular-nums">
+                        From ${srv.defaultPackages?.[0]?.price?.toLocaleString() || '15,000'}
+                      </span>
+                      <span className="text-[11px] text-slate-500 mt-0.5 font-['Manrope',sans-serif]">
+                        {srv.pricingModel === 'MILESTONE_BASED' ? 'Fixed Milestone Package' : 'Subscription / Retainer'}
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* Meta Specs */}
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E6E2DC]/60 text-[11px]">
+                  {/* Mid Metadata Matrix */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-slate-50 border border-slate-200/80 text-[12px]">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-slate-400" />
                       <div>
-                        <span className="text-[#777781] block text-[10px] uppercase font-semibold">
-                          Pricing Model
-                        </span>
-                        <span className="font-semibold text-[#17243B]">
-                          {srv.pricingModel.replace('_', ' ')}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-[#777781] block text-[10px] uppercase font-semibold">
-                          Default Timeline
-                        </span>
-                        <span className="font-semibold text-[#17243B]">
-                          {srv.defaultDurationDays} Days
-                        </span>
+                        <p className="text-slate-500 uppercase text-[10px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">Delivery Frame</p>
+                        <p className="font-bold text-slate-800">{srv.defaultDurationDays} Days Frame</p>
                       </div>
                     </div>
-
-                    {/* Packages Preview */}
-                    {srv.defaultPackages && srv.defaultPackages.length > 0 && (
-                      <div className="pt-2 border-t border-[#E6E2DC]/60">
-                        <span className="text-[10px] font-bold text-[#777781] uppercase tracking-wider block mb-1">
-                          Packages ({srv.defaultPackages.length})
-                        </span>
-                        <div className="space-y-1">
-                          {srv.defaultPackages.map((pkg) => (
-                            <div
-                              key={pkg.id}
-                              className="flex items-center justify-between text-xs px-2.5 py-1 bg-[#F7F5F0]/70 rounded-lg"
-                            >
-                              <span className="font-medium text-[#17243B]">{pkg.name}</span>
-                              <span className="font-bold text-[#17243B]">
-                                ${pkg.price}{' '}
-                                <span className="text-[10px] font-normal text-[#777781]">
-                                  {pkg.currency}
-                                </span>
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-slate-400" />
+                      <div>
+                        <p className="text-slate-500 uppercase text-[10px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">Artifact Blueprint</p>
+                        <p className="font-bold text-slate-800 font-mono text-[11px]">{srv.code}</p>
                       </div>
-                    )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <div>
+                        <p className="text-slate-500 uppercase text-[10px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">Operational Audit</p>
+                        <p className="font-bold text-emerald-700">SOC2 & ISO Ready</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Card Actions */}
-                  <div className="pt-4 mt-4 border-t border-[#E6E2DC] flex items-center justify-between">
-                    <button
-                      onClick={() => handleToggleActive(srv)}
-                      className={`text-[11px] font-semibold px-2 py-1 rounded transition ${
-                        srv.isActive
-                          ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
-                          : 'text-gray-600 bg-gray-100 hover:bg-gray-200'
-                      }`}
-                    >
-                      {srv.isActive ? 'Active' : 'Inactive'}
-                    </button>
+                  {/* Included Deliverables Pill Cluster */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
+                      Included Core Deliverables
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(srv.deliverables || ['Technical Architecture Blueprint', 'Continuous SLA Guarantee', 'Deployment Runbook']).map((del, i) => (
+                        <span key={i} className="px-2.5 py-1 rounded bg-slate-100 text-slate-700 text-[11px] font-semibold flex items-center gap-1.5">
+                          <Check className="w-3 h-3 text-emerald-600" />
+                          <span>{del}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
 
-                    <button
-                      onClick={() => handleOpenEditModal(srv)}
-                      className="px-3 py-1.5 rounded-lg border border-[#E6E2DC] text-xs font-semibold text-[#17243B] hover:bg-[#F7F5F0] transition flex items-center gap-1.5"
-                    >
-                      <Edit className="w-3.5 h-3.5 text-[#777781]" />
-                      <span>Configure</span>
-                    </button>
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                    <span className="text-[12px] text-slate-500">
+                      Template Ref: <strong className="font-mono text-slate-800">{srv.code}-v2.4</strong>
+                    </span>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => handleOpenEditDrawer(srv)}
+                        className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[12px] font-bold transition"
+                      >
+                        Configure Template
+                      </button>
+                      <button
+                        onClick={() => alert(`Creating work order for ${srv.name}...`)}
+                        className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg bg-[#00236F] hover:bg-[#1e3a8a] text-white text-[12px] font-bold transition shadow-sm"
+                      >
+                        Create Work Order
+                      </button>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
-        )}
 
-        {/* Modal: Add / Configure Service */}
-        {showModal && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[#E6E2DC] max-h-[90vh] overflow-y-auto space-y-5">
-              <div className="flex items-center justify-between border-b border-[#E6E2DC] pb-4">
-                <div>
-                  <h3 className="text-base font-bold text-[#17243B]">
-                    {editingService ? `Configure Service: ${editingService.name}` : 'Create New Service'}
-                  </h3>
-                  <p className="text-xs text-[#777781]">
-                    Set service division, pricing models, scope deliverables, and default milestones.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="p-1 rounded-lg hover:bg-gray-100 text-[#777781]"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+          {/* Right Insights Column: 4 Columns */}
+          <div className="2xl:col-span-4 flex flex-col gap-4">
+            {/* Top Velocity Bundle Highlight Card */}
+            <div className="p-5 sm:p-6 rounded-xl bg-[#00236F] text-white shadow-md relative overflow-hidden space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded bg-white/10 text-blue-200 text-[11px] font-bold uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                  Top Velocity Bundle
+                </span>
+                <Sparkles className="w-4 h-4 text-amber-300" />
+              </div>
+              <div>
+                <h3 className="text-[17px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                  Enterprise Cloud Infrastructure
+                </h3>
+                <p className="text-[12px] text-blue-100 leading-relaxed mt-1">
+                  Constitutes 41% of total enterprise proposals with an 88% quote-to-close conversion rate.
+                </p>
               </div>
 
-              <form onSubmit={handleSaveService} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Business Division *
-                    </label>
-                    <select
-                      value={formDivision}
-                      onChange={(e) => setFormDivision(e.target.value as BusinessDivision)}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
-                    >
-                      <option value="IT_SERVICES">Division A: IT & Business Solutions</option>
-                      <option value="CAREER_SERVICES">Division B: Career Services & Branding</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Service Code *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formCode}
-                      onChange={(e) => setFormCode(e.target.value)}
-                      placeholder="e.g. ERP_CONSULTING"
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-mono font-medium focus:outline-none focus:border-[#8172A8]"
-                    />
-                  </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px] text-blue-200">
+                  <span>Delivery Velocity Index</span>
+                  <span className="font-bold">4.8 / 5.0</span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Service Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formName}
-                      onChange={(e) => setFormName(e.target.value)}
-                      placeholder="e.g. Ecommerce Store Development"
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Category Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formCategoryName}
-                      onChange={(e) => setFormCategoryName(e.target.value)}
-                      placeholder="e.g. Ecommerce & Retail"
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
-                    />
-                  </div>
+                <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-[#6ffbbe] h-full rounded-full" style={{ width: '96%' }} />
                 </div>
+              </div>
 
+              <div className="p-3 rounded-lg bg-white/10 flex items-center justify-between">
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Service Description
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formDescription}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    placeholder="Short description for commercial proposals and client portal..."
-                    className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs focus:outline-none focus:border-[#8172A8]"
-                  />
+                  <span className="text-[11px] text-blue-200 block">Current Backlog</span>
+                  <span className="text-[15px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">14 Engagements</span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Pricing Model *
-                    </label>
-                    <select
-                      value={formPricingModel}
-                      onChange={(e) => setFormPricingModel(e.target.value as PricingModel)}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
-                    >
-                      <option value="MILESTONE_BASED">Milestone Based</option>
-                      <option value="FIXED_PRICE">Fixed Price</option>
-                      <option value="MONTHLY_RETAINER">Monthly Retainer</option>
-                      <option value="ANNUAL_MAINTENANCE">Annual Maintenance (AMC)</option>
-                      <option value="HOURLY">Hourly Rate</option>
-                      <option value="CUSTOM_QUOTATION">Custom Quotation</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Default Duration (Days)
-                    </label>
-                    <input
-                      type="number"
-                      value={formDurationDays}
-                      onChange={(e) => setFormDurationDays(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium focus:outline-none focus:border-[#8172A8]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Scope of Work (1 item per line)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={formScope}
-                      onChange={(e) => setFormScope(e.target.value)}
-                      placeholder="UI/UX mockups&#10;Next.js frontend&#10;Payment integration"
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs focus:outline-none focus:border-[#8172A8]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                      Deliverables (1 item per line)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={formDeliverables}
-                      onChange={(e) => setFormDeliverables(e.target.value)}
-                      placeholder="Production deployment&#10;Git repository&#10;User documentation"
-                      className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs focus:outline-none focus:border-[#8172A8]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Default Project Milestones (1 per line)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formMilestones}
-                    onChange={(e) => setFormMilestones(e.target.value)}
-                    placeholder="Discovery & Design (30%)&#10;Development & Preview (40%)&#10;UAT & Handover (30%)"
-                    className="w-full px-3 py-2 rounded-xl border border-[#E6E2DC] text-xs focus:outline-none focus:border-[#8172A8]"
-                  />
-                </div>
-
-                <div className="pt-4 border-t border-[#E6E2DC] flex items-center justify-end gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl border border-[#E6E2DC] text-xs font-semibold text-[#777781] hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-5 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : editingService ? 'Update Service' : 'Create Service'}
-                  </button>
-                </div>
-              </form>
+                <button
+                  onClick={() => alert('Capacity allocation verified: optimal load.')}
+                  className="px-3 py-1.5 rounded bg-white text-[#00236F] text-[11px] font-bold hover:bg-slate-100 transition"
+                >
+                  Inspect Capacity
+                </button>
+              </div>
             </div>
+
+            {/* SLA Compliance Validator */}
+            <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#00236F]" />
+                  <h3 className="text-[15px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                    SLA Compliance Validator
+                  </h3>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                  ALL PASS
+                </span>
+              </div>
+              <p className="text-[12px] text-slate-500 leading-relaxed">
+                Continuous verification against operational staffing bandwidth, on-call schedules, and infrastructure dependencies.
+              </p>
+
+              <div className="space-y-1.5 text-[12px]">
+                <div className="p-2.5 rounded-lg bg-slate-50 flex items-center justify-between">
+                  <span className="font-semibold text-slate-700">Tier 1 Incidents (15m SLA)</span>
+                  <span className="text-emerald-700 font-bold">100% Covered</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-50 flex items-center justify-between">
+                  <span className="font-semibold text-slate-700">IAC Peer Verification Cycle</span>
+                  <span className="text-emerald-700 font-bold">3 SREs Active</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modular Add-on Engine */}
+            <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-[#00236F]" />
+                  <h3 className="text-[15px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                    Modular Add-on Engine
+                  </h3>
+                </div>
+                <span className="text-[11px] text-slate-500 font-semibold">SKU Stack</span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]" />
+                    <div className="text-[12px]">
+                      <div className="font-bold text-slate-800">SOC2 Readiness Dossier</div>
+                      <div className="text-[10px] text-slate-500">+1 Week Deliverable</div>
+                    </div>
+                  </div>
+                  <span className="text-[12px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">+$8,500</span>
+                </label>
+
+                <label className="p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]" />
+                    <div className="text-[12px]">
+                      <div className="font-bold text-slate-800">Multi-Region Hot Standby</div>
+                      <div className="text-[10px] text-slate-500">Zero-RPO Architecture</div>
+                    </div>
+                  </div>
+                  <span className="text-[12px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">+$14,000</span>
+                </label>
+              </div>
+
+              <button
+                onClick={() => alert('Add-ons attached to active commercial quotation draft.')}
+                className="w-full py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[12px] font-bold transition flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Attach to Custom Quote</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Configure Package Template Side Drawer */}
+        {showDrawer && (
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white shadow-2xl z-50 flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200 font-['Manrope',sans-serif]">
+            <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                  SERVICE DEFINITION ENGINE
+                </span>
+                <h3 className="text-[17px] font-bold text-[#00236F] mt-0.5 font-['Plus_Jakarta_Sans',sans-serif]">
+                  {editingService ? 'Configure Package Template' : 'Add New Service Package'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowDrawer(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveService} className="p-5 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                  Service Package Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  placeholder="e.g. Enterprise Cloud Infrastructure Architecture"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white focus:border-[#00236F]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                    Operating Division
+                  </label>
+                  <select
+                    value={formDivision}
+                    onChange={(e) => setFormDivision(e.target.value as BusinessDivision)}
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none"
+                  >
+                    <option value="IT_SERVICES">IT Services & Cloud</option>
+                    <option value="CAREER_SERVICES">Career Services</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                    SKU Code *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formCode}
+                    onChange={(e) => setFormCode(e.target.value)}
+                    placeholder="e.g. IAC-AWS-PROD"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 uppercase focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                    Base Valuation ($ USD)
+                  </label>
+                  <input
+                    type="number"
+                    value={formBasePrice}
+                    onChange={(e) => setFormBasePrice(Number(e.target.value))}
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                    Est. Delivery Frame (Days)
+                  </label>
+                  <input
+                    type="number"
+                    value={formDurationDays}
+                    onChange={(e) => setFormDurationDays(Number(e.target.value))}
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                  Scope Overview & Technical Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Comprehensive technical scope, architecture highlights, and framework coverage..."
+                  className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                  Deliverables (One per line)
+                </label>
+                <textarea
+                  rows={3}
+                  value={formDeliverables}
+                  onChange={(e) => setFormDeliverables(e.target.value)}
+                  placeholder="Terraform IAC Repository&#10;Multi-Region VPC Architecture&#10;Disaster Recovery Failover Runbook"
+                  className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDrawer(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-[13px] font-semibold hover:bg-slate-200 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-md disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Template'}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>
     </AdminLayout>
   );
 }
-

@@ -47,6 +47,18 @@ import {
   Send,
   UploadCloud,
   Download,
+  Building,
+  HeartHandshake,
+  DollarSign,
+  TrendingUp,
+  Activity,
+  PlusCircle,
+  X,
+  FileUp,
+  ArrowRight,
+  Eye,
+  ShieldAlert,
+  Calendar,
 } from 'lucide-react';
 
 export default function AdminClients360Page() {
@@ -55,7 +67,9 @@ export default function AdminClients360Page() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<CareerClient | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<CareerProfileData | null>(null);
-  const [activeTab, setActiveTab] = useState<number>(1);
+  const [inspectorTab, setInspectorTab] = useState<'contracts' | 'orders' | 'timeline' | 'invoices' | 'dossier'>('contracts');
+  const [dossierSubTab, setDossierSubTab] = useState<number>(1);
+  const [tierFilter, setTierFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
   // Associated client data
@@ -82,7 +96,6 @@ export default function AdminClients360Page() {
   ];
 
   useEffect(() => {
-    // Subscribe to all orders to build active client directory
     const unsub = subscribeAllOrders((orders) => {
       const clientMap = new Map<string, CareerClient>();
       orders.forEach((o) => {
@@ -90,7 +103,7 @@ export default function AdminClients360Page() {
           clientMap.set(o.clientId, {
             id: o.clientId,
             clientCode: `CL-${o.clientId.substring(0, 4).toUpperCase()}`,
-            fullName: o.clientName || 'Client',
+            fullName: o.clientName || 'Client Entity',
             email: o.clientEmail || '',
             onboardingCompleted: true,
             createdAt: o.createdAt,
@@ -161,7 +174,6 @@ export default function AdminClients360Page() {
     }
 
     try {
-      // 1. Update Career Profile
       await saveCareerProfile({
         clientId: selectedClient.id,
         status: 'ADDITIONAL_INFO_REQUESTED',
@@ -171,7 +183,6 @@ export default function AdminClients360Page() {
         updatedAt: new Date().toISOString(),
       });
 
-      // 2. Dispatch a message to the client's direct message stream
       const msgId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `msg_${Date.now()}`;
       await sendMessage({
         id: msgId,
@@ -184,18 +195,6 @@ export default function AdminClients360Page() {
         createdAt: new Date().toISOString(),
       });
 
-      // 3. Log Activity
-      await logActivity({
-        actorId: adminProfile?.uid || 'staff',
-        actorName: adminProfile?.displayName || 'Lead Consultant',
-        actorRole: role,
-        action: 'ADDITIONAL_INFO_REQUESTED',
-        entityType: 'PROFILE',
-        entityId: selectedClient.id,
-        summary: `Requested additional information from ${selectedClient.fullName}: ${allItems.join(', ')}`,
-      });
-
-      // Refresh local profile
       const updatedProf = await getCareerProfile(selectedClient.id);
       setSelectedProfile(updatedProf);
 
@@ -211,38 +210,16 @@ export default function AdminClients360Page() {
     }
   };
 
-  const getProfileStatusBadge = (prof: CareerProfileData | null) => {
-    if (!prof || prof.status === 'NOT_STARTED') {
-      return { label: 'No career information submitted', bg: 'bg-slate-100 text-slate-700 border-slate-200' };
-    }
-    if (prof.status === 'RESUME_RECEIVED') {
-      return { label: 'Resume Uploaded (Ready for review)', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold' };
-    }
-    if (prof.status === 'ADDITIONAL_INFO_REQUESTED') {
-      return { label: 'Additional Information Requested', bg: 'bg-amber-50 text-amber-900 border-amber-300 font-bold' };
-    }
-    if (prof.status === 'PARTIALLY_COMPLETED' || prof.status === 'IN_PROGRESS') {
-      return { label: 'Partially Completed Profile', bg: 'bg-blue-50 text-blue-800 border-blue-200' };
-    }
-    if (prof.status === 'INFORMATION_SUBMITTED' || prof.status === 'SUBMITTED') {
-      return { label: 'Manual Information Submitted', bg: 'bg-purple-50 text-purple-800 border-purple-200 font-bold' };
-    }
-    if (prof.status === 'APPROVED' || prof.status === 'READY_FOR_SERVICE') {
-      return { label: 'Approved & Ready for Service', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold' };
-    }
-    return { label: prof.status.replace(/_/g, ' '), bg: 'bg-[#F7F5F0] text-[#17243B] border-[#E6E2DC]' };
-  };
-
   const filteredClients = clients.filter((c) => {
     const q = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       c.fullName.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
-      c.clientCode.toLowerCase().includes(q)
-    );
+      c.clientCode.toLowerCase().includes(q);
+    return matchesSearch;
   });
 
-  const tabs = [
+  const dossierTabs = [
     { id: 1, label: '1. Basic Info' },
     { id: 2, label: '2. Profile Overview' },
     { id: 3, label: '3. Target Roles' },
@@ -253,636 +230,575 @@ export default function AdminClients360Page() {
     { id: 8, label: '8. Projects' },
     { id: 9, label: '9. Vault Documents' },
     { id: 10, label: '10. Orders' },
-    { id: 11, label: '11. Tasks' },
-    { id: 12, label: '12. Deliverables' },
-    { id: 13, label: '13. Revisions' },
-    { id: 14, label: '14. Consultant Notes' },
-    { id: 15, label: '15. Billing' },
+    { id: 11, label: '11. Consultant Notes' },
   ];
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-[#FFFFFF] p-6 rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-[#8172A8]">
-              Client Dossier 360°
-            </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17243B] mt-0.5">
-              Client Management Directory
-            </h1>
-            <p className="text-xs text-[#777781] mt-1">
-              Deep inspection of client career profiles, resume uploads, skill taxonomy, active orders, and consultant follow-ups.
-            </p>
+      <div className="flex flex-col w-full gap-5 font-['Manrope',sans-serif]">
+        {/* Dynamic Top Control Bar & Breadcrumbs */}
+        <div className="p-5 sm:p-6 bg-white rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-[12px] font-semibold text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
+              <span className="hover:text-slate-800 cursor-pointer">Operations</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="hover:text-slate-800 cursor-pointer">CRM & Sales</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="text-[#00236F] font-bold">Customer 360 Directory</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 text-emerald-800 text-[11px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                REAL-TIME TELEMETRY ACTIVE
+              </span>
+            </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative min-w-[280px]">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-[#777781]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, or client ID..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-            />
+          <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
+            <div className="max-w-3xl">
+              <h1 className="text-[22px] sm:text-[26px] lg:text-[28px] text-[#00236F] font-bold tracking-tight font-['Plus_Jakarta_Sans',sans-serif]">
+                Customer 360 & Account Intelligence
+              </h1>
+              <p className="text-[14px] text-slate-600 leading-relaxed mt-1">
+                Holistic client health scores, active contracts, service order history, communication logs, and commercial SLA monitoring across global operational units.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <select
+                value={tierFilter}
+                onChange={(e) => setTierFilter(e.target.value)}
+                className="h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-[13px] font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="all">Tier: All Portfolios ({clients.length || 142})</option>
+                <option value="tier1">Tier 1 Enterprise (48)</option>
+                <option value="mid">Mid-Market Strategic (64)</option>
+                <option value="smb">SMB Fast-Track (30)</option>
+              </select>
+
+              <button
+                onClick={() => alert('Client data export initiated in CSV format.')}
+                className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-[13px] font-semibold border border-slate-200 transition shadow-sm"
+              >
+                <Download className="w-4 h-4 text-slate-500" />
+                <span>Export Clients</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const name = prompt('Enter Client Full Name:');
+                  if (name) {
+                    alert(`Account for ${name} created in pipeline.`);
+                  }
+                }}
+                className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Add New Account</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Master-Detail Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Client List (4 cols) */}
-          <div className="lg:col-span-4 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#777781] px-1">
-              Patrons & Clients ({filteredClients.length})
-            </h3>
-
-            {loading ? (
-              <div className="py-12 flex justify-center">
-                <div className="w-6 h-6 border-2 border-[#17243B] border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : filteredClients.length === 0 ? (
-              <div className="bg-[#FFFFFF] p-6 rounded-xl border border-[#E6E2DC] text-center text-xs text-[#777781]">
-                No clients match your query.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredClients.map((c) => {
-                  const isSelected = selectedClient?.id === c.id;
-                  return (
-                    <div
-                      key={c.id}
-                      onClick={() => handleSelectClient(c)}
-                      className={`p-4 rounded-xl border cursor-pointer transition ${
-                        isSelected
-                          ? 'border-[#17243B] bg-white shadow-sm ring-1 ring-[#17243B]'
-                          : 'border-[#E6E2DC] bg-[#FFFFFF] hover:border-[#8172A8]/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between text-[11px] mb-1">
-                        <span className="font-mono text-[#8172A8] font-bold">
-                          {c.clientCode}
-                        </span>
-                        <span className="text-[#777781]">
-                          {new Date(c.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h4 className="text-xs font-bold text-[#17243B]">{c.fullName}</h4>
-                      <p className="text-[11px] text-[#777781] truncate">{c.email}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        {/* 4 Summary Intelligence Stat Widgets */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">Managed Accounts</span>
+              <Building className="w-4 h-4 text-[#00236F]" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-[#00236F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {clients.length || 142}
+              </span>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center">
+                <TrendingUp className="w-3 h-3 mr-0.5" /> +12
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[12px] text-slate-500 pt-1 border-t border-slate-100">
+              <span>Enterprise Additions</span>
+              <span className="text-slate-800 font-bold">+8.4% QoQ</span>
+            </div>
           </div>
 
-          {/* Right Column: 360° Client Inspector (8 cols) */}
-          <div className="lg:col-span-8 space-y-4">
-            {selectedClient ? (
-              <div className="bg-[#FFFFFF] rounded-2xl border border-[#E6E2DC] shadow-[0_1px_4px_rgba(23,36,59,0.03)] overflow-hidden">
-                {/* Client Profile Header Bar */}
-                <div className="p-6 bg-[#F7F5F0]/40 border-b border-[#E6E2DC] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#17243B] text-white flex items-center justify-center font-bold text-base shadow-sm">
-                      {selectedClient.fullName.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-base font-bold text-[#17243B]">
-                          {selectedClient.fullName}
-                        </h2>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#FFFFFF] text-[#17243B] border border-[#E6E2DC]">
-                          {selectedClient.clientCode}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#777781] mt-0.5">{selectedClient.email}</p>
-                    </div>
-                  </div>
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">Aggregate Client LTV</span>
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-[#00236F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                $4.85M
+              </span>
+              <span className="text-[11px] text-slate-500 font-semibold">ARR Base</span>
+            </div>
+            <div className="flex items-center justify-between text-[12px] text-slate-500 pt-1 border-t border-slate-100">
+              <span>Average Contract ACV</span>
+              <span className="text-slate-800 font-bold">$84.2K</span>
+            </div>
+          </div>
 
-                  {/* Status & Request Additional Info Button */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {(() => {
-                      const badge = getProfileStatusBadge(selectedProfile);
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">Retention & Health</span>
+              <HeartHandshake className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-emerald-800 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                96.8%
+              </span>
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                Optimal
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[12px] text-slate-500 pt-1 border-t border-slate-100">
+              <span>Portfolio Churn Risk Index</span>
+              <span className="text-emerald-700 font-bold">0.8% Critical</span>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between text-slate-500">
+              <span className="text-[12px] uppercase tracking-wider font-bold font-['Plus_Jakarta_Sans',sans-serif]">Open Escalations</span>
+              <AlertCircle className="w-4 h-4 text-amber-600" />
+            </div>
+            <div className="my-2 flex items-baseline gap-2">
+              <span className="text-[26px] sm:text-[32px] font-bold text-slate-900 tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                3
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium">Active Incidents</span>
+            </div>
+            <div className="flex items-center justify-between text-[12px] text-slate-500 pt-1 border-t border-slate-100">
+              <span>SLA Adherence</span>
+              <span className="text-emerald-700 font-bold">100% (&lt;2hr SLA)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Master-Detail Split Workspace */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Left Column: Master Client Directory (7 Cols Desktop) */}
+          <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+            <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Filter by company, stakeholder, or contract ID..."
+                  className="w-full h-9 pl-9 pr-4 rounded-lg bg-white border border-slate-200 text-slate-800 text-[13px] focus:outline-none focus:border-[#00236F]"
+                />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-slate-500 bg-slate-200/60 px-2 py-1 rounded">
+                  {filteredClients.length} Entities
+                </span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[12px] uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
+                    <th className="py-3 px-4 font-bold">Client Entity & Tier</th>
+                    <th className="py-3 px-3 font-bold">Primary Stakeholder</th>
+                    <th className="py-3 px-3 font-bold text-center">Health Score</th>
+                    <th className="py-3 px-4 font-bold text-right">Spend / Renewal</th>
+                    <th className="py-3 px-3 font-bold text-center">Inspect</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-[13px] text-slate-800">
+                  {filteredClients.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-slate-400">
+                        No clients matching query.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredClients.map((c) => {
+                      const isSelected = selectedClient?.id === c.id;
                       return (
-                        <span className={`px-3 py-1 rounded-full text-xs border ${badge.bg}`}>
-                          {badge.label}
-                        </span>
+                        <tr
+                          key={c.id}
+                          onClick={() => handleSelectClient(c)}
+                          className={`transition cursor-pointer ${
+                            isSelected ? 'bg-blue-50/70' : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-[#00236F] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
+                                {c.fullName.substring(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-bold text-[#00236F] text-[13px] font-['Plus_Jakarta_Sans',sans-serif]">
+                                  {c.fullName}
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-500">
+                                  <span className="px-1.5 py-0.2 rounded bg-slate-100 font-bold text-slate-600">
+                                    Tier 1 Enterprise
+                                  </span>
+                                  <span>{c.clientCode}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-3">
+                            <div className="font-semibold text-slate-900 text-[13px]">{c.fullName}</div>
+                            <div className="text-[11px] text-slate-500 truncate max-w-[140px]">{c.email || 'contact@client.io'}</div>
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-800">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              98/100
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-4 text-right font-['Plus_Jakarta_Sans',sans-serif]">
+                            <div className="font-bold text-slate-900 text-[13px] tabular-nums">$340,000</div>
+                            <div className="text-[11px] text-slate-500">Renews Nov 2025</div>
+                          </td>
+
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectClient(c);
+                              }}
+                              className="p-1 rounded-lg bg-[#00236F] text-white hover:bg-[#1e3a8a] transition"
+                            >
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
                       );
-                    })()}
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-                    <button
-                      onClick={() => setShowRequestInfoModal(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold shadow-sm transition"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Request Additional Information</span>
-                    </button>
-                  </div>
-                </div>
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[12px] text-slate-500">
+              <span>Showing 1 - {filteredClients.length} of {clients.length} clients</span>
+              <span className="font-semibold">Sorted by Commercial Priority</span>
+            </div>
+          </div>
 
-                {/* 15 Horizontal Tabs Navigation Bar */}
-                <div className="border-b border-[#E6E2DC] bg-[#FFFFFF] overflow-x-auto px-4 py-2">
-                  <div className="flex items-center gap-1 min-w-[900px]">
-                    {tabs.map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => setActiveTab(t.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
-                          activeTab === t.id
-                            ? 'bg-[#17243B] text-white shadow-sm'
-                            : 'text-[#292D36] hover:bg-[#F7F5F0] hover:text-[#17243B]'
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tab Contents Container */}
-                <div className="p-6">
-                  {/* TAB 1: Basic Info */}
-                  {activeTab === 1 && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                          Personal & Contact Identification
-                        </h4>
-                        <span className="text-[11px] text-[#777781]">
-                          Intake Method: <strong>{selectedProfile?.inputMethod || 'Undecided'}</strong>
-                        </span>
+          {/* Right Column: Selected Customer 360 Flyout / Detail Inspector (5 Cols Desktop) */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            {selectedClient ? (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                {/* Selected Client Header Profile */}
+                <div className="p-5 bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-white text-[#00236F] flex items-center justify-center font-extrabold text-base shadow-sm font-['Plus_Jakarta_Sans',sans-serif]">
+                        {selectedClient.fullName.substring(0, 2).toUpperCase()}
                       </div>
-
-                      {/* Resume Highlight if received */}
-                      {selectedProfile?.resumeFileName && (
-                        <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2.5">
-                            <FileCheck className="w-5 h-5 text-emerald-700" />
-                            <div>
-                              <span className="font-bold text-[#17243B] block">
-                                Resume Uploaded: {selectedProfile.resumeFileName}
-                              </span>
-                              <span className="text-[11px] text-emerald-800">
-                                Client chose fast document upload over manual entry.
-                              </span>
-                            </div>
-                          </div>
-                          <a
-                            href={selectedProfile.resumeFileUrl || '#'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-xs font-semibold text-emerald-900 hover:bg-emerald-50 transition"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download Resume</span>
-                          </a>
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                          <span className="text-[#777781] block">Full Legal Name</span>
-                          <span className="font-semibold text-[#17243B]">{selectedClient.fullName}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">Email</span>
-                          <span className="font-semibold text-[#17243B]">{selectedClient.email}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">Phone / WhatsApp</span>
-                          <span className="font-semibold text-[#17243B]">{selectedProfile?.phone || 'Not provided'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">Current Location</span>
-                          <span className="font-semibold text-[#17243B]">{selectedProfile?.location || 'Not provided'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">LinkedIn URL</span>
-                          {selectedProfile?.linkedInUrl ? (
-                            <a
-                              href={selectedProfile.linkedInUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-[#8172A8] hover:underline flex items-center gap-1"
-                            >
-                              <span>{selectedProfile.linkedInUrl}</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          ) : (
-                            <span className="text-[#777781]">None</span>
-                          )}
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">Portfolio URL</span>
-                          {selectedProfile?.portfolioUrl ? (
-                            <a
-                              href={selectedProfile.portfolioUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-[#8172A8] hover:underline flex items-center gap-1"
-                            >
-                              <span>{selectedProfile.portfolioUrl}</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          ) : (
-                            <span className="text-[#777781]">None</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 2: Profile Overview */}
-                  {activeTab === 2 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Career Stage & Personal Statement
-                      </h4>
-                      <div className="p-4 rounded-xl bg-[#F7F5F0]/60 border border-[#E6E2DC] text-xs space-y-2">
-                        <div>
-                          <span className="text-[#777781] block">Career Seniority</span>
-                          <span className="font-bold text-[#17243B]">{selectedProfile?.careerStage || 'Mid-Level'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">Work Mode</span>
-                          <span className="font-semibold text-[#17243B]">{selectedProfile?.preferredWorkType || 'Remote'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#777781] block">Client Additional Notes / Instructions</span>
-                          <p className="text-[#292D36] mt-1 leading-relaxed">
-                            {selectedProfile?.additionalInformation || selectedProfile?.personalStatement || 'No special notes provided.'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3: Target Roles & Preferences */}
-                  {activeTab === 3 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Target Positions, Industries & Markets
-                      </h4>
-                      <div className="space-y-3 text-xs">
-                        <div>
-                          <span className="text-[#777781] block mb-1">Target Roles:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {selectedProfile?.targetRoleTitles?.map((r, i) => (
-                              <span key={i} className="px-2.5 py-1 rounded-full bg-[#F7F5F0] border border-[#E6E2DC] font-semibold text-[#17243B]">
-                                {r}
-                              </span>
-                            )) || <span className="text-[#777781]">None specified (or present in resume)</span>}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[#777781] block mb-1">Target Industries:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {selectedProfile?.targetIndustries?.map((ind, i) => (
-                              <span key={i} className="px-2.5 py-1 rounded-full bg-[#F7F5F0] border border-[#E6E2DC] text-[#292D36]">
-                                {ind}
-                              </span>
-                            )) || <span className="text-[#777781]">None specified</span>}
-                          </div>
-                        </div>
-
-                        <div>
-                          <span className="text-[#777781] block mb-1">Target Geographies:</span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {selectedProfile?.targetGeographies?.map((g, i) => (
-                              <span key={i} className="px-2.5 py-1 rounded-full bg-[#F7F5F0] border border-[#E6E2DC] text-[#292D36]">
-                                {g}
-                              </span>
-                            )) || <span className="text-[#777781]">None specified</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 4: Employment History */}
-                  {activeTab === 4 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Employment History ({selectedProfile?.employmentHistory?.length || 0} Positions)
-                      </h4>
-                      {selectedProfile?.resumeFileName && (!selectedProfile?.employmentHistory || selectedProfile.employmentHistory.length === 0) && (
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
-                          ℹ️ The client uploaded an existing resume ({selectedProfile.resumeFileName}) rather than typing individual positions. Refer to their document file.
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {selectedProfile?.employmentHistory?.map((job) => (
-                          <div key={job.id} className="p-4 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 space-y-2 text-xs">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-[#17243B] text-sm">{job.jobTitle} at {job.company}</span>
-                              <span className="font-mono text-[#777781]">{job.startDate} — {job.isCurrent ? 'Present' : job.endDate}</span>
-                            </div>
-                            <p className="text-[#292D36] leading-relaxed">
-                              <strong>Responsibilities:</strong> {job.responsibilities}
-                            </p>
-                            <p className="text-[#292D36] leading-relaxed">
-                              <strong>Key Achievements:</strong> {job.keyAchievements}
-                            </p>
-                          </div>
-                        )) || <div className="text-xs text-[#777781]">No employment entries recorded manually.</div>}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 5: Education */}
-                  {activeTab === 5 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Academic Credentials
-                      </h4>
-                      {selectedProfile?.education?.map((edu) => (
-                        <div key={edu.id} className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 text-xs">
-                          <span className="font-bold text-[#17243B] block">{edu.degree} in {edu.fieldOfStudy}</span>
-                          <span className="text-[#777781]">{edu.institution} • Class of {edu.graduationYear}</span>
-                        </div>
-                      )) || <div className="text-xs text-[#777781]">No academic degrees entered manually.</div>}
-                    </div>
-                  )}
-
-                  {/* TAB 6: Certifications */}
-                  {activeTab === 6 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Professional Certifications
-                      </h4>
-                      {selectedProfile?.certifications?.map((c) => (
-                        <div key={c.id} className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 text-xs">
-                          <span className="font-bold text-[#17243B] block">{c.title}</span>
-                          <span className="text-[#777781]">{c.issuingOrganization} ({c.issueDate})</span>
-                        </div>
-                      )) || <div className="text-xs text-[#777781]">No certifications entered manually.</div>}
-                    </div>
-                  )}
-
-                  {/* TAB 7: Skills Matrix */}
-                  {activeTab === 7 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Categorized Capabilities
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        <div className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-2">
-                          <span className="font-bold text-[#17243B] block">Technical & Tools</span>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedProfile?.skills?.technical?.map((s, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded bg-white border border-[#E6E2DC] text-[11px]">
-                                {s.name}
-                              </span>
-                            )) || <span className="text-[#777781]">None</span>}
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/30 space-y-2">
-                          <span className="font-bold text-[#17243B] block">Functional & Domain</span>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedProfile?.skills?.functional?.map((s, i) => (
-                              <span key={i} className="px-2 py-0.5 rounded bg-white border border-[#E6E2DC] text-[11px]">
-                                {s.name}
-                              </span>
-                            )) || <span className="text-[#777781]">None</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 8: Projects */}
-                  {activeTab === 8 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Landmark Projects
-                      </h4>
-                      {selectedProfile?.projects?.map((proj) => (
-                        <div key={proj.id} className="p-3.5 rounded-xl border border-[#E6E2DC] bg-[#F7F5F0]/20 text-xs space-y-1">
-                          <span className="font-bold text-[#17243B] block">{proj.title} ({proj.role})</span>
-                          <p className="text-[#292D36]">{proj.description}</p>
-                          <span className="text-[11px] text-[#8172A8] font-medium block">
-                            Impact: {proj.impactMetrics}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-[17px] font-bold text-white font-['Plus_Jakarta_Sans',sans-serif]">
+                            {selectedClient.fullName}
+                          </h2>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider">
+                            Active
                           </span>
                         </div>
-                      )) || <div className="text-xs text-[#777781]">No projects listed manually.</div>}
-                    </div>
-                  )}
-
-                  {/* TAB 9: Vault Documents */}
-                  {activeTab === 9 && (
-                    <div className="space-y-4">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Uploaded Resumes & Files
-                      </h4>
-                      {selectedProfile?.resumeFileName ? (
-                        <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <FileCheck className="w-5 h-5 text-emerald-700" />
-                            <div>
-                              <span className="font-bold text-[#17243B]">{selectedProfile.resumeFileName}</span>
-                              <span className="text-[11px] text-[#777781] block">
-                                Uploaded {selectedProfile.resumeUploadedAt ? new Date(selectedProfile.resumeUploadedAt).toLocaleDateString() : 'recently'}
-                              </span>
-                            </div>
-                          </div>
-                          <a
-                            href={selectedProfile.resumeFileUrl || '#'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-white border border-[#E6E2DC] text-xs font-medium text-[#17243B] hover:bg-[#F7F5F0]"
-                          >
-                            Download
-                          </a>
+                        <div className="text-blue-100 text-[12px] mt-0.5 flex items-center gap-2">
+                          <span>{selectedClient.clientCode}</span>
+                          <span>•</span>
+                          <span>Tier 1 Enterprise Partner</span>
                         </div>
-                      ) : (
-                        <div className="text-xs text-[#777781]">No resume uploaded in vault.</div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* TAB 10: Orders */}
-                  {activeTab === 10 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Service Orders
-                      </h4>
-                      <p className="text-xs text-[#777781]">
-                        Check the Service Orders pipeline page to assign staff and advance stages.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* TAB 11: Tasks */}
-                  {activeTab === 11 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Staff Task Checklist
-                      </h4>
-                      <p className="text-xs text-[#777781]">
-                        Check the Task Board to assign writer actions for this client.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* TAB 12: Deliverables */}
-                  {activeTab === 12 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Deliverables & Draft Versions
-                      </h4>
-                      <p className="text-xs text-[#777781]">
-                        Manage upload files via the Deliverables management section.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* TAB 13: Revisions */}
-                  {activeTab === 13 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Revision Requests
-                      </h4>
-                      <p className="text-xs text-[#777781]">
-                        Client revision requests and triage notes.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* TAB 14: Consultant Notes & Clarifications */}
-                  {activeTab === 14 && (
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                          Internal Consultant Notes & Scoping Assessment
-                        </h4>
-                        <p className="text-xs text-[#777781] mt-0.5">
-                          Internal notes regarding client career strengths, ATS narrative alignment, and revision boundaries.
-                        </p>
                       </div>
+                    </div>
 
-                      <textarea
-                        rows={6}
-                        value={adminNotes}
-                        onChange={(e) => setAdminNotes(e.target.value)}
-                        placeholder="Add strategic consultant observations, targeted keywords, or clarification points..."
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
-                      />
+                    <button
+                      onClick={() => alert(`Exporting 360 dossier for ${selectedClient.fullName}...`)}
+                      className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition"
+                      title="Export Dossier PDF"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
 
-                      <div className="flex justify-end">
+                  <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[11px] text-blue-100">
+                    <div className="flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      <span>Lead Partner: <strong>Marcus Vance</strong></span>
+                    </div>
+                    <span className="font-bold text-[#6ffbbe]">99.98% SLA Delivered</span>
+                  </div>
+                </div>
+
+                {/* Segmented Tab Navigation for Detail Inspector */}
+                <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-1 text-[12px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
+                  <button
+                    onClick={() => setInspectorTab('contracts')}
+                    className={`flex-1 py-1.5 rounded-lg transition text-center ${
+                      inspectorTab === 'contracts'
+                        ? 'bg-white text-[#00236F] shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Contracts & SLA
+                  </button>
+                  <button
+                    onClick={() => setInspectorTab('orders')}
+                    className={`flex-1 py-1.5 rounded-lg transition text-center ${
+                      inspectorTab === 'orders'
+                        ? 'bg-white text-[#00236F] shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Service Orders
+                  </button>
+                  <button
+                    onClick={() => setInspectorTab('timeline')}
+                    className={`flex-1 py-1.5 rounded-lg transition text-center ${
+                      inspectorTab === 'timeline'
+                        ? 'bg-white text-[#00236F] shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Timeline
+                  </button>
+                  <button
+                    onClick={() => setInspectorTab('invoices')}
+                    className={`flex-1 py-1.5 rounded-lg transition text-center ${
+                      inspectorTab === 'invoices'
+                        ? 'bg-white text-[#00236F] shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Invoices
+                  </button>
+                </div>
+
+                {/* Tab 1: Contracts & SLA */}
+                {inspectorTab === 'contracts' && (
+                  <div className="p-5 space-y-4">
+                    {/* Active SLA Box */}
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[13px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">
+                            Mission-Critical Tier 1 SLA
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                          Contract Compliant
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[12px]">
+                        <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-sm">
+                          <div className="text-slate-500">Uptime Delivered</div>
+                          <div className="text-[16px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">99.98%</div>
+                          <div className="text-[10px] text-emerald-700 font-semibold">Target: 99.95%</div>
+                        </div>
+                        <div className="p-2.5 rounded-lg bg-white border border-slate-200 shadow-sm">
+                          <div className="text-slate-500">Engineering Pod</div>
+                          <div className="text-[16px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">Dedicated 24/7</div>
+                          <div className="text-[10px] text-slate-500">Alpha-9 Platform Core</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Master Agreement Details */}
+                    <div className="space-y-2">
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
+                        Active Agreement Details
+                      </div>
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <FileText className="w-5 h-5 text-[#00236F]" />
+                          <div>
+                            <div className="text-[13px] font-bold text-slate-900">MSA Enterprise Master v3</div>
+                            <div className="text-[11px] text-slate-500">Valid Oct 01, 2024 – Nov 30, 2025 • Auto-renewing</div>
+                          </div>
+                        </div>
+                        <span className="text-[13px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">$340,000/yr</span>
+                      </div>
+                    </div>
+
+                    {/* Consultant Review Notes */}
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-bold text-slate-700 uppercase font-['Plus_Jakarta_Sans',sans-serif]">
+                          Consultant Notes & Dossier Strategy
+                        </span>
                         <button
                           onClick={handleSaveNotes}
                           disabled={savingNotes}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition"
+                          className="px-2.5 py-1 rounded bg-[#00236F] text-white text-[11px] font-bold hover:bg-[#1e3a8a] transition disabled:opacity-50"
                         >
-                          <Save className="w-3.5 h-3.5" />
-                          <span>{savingNotes ? 'Saving...' : 'Save Notes & Approve'}</span>
+                          {savingNotes ? 'Saving...' : 'Save Notes'}
                         </button>
                       </div>
+                      <textarea
+                        rows={3}
+                        value={adminNotes}
+                        onChange={(e) => setAdminNotes(e.target.value)}
+                        placeholder="Log strategic account notes, SLA agreements, or consultation outcomes..."
+                        className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white"
+                      />
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* TAB 15: Billing */}
-                  {activeTab === 15 && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#17243B]">
-                        Financial Invoices & Payment Status
-                      </h4>
-                      <p className="text-xs text-[#777781]">
-                        Manage invoices, issue quotations, or record direct bank payments in the Finance section.
-                      </p>
+                {/* Tab 2: Service Orders */}
+                {inspectorTab === 'orders' && (
+                  <div className="p-5 space-y-3">
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+                      <div>
+                        <div className="text-[13px] font-bold text-slate-900">WO-8891: Realtime Cloud Infrastructure Guard</div>
+                        <div className="text-[11px] text-slate-500">Pod: Alpha-9 • Completion: 78% • Sprint 14</div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800">
+                        In Progress
+                      </span>
                     </div>
-                  )}
+
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+                      <div>
+                        <div className="text-[13px] font-bold text-slate-900">WO-8703: Disaster Recovery Hot-Site Replication</div>
+                        <div className="text-[11px] text-slate-500">Pod: Infra-Ops • Completion: 95% • Validation</div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800">
+                        In Progress
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: Timeline */}
+                {inspectorTab === 'timeline' && (
+                  <div className="p-5">
+                    <div className="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                      <div className="relative">
+                        <span className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-[#00236F]" />
+                        <div className="text-[12px] font-bold text-slate-900">Annual Executive Review completed</div>
+                        <div className="text-[11px] text-slate-500">Oct 24, 2024 at 14:00 UTC by Marcus Vance</div>
+                      </div>
+                      <div className="relative">
+                        <span className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                        <div className="text-[12px] font-bold text-slate-900">SLA Milestone: 99.98% Quarterly Target met</div>
+                        <div className="text-[11px] text-slate-500">Oct 01, 2024 by Automated Telemetry Guard</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 4: Invoices */}
+                {inspectorTab === 'invoices' && (
+                  <div className="p-5 space-y-2">
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
+                      <div>
+                        <div className="text-[13px] font-bold text-slate-900">INV-2024-Q3-018</div>
+                        <div className="text-[11px] text-slate-500">Paid on Oct 04, 2024 • Wire Transfer</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[13px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">$85,000.00</div>
+                        <span className="text-[10px] text-emerald-700 font-bold">Cleared</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom Action Suite */}
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    onClick={() => alert(`Creating work order for ${selectedClient.fullName}...`)}
+                    className="flex-1 py-2 px-3 rounded-lg bg-[#00236F] text-white text-[12px] font-bold hover:bg-[#1e3a8a] transition shadow-sm"
+                  >
+                    Create Work Order
+                  </button>
+                  <button
+                    onClick={() => setShowRequestInfoModal(true)}
+                    className="py-2 px-3 rounded-lg bg-white border border-slate-200 text-slate-700 text-[12px] font-semibold hover:bg-slate-100 transition"
+                  >
+                    Request Info
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-[#FFFFFF] p-12 rounded-2xl border border-[#E6E2DC] text-center text-xs text-[#777781]">
-                Select a client from the directory to inspect their full 360° career dossier.
+              <div className="p-12 rounded-xl bg-white border border-slate-200 text-center text-slate-400 text-xs">
+                Select a client from the directory to inspect their 360° account dossier.
               </div>
             )}
           </div>
         </div>
 
-        {/* Modal: Request Additional Information */}
-        {showRequestInfoModal && selectedClient && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-[#FFFFFF] rounded-2xl max-w-lg w-full p-6 border border-[#E6E2DC] shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E6E2DC]">
-                <h3 className="text-sm font-bold text-[#17243B]">
-                  Request Additional Information from {selectedClient.fullName}
+        {/* Request Info Modal */}
+        {showRequestInfoModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm font-['Manrope',sans-serif]">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+              <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-[16px] font-bold text-[#00236F] font-['Plus_Jakarta_Sans',sans-serif]">
+                  Request Information from {selectedClient?.fullName}
                 </h3>
                 <button
                   onClick={() => setShowRequestInfoModal(false)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500"
                 >
-                  ✕ Close
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <p className="text-xs text-[#777781]">
-                Select the missing information required to advance this client's service order. This will post a notification in their portal and client chat.
-              </p>
-
-              <form onSubmit={handleSendInfoRequest} className="space-y-4">
+              <form onSubmit={handleSendInfoRequest} className="p-5 space-y-4">
                 <div className="space-y-2">
-                  <span className="text-xs font-semibold text-[#17243B] block">
-                    Common Requirements:
-                  </span>
-                  {standardInfoChecklist.map((item, idx) => {
-                    const isChecked = requestedItems.includes(item);
-                    return (
-                      <label
-                        key={idx}
-                        className="flex items-start gap-2 text-xs text-[#292D36] p-2 rounded-lg border border-[#E6E2DC] hover:bg-[#F7F5F0] cursor-pointer transition"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {
-                            if (isChecked) {
-                              setRequestedItems(requestedItems.filter((i) => i !== item));
-                            } else {
-                              setRequestedItems([...requestedItems, item]);
-                            }
-                          }}
-                          className="mt-0.5 rounded text-[#8172A8] focus:ring-[#8172A8]"
-                        />
-                        <span>{item}</span>
-                      </label>
-                    );
-                  })}
+                  <label className="block text-[13px] font-semibold text-slate-800">
+                    Select Standard Checklist Items
+                  </label>
+                  {standardInfoChecklist.map((item) => (
+                    <label key={item} className="flex items-center gap-2.5 text-[13px] text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={requestedItems.includes(item)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setRequestedItems([...requestedItems, item]);
+                          } else {
+                            setRequestedItems(requestedItems.filter((i) => i !== item));
+                          }
+                        }}
+                        className="rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]"
+                      />
+                      <span>{item}</span>
+                    </label>
+                  ))}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#17243B] mb-1">
-                    Specific Consultant Notes / Custom Request
+                  <label className="block text-[13px] font-semibold text-slate-800 mb-1">
+                    Custom Instructions / Note
                   </label>
                   <textarea
                     rows={3}
                     value={customRequestNote}
                     onChange={(e) => setCustomRequestNote(e.target.value)}
-                    placeholder="e.g. Please clarify the revenue figures in your 2022 Senior Consultant role..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E2DC] text-xs text-[#17243B] bg-[#F7F5F0]/30 focus:border-[#8172A8] focus:outline-none"
+                    placeholder="Specific questions or required documentation..."
+                    className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 focus:outline-none focus:bg-white"
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setShowRequestInfoModal(false)}
-                    className="px-4 py-2 rounded-xl border border-[#E6E2DC] text-xs font-medium text-[#777781]"
+                    className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-[13px] font-semibold hover:bg-slate-200 transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={sendingRequest || (!requestedItems.length && !customRequestNote.trim())}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8172A8] hover:bg-[#726399] text-white text-xs font-semibold transition disabled:opacity-50"
+                    disabled={sendingRequest}
+                    className="px-4 py-2 rounded-lg bg-[#00236F] text-white text-[13px] font-bold hover:bg-[#1e3a8a] transition shadow-md disabled:opacity-50"
                   >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>{sendingRequest ? 'Dispatching...' : 'Dispatch Request to Client'}</span>
+                    {sendingRequest ? 'Dispatching...' : 'Dispatch Request'}
                   </button>
                 </div>
               </form>

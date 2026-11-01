@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { loginWithEmail, sendPasswordReset, getFriendlyAuthErrorMessage } from '@/lib/firebase/auth';
+import { loginWithEmail, loginWithCustomToken, sendPasswordReset, getFriendlyAuthErrorMessage } from '@/lib/firebase/auth';
 import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import { ArrowLeft, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff, KeyRound, CheckCircle2, Shield } from 'lucide-react';
 
@@ -38,14 +38,40 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      let cleanEmail = email.trim().toLowerCase();
+      let rawInput = email.trim();
+      let cleanEmail = rawInput.toLowerCase();
       // Allow username without domain (e.g. "Hopeadmin" -> "hopeadmin@hopepitome.com")
       if (!cleanEmail.includes('@')) {
         cleanEmail = `${cleanEmail}@hopepitome.com`;
       }
 
-      await loginWithEmail(cleanEmail, password);
-      window.location.href = '/career-services/admin/dashboard';
+      // Step 1: Attempt standard Firebase Client SDK authentication
+      try {
+        await loginWithEmail(cleanEmail, password);
+        window.location.href = '/career-services/admin/dashboard';
+        return;
+      } catch (clientAuthErr: any) {
+        console.warn('Client SDK authentication rejected, attempting backend staff validation fallback...', clientAuthErr);
+      }
+
+      // Step 2: Resilient backend validation fallback via Cloudflare Worker
+      const res = await fetch('/api/career/auth/staff-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          usernameOrEmail: rawInput,
+          password: password,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success && data.customToken) {
+        await loginWithCustomToken(data.customToken);
+        window.location.href = '/career-services/admin/dashboard';
+        return;
+      }
+
+      throw new Error(data.error || 'Incorrect password or credentials. Please check your details or reset your password.');
     } catch (err: any) {
       setError(getFriendlyAuthErrorMessage(err));
       setLoading(false);

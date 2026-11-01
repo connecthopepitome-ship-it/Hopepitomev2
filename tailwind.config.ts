@@ -100,6 +100,8 @@ const config: Config = {
         display: ['var(--font-display)', 'system-ui', 'sans-serif'],
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],
+        jakarta: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        manrope: ['"Manrope"', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         tightest: '-0.04em',
