@@ -16,6 +16,7 @@ import type {
   ClientRecord,
   StaffUser,
 } from '@/lib/career/types';
+import { formatINR } from '@/lib/currency';
 import {
   Briefcase,
   Plus,
@@ -47,6 +48,7 @@ import {
 } from 'lucide-react';
 
 const PROJECT_STATUSES: { key: ProjectStatus; label: string; badgeClass: string }[] = [
+  { key: 'NEW_INTAKE', label: 'New Intake (Draft)', badgeClass: 'bg-amber-50 text-amber-800 border border-amber-200' },
   { key: 'READY_TO_START', label: 'Ready to Start', badgeClass: 'bg-slate-100 text-slate-700' },
   { key: 'IN_PROGRESS', label: 'In Progress', badgeClass: 'bg-blue-50 text-blue-700' },
   { key: 'INTERNAL_REVIEW', label: 'In Review', badgeClass: 'bg-purple-50 text-purple-700' },
@@ -156,7 +158,7 @@ export default function ProjectsDashboardPage() {
       budget: Number(contractValue) * 0.7,
       contractValue: Number(contractValue),
       progressPercent: 15,
-      currency: 'USD',
+      currency: 'INR',
       billingMethod: 'MILESTONE_BASED',
       milestones: generatedMilestones,
       createdAt: now,
@@ -384,17 +386,17 @@ export default function ProjectsDashboardPage() {
               <span className="text-[12px] text-slate-500 uppercase tracking-wider font-semibold font-['Plus_Jakarta_Sans',sans-serif]">
                 Total Delivery Value
               </span>
-              <DollarSign className="w-4 h-4 text-emerald-600" />
+              <span className="font-bold text-xs text-emerald-600 font-mono">INR</span>
             </div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[26px] sm:text-[32px] text-[#173B8F] font-bold tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
-                ${(totalContractValue ? totalContractValue.toLocaleString() : '1,420,000')}
+              <span className="text-[24px] sm:text-[30px] text-[#173B8F] font-bold tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
+                {formatINR(totalContractValue || 1420000)}
               </span>
               <span className="text-[11px] text-emerald-700 font-bold">+18.2% QoQ</span>
             </div>
             <div className="mt-4 flex items-center justify-between text-[12px] text-slate-500">
               <span>Pipeline In-Flight</span>
-              <span className="text-slate-800 font-medium">$840k Scheduled Q4</span>
+              <span className="text-slate-800 font-medium">₹84,00,000 Scheduled Q4</span>
             </div>
             <div className="mt-1.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
               <div className="bg-[#132c6b] h-full rounded-full" style={{ width: '74%' }} />
@@ -497,7 +499,7 @@ export default function ProjectsDashboardPage() {
                     <th className="py-3 px-4 font-bold min-w-[200px]">Milestone & Completion</th>
                     <th className="py-3 px-4 font-bold">Health Status</th>
                     <th className="py-3 px-4 font-bold">SLA Due Date</th>
-                    <th className="py-3 px-4 font-bold text-right">Value (USD)</th>
+                    <th className="py-3 px-4 font-bold text-right">Value (₹ INR)</th>
                     <th className="py-3 px-4 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
@@ -761,7 +763,7 @@ export default function ProjectsDashboardPage() {
                 <div className="flex items-center justify-between pt-1 text-[12px] text-slate-600">
                   <span>Contract Valuation:</span>
                   <strong className="text-[#173B8F] font-bold font-['Plus_Jakarta_Sans',sans-serif]">
-                    ${inspectorProject.contractValue?.toLocaleString() || '15,000'} USD
+                    {formatINR(inspectorProject.contractValue || 0)}
                   </strong>
                 </div>
                 <div className="flex items-center justify-between text-[12px] text-slate-600">
@@ -907,7 +909,7 @@ export default function ProjectsDashboardPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[13px] font-semibold text-slate-800 mb-1">
-                      Contract Valuation ($ USD)
+                      Contract Valuation (₹ INR)
                     </label>
                     <input
                       type="number"

@@ -164,7 +164,7 @@ export default function ServiceCataloguePage() {
             name: 'Standard Enterprise Package',
             tier: 'BUSINESS',
             price: Number(formBasePrice) || 45000,
-            currency: 'USD',
+            currency: 'INR',
             durationDays: Number(formDurationDays) || 28,
             features: ['Standard SLA Commitment', 'Deliverable Blueprint'],
             deliverables: ['Production Sign-off'],
@@ -296,7 +296,7 @@ export default function ServiceCataloguePage() {
             </div>
             <div className="my-2 flex items-baseline gap-2">
               <span className="text-[26px] sm:text-[32px] font-bold text-[#173B8F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
-                $1.48M
+                ₹1.48 Cr
               </span>
               <span className="text-[12px] text-slate-500">Committed ARR</span>
             </div>
@@ -593,7 +593,7 @@ export default function ServiceCataloguePage() {
                       <div className="text-[10px] text-slate-500">+1 Week Deliverable</div>
                     </div>
                   </div>
-                  <span className="text-[12px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">+$8,500</span>
+                  <span className="text-[12px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">+₹85,000</span>
                 </label>
 
                 <label className="p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between cursor-pointer">
@@ -604,7 +604,7 @@ export default function ServiceCataloguePage() {
                       <div className="text-[10px] text-slate-500">Zero-RPO Architecture</div>
                     </div>
                   </div>
-                  <span className="text-[12px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">+$14,000</span>
+                  <span className="text-[12px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">+₹1,40,000</span>
                 </label>
               </div>
 
@@ -687,7 +687,7 @@ export default function ServiceCataloguePage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[13px] font-semibold text-slate-800 mb-1">
-                    Base Valuation ($ USD)
+                    Base Valuation (₹ INR)
                   </label>
                   <input
                     type="number"

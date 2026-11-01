@@ -986,7 +986,7 @@ export default {
           startDate: now.split('T')[0],
           targetCompletionDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           contractValue: Number(leadDoc?.estimatedValue || 0) || 500,
-          currency: 'USD',
+          currency: 'INR',
           healthScore: 100,
           notes: body.notes || `Converted from lead ${body.leadId}`,
           createdAt: now,
@@ -1288,16 +1288,22 @@ export default {
           }
         }
 
-        // Seamlessly feed website enquiry into CRM Leads collection & Google Drive vault
+        // =====================================================================
+        // END-TO-END CAREER REGISTRATION: DOCUMENT VAULT, CUSTOMER, ENQUIRY & PROJECT HUB
+        // =====================================================================
         let leadId: string | undefined;
         let documentId: string | undefined;
         let driveFileId: string | undefined;
         let downloadUrl: string | undefined;
         let viewUrl: string | undefined;
+        let clientId: string | undefined;
+        let projectId: string | undefined;
 
         try {
-          leadId = `LEAD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
           const nowStr = enquiry.createdAt || new Date().toISOString();
+          leadId = `LEAD-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+          projectId = `PRJ-CAR-${enquiry.referenceCode.replace(/[^A-Z0-9]/g, '')}`;
+          const selectedServicesList = enquiry.selectedServices || [enquiry.serviceRequired];
 
           // 1. If resume file base64 was uploaded, pipe directly to Google Drive via Google Apps Script Web App
           if (enquiry.resumeFileBase64 && enquiry.resumeFileName) {
@@ -1341,7 +1347,197 @@ export default {
             }
           }
 
-          // 2. Persist lead into Firestore 'crm_leads'
+          // 2. Customer Identification / Automatic Creation in 'clients'
+          const normPhone = (enquiry.phoneWhatsapp || '').replace(/\D/g, '');
+          const normEmail = (enquiry.email || '').trim().toLowerCase();
+          let existingClient: any = null;
+
+          if (normPhone && normPhone.length >= 7) {
+            try {
+              const clientMatches = await firestore.queryCollection('clients', {
+                field: 'mobile',
+                op: 'EQUAL',
+                value: enquiry.phoneWhatsapp,
+              });
+              if (clientMatches && clientMatches.length > 0) {
+                existingClient = clientMatches[0];
+                clientId = existingClient.clientId || existingClient.id;
+              }
+            } catch (qErr) {
+              console.warn('[Client Search by Mobile Warning]:', qErr);
+            }
+          }
+
+          if (!clientId && normEmail) {
+            try {
+              const emailMatches = await firestore.queryCollection('clients', {
+                field: 'email',
+                op: 'EQUAL',
+                value: normEmail,
+              });
+              if (emailMatches && emailMatches.length > 0) {
+                existingClient = emailMatches[0];
+                clientId = existingClient.clientId || existingClient.id;
+              }
+            } catch (qErr) {
+              console.warn('[Client Search by Email Warning]:', qErr);
+            }
+          }
+
+          if (!clientId) {
+            const last5Digits = normPhone && normPhone.length >= 5 ? normPhone.slice(-5) : Math.floor(10000 + Math.random() * 90000).toString();
+            clientId = `HP-CLT-${last5Digits}`;
+          }
+
+          const existingEnquiries: string[] = Array.isArray(existingClient?.linkedEnquiries) ? existingClient.linkedEnquiries : [];
+          const existingProjects: string[] = Array.isArray(existingClient?.linkedProjects) ? existingClient.linkedProjects : [];
+          const existingDocs: string[] = Array.isArray(existingClient?.uploadedDocuments) ? existingClient.uploadedDocuments : [];
+
+          const updatedLinkedEnquiries = Array.from(new Set([...existingEnquiries, enquiry.referenceCode]));
+          const updatedLinkedProjects = Array.from(new Set([...existingProjects, projectId]));
+          const updatedLinkedDocs = Array.from(new Set([...existingDocs, ...(documentId ? [documentId] : [])]));
+
+          await firestore.setDocument('clients', clientId, {
+            clientId,
+            id: clientId,
+            name: enquiry.fullName || existingClient?.name || 'Customer Entity',
+            fullName: enquiry.fullName || existingClient?.fullName || 'Customer Entity',
+            mobile: enquiry.phoneWhatsapp || existingClient?.mobile || '',
+            email: enquiry.email || existingClient?.email || '',
+            status: existingClient?.status || 'ACTIVE',
+            careerProfile: {
+              currentDesignation: enquiry.currentDesignation || existingClient?.careerProfile?.currentDesignation || '',
+              totalExperience: enquiry.totalExperience || existingClient?.careerProfile?.totalExperience || '',
+              targetRole: enquiry.targetRole || existingClient?.careerProfile?.targetRole || '',
+              targetCountry: enquiry.targetCountry || existingClient?.careerProfile?.targetCountry || '',
+              requirements: enquiry.requirements || existingClient?.careerProfile?.requirements || '',
+              preferredContactMethod: enquiry.preferredContactMethod || existingClient?.careerProfile?.preferredContactMethod || 'WhatsApp',
+            },
+            linkedEnquiries: updatedLinkedEnquiries,
+            linkedProjects: updatedLinkedProjects,
+            uploadedDocuments: updatedLinkedDocs,
+            createdAt: existingClient?.createdAt || nowStr,
+            updatedAt: nowStr,
+          });
+
+          // 3. Persist formal Career Enquiry Record in 'career_enquiries'
+          await firestore.setDocument('career_enquiries', enquiry.referenceCode, {
+            id: enquiry.referenceCode,
+            referenceCode: enquiry.referenceCode,
+            customerId: clientId,
+            customerName: enquiry.fullName,
+            email: enquiry.email,
+            phoneWhatsapp: enquiry.phoneWhatsapp || '',
+            preferredContactMethod: enquiry.preferredContactMethod || 'WhatsApp',
+            selectedServices: selectedServicesList,
+            serviceRequired: enquiry.serviceRequired || selectedServicesList[0] || 'Professional Resume Writing',
+            status: 'NEW',
+            careerStage: enquiry.careerStage || 'Experienced Professional',
+            currentDesignation: enquiry.currentDesignation || '',
+            totalExperience: enquiry.totalExperience || '',
+            targetRole: enquiry.targetRole || '',
+            targetCountry: enquiry.targetCountry || '',
+            requirements: enquiry.requirements || '',
+            resumeFileName: enquiry.resumeFileName || null,
+            resumeFileSize: enquiry.resumeFileSize || null,
+            resumeMimeType: enquiry.resumeMimeType || null,
+            resumeDocumentId: documentId || null,
+            resumeDriveFileId: driveFileId || null,
+            resumeDownloadUrl: downloadUrl || null,
+            resumeViewUrl: viewUrl || null,
+            hasResume: Boolean(enquiry.resumeFileName && driveFileId),
+            projectId: projectId,
+            leadId: leadId,
+            submittedAt: nowStr,
+            updatedAt: nowStr,
+          });
+
+          // 4. Create Draft Intake Record in 'projects' (Project Hub)
+          const milestones = [
+            {
+              id: `ms_${projectId}_1`,
+              projectId,
+              title: 'Intake Audit & Background Profile Verification',
+              orderIndex: 1,
+              status: 'IN_PROGRESS',
+              dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            },
+            {
+              id: `ms_${projectId}_2`,
+              projectId,
+              title: 'Target Role Alignment & ATS Keyword Analysis',
+              orderIndex: 2,
+              status: 'PENDING',
+              dueDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            },
+            {
+              id: `ms_${projectId}_3`,
+              projectId,
+              title: 'Executive Draft Preparation & Client Feedback Loop',
+              orderIndex: 3,
+              status: 'PENDING',
+              dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            },
+            {
+              id: `ms_${projectId}_4`,
+              projectId,
+              title: 'Final Quality Review & Production Handover',
+              orderIndex: 4,
+              status: 'PENDING',
+              dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            },
+          ];
+
+          await firestore.setDocument('projects', projectId, {
+            id: projectId,
+            projectId,
+            name: `${enquiry.fullName} – ${selectedServicesList.join(' + ')}`,
+            customerId: clientId,
+            customerName: enquiry.fullName,
+            customerEmail: enquiry.email,
+            customerMobile: enquiry.phoneWhatsapp || '',
+            enquiryId: enquiry.referenceCode,
+            leadId: leadId,
+            division: 'CAREER_SERVICES',
+            serviceId: 'srv_career_intake',
+            serviceName: selectedServicesList.join(' + '),
+            services: selectedServicesList,
+            projectManagerId: 'unassigned',
+            projectManagerName: 'Unassigned',
+            teamMembers: [],
+            startDate: nowStr.split('T')[0],
+            plannedEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            priority: 'HIGH',
+            status: 'NEW_INTAKE', // Clearly marked as draft intake
+            budget: 2000,
+            contractValue: selectedServicesList.length > 1 ? 4499 : 2499,
+            progressPercent: 5,
+            currency: 'INR', // Indian Rupee standardized
+            billingMethod: 'FIXED_PRICE',
+            milestones,
+            careerProfile: {
+              currentDesignation: enquiry.currentDesignation || '',
+              totalExperience: enquiry.totalExperience || '',
+              targetRole: enquiry.targetRole || '',
+              targetCountry: enquiry.targetCountry || '',
+              requirements: enquiry.requirements || '',
+            },
+            documents: documentId ? [
+              {
+                documentId,
+                fileName: enquiry.resumeFileName,
+                fileSize: enquiry.resumeFileSize || 150000,
+                category: 'Original Resume',
+                driveFileId,
+                downloadUrl,
+                viewUrl,
+              }
+            ] : [],
+            createdAt: nowStr,
+            updatedAt: nowStr,
+          });
+
+          // 5. Persist lead into Firestore 'crm_leads'
           await firestore.setDocument('crm_leads', leadId, {
             id: leadId,
             referenceCode: enquiry.referenceCode,
@@ -1349,8 +1545,8 @@ export default {
             mobile: enquiry.phoneWhatsapp || '',
             email: enquiry.email,
             preferredContactMethod: enquiry.preferredContactMethod || 'WhatsApp',
-            selectedServices: enquiry.selectedServices || [enquiry.serviceRequired],
-            serviceInterestedIn: enquiry.serviceRequired || (enquiry.selectedServices && enquiry.selectedServices[0]) || 'Professional Resume Writing',
+            selectedServices: selectedServicesList,
+            serviceInterestedIn: enquiry.serviceRequired || selectedServicesList[0] || 'Professional Resume Writing',
             enquiryDescription: enquiry.requirements || '',
             targetRole: enquiry.targetRole || '',
             currentExperienceLevel: enquiry.careerStage || 'Experienced Professional',
@@ -1363,32 +1559,36 @@ export default {
             resumeDriveFileId: driveFileId || null,
             resumeDownloadUrl: downloadUrl || null,
             resumeViewUrl: viewUrl || null,
+            convertedClientId: clientId,
+            convertedProjectId: projectId,
             leadSource: 'WEBSITE',
             leadOwner: 'Unassigned',
             priority: 'HIGH',
-            stage: 'New Lead',
+            stage: 'New',
             createdAt: nowStr,
             updatedAt: nowStr,
           });
 
-          // 3. Log lead creation activity in 'crm_activities'
+          // 6. Log lead creation activity in 'crm_activities'
           await firestore.setDocument('crm_activities', `act_${Date.now()}`, {
             id: `act_${Date.now()}`,
             leadId: leadId,
             activityType: 'LEAD_CREATED',
-            title: `New enquiry captured (${enquiry.serviceRequired})`,
-            description: `Services requested: ${(enquiry.selectedServices || [enquiry.serviceRequired]).join(', ')}. ${enquiry.resumeFileName ? `Resume attached: ${enquiry.resumeFileName}` : 'No resume attached.'}`,
+            title: `New career enquiry captured (${selectedServicesList.join(', ')})`,
+            description: `Customer ID: ${clientId}, Project: ${projectId}. ${enquiry.resumeFileName ? `Resume attached: ${enquiry.resumeFileName}` : 'No resume attached.'}`,
             performedBy: 'WEBSITE_INTAKE',
             timestamp: nowStr,
           });
         } catch (crmErr) {
-          console.error('[CRM LEAD INTAKE ERROR]:', crmErr);
+          console.error('[CRM & PROJECT INTAKE ERROR]:', crmErr);
         }
 
         return new Response(
           JSON.stringify({
             success: true,
             referenceCode: enquiry.referenceCode,
+            customerId: clientId,
+            projectId: projectId,
             leadId: leadId,
             documentId: documentId,
             selectedServices: enquiry.selectedServices || [enquiry.serviceRequired],
@@ -1400,6 +1600,120 @@ export default {
         console.error('[API CAREER ENQUIRY EXCEPTION]:', err);
         return new Response(
           JSON.stringify({ success: false, error: 'Internal server error processing career enquiry.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // CAREER SERVICES: APPROVE ENQUIRY & CONVERT TO ACTIVE PROJECT & WORK ORDER
+    // =========================================================================
+    if (url.pathname === '/api/career/enquiry/approve') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as any;
+        const enquiryId = body?.enquiryId;
+        const adminName = body?.adminName || 'Admin';
+        const assignedStaffId = body?.assignedStaffId;
+        const assignedStaffName = body?.assignedStaffName;
+
+        if (!enquiryId) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Enquiry ID is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const enquiryDoc = (await firestore.getDocument('career_enquiries', enquiryId)) as any;
+        if (!enquiryDoc) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Enquiry record not found.' }),
+            { status: 404, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const projectId = enquiryDoc.projectId || `PRJ-CAR-${enquiryId.replace(/[^A-Z0-9]/g, '')}`;
+        const clientId = enquiryDoc.customerId;
+        const workOrderId = `HP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+
+        // 1. Update Career Enquiry Status to APPROVED
+        await firestore.setDocument('career_enquiries', enquiryId, {
+          status: 'APPROVED',
+          projectId,
+          workOrderId,
+          reviewedBy: adminName,
+          updatedAt: now,
+        });
+
+        // 2. Activate Project in 'projects'
+        await firestore.setDocument('projects', projectId, {
+          status: 'IN_PROGRESS',
+          workOrderId,
+          projectManagerId: assignedStaffId || 'unassigned',
+          projectManagerName: assignedStaffName || adminName,
+          updatedAt: now,
+        });
+
+        // 3. Create Work Order in 'workOrders'
+        await firestore.setDocument('workOrders', workOrderId, {
+          workOrderId,
+          clientId,
+          projectId,
+          enquiryId,
+          serviceType: enquiryDoc.serviceRequired || 'Professional Resume Writing',
+          status: 'In Progress',
+          assignedTo: assignedStaffName || adminName,
+          assignedToId: assignedStaffId,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // 4. Update Client Current Work Order
+        if (clientId) {
+          await firestore.setDocument('clients', clientId, {
+            currentWorkOrderId: workOrderId,
+            updatedAt: now,
+          });
+        }
+
+        // 5. Generate service-specific tasks
+        const task1Id = `task_${Date.now()}_1`;
+        await firestore.setDocument('universal_tasks', task1Id, {
+          taskId: task1Id,
+          entityType: 'PROJECT',
+          entityId: projectId,
+          entityTitle: enquiryDoc.customerName,
+          title: 'Review Original Resume & Audit Career Objectives',
+          assignedToId: assignedStaffId || '',
+          assignedToName: assignedStaffName || adminName,
+          createdBy: adminName,
+          priority: 'HIGH',
+          status: 'OPEN',
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            enquiryId,
+            projectId,
+            workOrderId,
+            message: 'Enquiry approved and converted to active project successfully.',
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Error approving enquiry.' }),
           { status: 500, headers: CORS_HEADERS }
         );
       }

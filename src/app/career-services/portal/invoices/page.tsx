@@ -5,7 +5,9 @@ import { PortalLayout } from '@/components/career/portal/PortalLayout';
 import { useCareerAuth } from '@/components/career/portal/AuthContext';
 import { subscribeClientInvoices } from '@/lib/firebase/firestore';
 import type { CareerInvoice } from '@/lib/career/types';
-import { Receipt, CheckCircle2, Clock, Download, ArrowRight, ShieldCheck } from 'lucide-react';
+import { formatINR } from '@/lib/currency';
+import {
+  Receipt, CheckCircle2, Clock, Download, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function ClientInvoicesPage() {
   const { client } = useCareerAuth();
@@ -90,7 +92,7 @@ export default function ClientInvoicesPage() {
                     <div className="text-left sm:text-right">
                       <span className="text-xs text-[#777781] block">Total Amount</span>
                       <span className="text-base font-bold text-[#17243B]">
-                        ${inv.total} USD
+                        {formatINR(inv.total)}
                       </span>
                     </div>
                   </div>

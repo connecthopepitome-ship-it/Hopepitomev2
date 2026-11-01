@@ -10,6 +10,7 @@ import {
   logActivity,
 } from '@/lib/firebase/firestore';
 import type { CareerInvoice, ServiceOrder, InvoiceLineItem } from '@/lib/career/types';
+import { formatINR } from '@/lib/currency';
 import {
   Receipt,
   Plus,
@@ -204,7 +205,7 @@ export default function AdminFinancePage() {
               <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
                 ${(totalPaid + totalOutstanding).toLocaleString()}
               </span>
-              <span className="text-xs text-secondary font-mono">USD</span>
+              <span className="text-xs text-secondary font-mono">INR</span>
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
               <span>{invoices.length} Registered Invoices</span>
@@ -326,7 +327,7 @@ export default function AdminFinancePage() {
 
                   <div className="flex items-center gap-4 self-start sm:self-center">
                     <span className="text-base font-bold text-primary tabular-nums">
-                      ${inv.total?.toLocaleString()} USD
+                      {formatINR(inv.total || 0)}
                     </span>
 
                     {inv.status !== 'PAID' ? (
@@ -406,7 +407,7 @@ export default function AdminFinancePage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-primary mb-1">
-                      Amount (USD) *
+                      Amount (₹ INR) *
                     </label>
                     <input
                       type="number"
@@ -441,7 +442,7 @@ export default function AdminFinancePage() {
 
                 <div className="p-3 bg-surface-container-low rounded-xl flex justify-between items-center text-xs">
                   <span className="font-semibold text-secondary">Total Payable:</span>
-                  <span className="font-bold text-primary text-sm tabular-nums">${total} USD</span>
+                  <span className="font-bold text-primary text-sm tabular-nums">{formatINR(total)}</span>
                 </div>
 
                 <div className="pt-3 border-t border-outline-variant/30 flex justify-end gap-2">
@@ -484,7 +485,7 @@ export default function AdminFinancePage() {
                   </div>
                   <div className="flex justify-between text-secondary">
                     <span>Amount Received:</span>
-                    <span className="font-bold text-emerald-800 tabular-nums">${recordingInvoice.total} USD</span>
+                    <span className="font-bold text-emerald-800 tabular-nums">{formatINR(recordingInvoice.total || 0)}</span>
                   </div>
                 </div>
 

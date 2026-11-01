@@ -348,7 +348,7 @@ export interface InvoiceLineItem {
   id: string;
   description: string;
   quantity: number;
-  unitPrice: number; // in USD
+  unitPrice: number; // in INR
   total: number;
 }
 
@@ -407,6 +407,20 @@ export interface ClientRecord {
   updatedAt: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
   currentWorkOrderId?: string;
+  fullName?: string;
+  clientCode?: string;
+  careerProfile?: {
+    currentDesignation?: string;
+    totalExperience?: string;
+    targetRole?: string;
+    targetCountry?: string;
+    industry?: string;
+    linkedinUrl?: string;
+    requirements?: string;
+  };
+  linkedEnquiries?: string[];
+  linkedProjects?: string[];
+  uploadedDocuments?: string[];
 }
 
 export interface WorkOrderRecord {
@@ -570,7 +584,7 @@ export interface CrmLead {
   leadOwner: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   stage: CrmPipelineStage;
-  estimatedValue?: number; // In USD or local currency
+  estimatedValue?: number; // In INR
   lostReason?: string;
   convertedClientId?: string;
   convertedWorkOrderId?: string;
@@ -966,6 +980,8 @@ export interface QuotationRecord {
 
 export type ProjectStatus =
   | 'DRAFT'
+  | 'NEW_INTAKE'
+  | 'AWAITING_REVIEW'
   | 'AWAITING_PAYMENT'
   | 'READY_TO_START'
   | 'IN_PROGRESS'
@@ -974,7 +990,63 @@ export type ProjectStatus =
   | 'CLIENT_UAT'
   | 'REVISION'
   | 'COMPLETED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | string;
+
+export type CareerEnquiryStatus =
+  | 'NEW'
+  | 'UNDER_REVIEW'
+  | 'AWAITING_CUSTOMER'
+  | 'APPROVED'
+  | 'CONVERTED'
+  | 'REJECTED';
+
+export interface CareerEnquiryRecord {
+  id: string; // e.g. HP-CAR-202611-4RK6
+  referenceCode: string;
+  customerId?: string;
+  customerName: string;
+  email: string;
+  phoneWhatsapp?: string;
+  preferredContactMethod?: 'Email' | 'WhatsApp' | 'Phone Call';
+  selectedServices: string[];
+  serviceRequired: string;
+  status: CareerEnquiryStatus;
+  
+  // Career profile submitted
+  careerStage?: string;
+  currentDesignation?: string;
+  totalExperience?: string;
+  targetRole?: string;
+  targetCountry?: string;
+  industry?: string;
+  linkedinUrl?: string;
+  education?: string;
+  skills?: string;
+  certifications?: string;
+  requirements?: string;
+  
+  // Uploaded document metadata
+  resumeFileName?: string;
+  resumeFileSize?: number;
+  resumeMimeType?: string;
+  resumeDocumentId?: string;
+  resumeDriveFileId?: string;
+  resumeDownloadUrl?: string;
+  resumeViewUrl?: string;
+  hasResume: boolean;
+
+  // Linked Project / Work Order / Lead
+  projectId?: string;
+  workOrderId?: string;
+  leadId?: string;
+  
+  // Audit & timestamps
+  submittedAt: string;
+  updatedAt: string;
+  reviewedBy?: string;
+  adminNotes?: string;
+}
 
 export interface ProjectMilestoneRecord {
   id: string;
@@ -995,9 +1067,15 @@ export interface EnterpriseProjectRecord {
   customerId: string;
   customerName: string;
   customerCompany?: string;
+  customerEmail?: string;
+  customerMobile?: string;
+  enquiryId?: string;
+  leadId?: string;
+  workOrderId?: string;
   division: BusinessDivision;
   serviceId: string;
   serviceName: string;
+  services?: string[];
   projectManagerId: string;
   projectManagerName: string;
   teamMembers: { uid: string; name: string; role: string }[];
@@ -1012,6 +1090,8 @@ export interface EnterpriseProjectRecord {
   currency: string;
   billingMethod: PricingModel;
   milestones: ProjectMilestoneRecord[];
+  careerProfile?: Record<string, any>;
+  documents?: any[];
   driveFolderId?: string;
   driveFolderPath?: string;
   createdAt: string;

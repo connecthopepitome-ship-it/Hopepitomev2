@@ -17,6 +17,7 @@ import type {
   ClientRecord,
   EnterpriseProjectRecord,
 } from '@/lib/career/types';
+import { formatINR } from '@/lib/currency';
 import {
   Receipt,
   Plus,
@@ -160,7 +161,7 @@ export default function QuotationsPage() {
       discountAmount: 0,
       taxAmount,
       totalAmount,
-      currency: 'USD',
+      currency: 'INR',
       paymentMilestones: milestones,
       termsAndConditions: [
         '50% deposit required prior to technical delivery commencement.',
@@ -311,9 +312,9 @@ export default function QuotationsPage() {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="font-kpi-display text-3xl font-bold text-emerald-800 tabular-nums">
-                ${totalPipelineVal.toLocaleString()}
+                {formatINR(totalPipelineVal)}
               </span>
-              <span className="text-xs text-secondary font-mono">USD</span>
+              <span className="text-xs text-secondary font-mono">INR</span>
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
               <span>Across All Divisions</span>
@@ -347,9 +348,9 @@ export default function QuotationsPage() {
             </div>
             <div className="flex items-baseline justify-between">
               <span className="font-kpi-display text-3xl font-bold text-on-surface tabular-nums">
-                ${avgDealSize.toLocaleString()}
+                {formatINR(avgDealSize)}
               </span>
-              <span className="text-xs text-secondary font-mono">USD</span>
+              <span className="text-xs text-secondary font-mono">INR</span>
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-secondary font-body-sm">
               <span>Milestone Phasing</span>
@@ -461,7 +462,7 @@ export default function QuotationsPage() {
                       <div className="flex justify-between text-secondary">
                         <span>Total Scope:</span>
                         <span className="font-bold text-emerald-800 tabular-nums">
-                          ${q.totalAmount?.toLocaleString()} {q.currency}
+                          {formatINR(q.totalAmount || 0)}
                         </span>
                       </div>
                       <div className="flex justify-between text-secondary">
@@ -571,7 +572,7 @@ export default function QuotationsPage() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-primary mb-1">Price (USD) *</label>
+                    <label className="block text-xs font-semibold text-primary mb-1">Price (₹ INR) *</label>
                     <input
                       type="number"
                       required
@@ -605,7 +606,7 @@ export default function QuotationsPage() {
                 <div className="p-3.5 bg-surface-container-low rounded-xl text-xs space-y-1">
                   <div className="flex justify-between font-bold text-primary">
                     <span>Total Scope Quotation:</span>
-                    <span className="tabular-nums">${(itemQty * itemPrice).toLocaleString()} USD</span>
+                    <span className="tabular-nums">{formatINR(itemQty * itemPrice)}</span>
                   </div>
                   <p className="text-xs text-secondary">Includes 3-phase milestone billing schedule (40% / 40% / 20%).</p>
                 </div>
@@ -688,8 +689,8 @@ export default function QuotationsPage() {
                           <p className="text-xs text-secondary mt-0.5">{item.description}</p>
                         </td>
                         <td className="p-3 text-center">{item.quantity}</td>
-                        <td className="p-3 text-right tabular-nums">${item.unitPrice}</td>
-                        <td className="p-3 text-right font-bold text-primary tabular-nums">${item.total}</td>
+                        <td className="p-3 text-right tabular-nums">{formatINR(item.unitPrice)}</td>
+                        <td className="p-3 text-right font-bold text-primary tabular-nums">{formatINR(item.total)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -709,7 +710,7 @@ export default function QuotationsPage() {
                         <p className="font-semibold text-primary">{pm.title}</p>
                         <p className="text-xs text-secondary">{pm.condition}</p>
                       </div>
-                      <span className="font-bold text-emerald-800 tabular-nums">${pm.amount} {previewQuote.currency}</span>
+                      <span className="font-bold text-emerald-800 tabular-nums">{formatINR(pm.amount)}</span>
                     </div>
                   ))}
                 </div>
@@ -722,7 +723,7 @@ export default function QuotationsPage() {
                 <div className="text-right">
                   <span className="text-xs text-secondary block">Total Amount</span>
                   <span className="text-xl font-bold text-emerald-800 tabular-nums">
-                    ${previewQuote.totalAmount?.toLocaleString()} {previewQuote.currency}
+                    {formatINR(previewQuote.totalAmount || 0)}
                   </span>
                 </div>
               </div>

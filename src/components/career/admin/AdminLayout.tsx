@@ -76,26 +76,31 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const canManageEmployees = hasPermission('employees', 'view');
 
-  const deliveryNavItems = useMemo(() => [
-    { label: 'Projects Hub', href: '/career-services/admin/projects', icon: Briefcase, color: 'text-violet-600 bg-violet-50 border-violet-100' },
-    { label: 'Customer 360', href: '/career-services/admin/clients', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-100' },
-    { label: 'Service Catalogue', href: '/career-services/admin/services', icon: Layers, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+  const careerNavItems = useMemo(() => [
+    { label: 'Career Enquiries', href: '/career-services/admin/career-enquiries', icon: Sparkles, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'NEW' },
+    { label: 'Career Customers', href: '/career-services/admin/clients', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-100' },
+    { label: 'Career Projects', href: '/career-services/admin/projects', icon: Briefcase, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+    { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: FileBox, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+  ], []);
+
+  const projectDeliveryNavItems = useMemo(() => [
+    { label: 'Project Hub', href: '/career-services/admin/projects', icon: Briefcase, color: 'text-violet-600 bg-violet-50 border-violet-100' },
+    { label: 'Work Orders', href: '/career-services/admin/orders', icon: RotateCcw, color: 'text-rose-600 bg-rose-50 border-rose-100' },
     { label: 'Task Board', href: '/career-services/admin/tasks', icon: CheckSquare, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-    { label: 'Deliverables Vault', href: '/career-services/admin/deliverables', icon: FileBox, color: 'text-amber-600 bg-amber-50 border-amber-100' },
-    { label: 'Career Work Orders', href: '/career-services/admin/orders', icon: RotateCcw, color: 'text-rose-600 bg-rose-50 border-rose-100' },
+    { label: 'Team Assignments', href: '/career-services/admin/employees/directory', icon: Users, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
+    { label: 'Service Catalogue', href: '/career-services/admin/services', icon: Layers, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Support & SLAs', href: '/career-services/admin/support', icon: LifeBuoy, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     { label: 'Audit Trail', href: '/career-services/admin/audit', icon: History, color: 'text-slate-600 bg-slate-50 border-slate-100' },
   ], []);
 
   const crmNavItems = useMemo(() => [
-    { label: 'CRM Overview', href: '/career-services/admin/crm', icon: LayoutDashboard, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Leads Inbox', href: '/career-services/admin/crm/leads', icon: Inbox, color: 'text-sky-600 bg-sky-50 border-sky-100' },
+    { label: 'Customer Directory', href: '/career-services/admin/clients', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Sales Pipeline', href: '/career-services/admin/crm/pipeline', icon: Kanban, color: 'text-purple-600 bg-purple-50 border-purple-100' },
     { label: 'Quotations', href: '/career-services/admin/crm/quotations', icon: Receipt, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     { label: 'Follow-ups & Calls', href: '/career-services/admin/crm/follow-ups', icon: PhoneCall, color: 'text-amber-600 bg-amber-50 border-amber-100' },
     { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: Calendar, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     { label: 'Sales Reports', href: '/career-services/admin/crm/reports', icon: BarChart3, color: 'text-teal-600 bg-teal-50 border-teal-100' },
-    { label: 'CRM Settings', href: '/career-services/admin/crm/settings', icon: Settings, color: 'text-slate-600 bg-slate-50 border-slate-100' },
   ], []);
 
   const empNavItems = useMemo(() => [
@@ -109,10 +114,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   // Filtered items for mobile drawer search
   const allNavItems = useMemo(() => [
-    ...deliveryNavItems.map((i) => ({ ...i, category: 'Operations' })),
+    ...careerNavItems.map((i) => ({ ...i, category: 'Career Services' })),
+    ...projectDeliveryNavItems.map((i) => ({ ...i, category: 'Project Delivery' })),
     ...crmNavItems.map((i) => ({ ...i, category: 'CRM & Sales' })),
     ...(canManageEmployees ? empNavItems.map((i) => ({ ...i, category: 'Team' })) : []),
-  ], [deliveryNavItems, crmNavItems, empNavItems, canManageEmployees]);
+  ], [careerNavItems, projectDeliveryNavItems, crmNavItems, empNavItems, canManageEmployees]);
 
   const searchResults = useMemo(() => {
     if (!drawerSearch.trim()) return null;
@@ -285,7 +291,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  const renderNavSection = (title: string, tag: string, items: typeof deliveryNavItems) => (
+  const renderNavSection = (
+    title: string,
+    tag: string,
+    items: { label: string; href: string; icon: any; color: string; badge?: string }[]
+  ) => (
     <div className="bg-white/80 backdrop-blur-sm p-3 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(23,59,143,0.03)] space-y-1">
       <div className="flex items-center justify-between px-2.5 py-1 mb-1">
         <span className="text-[11px] font-bold tracking-wider uppercase text-slate-500 font-['Plus_Jakarta_Sans',sans-serif]">
@@ -336,8 +346,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full flex-1 flex flex-col md:flex-row gap-5 pb-28 md:pb-8">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 shrink-0 space-y-4">
-          {renderNavSection('OPERATIONS & DELIVERY', 'OPS', deliveryNavItems)}
-          {renderNavSection('CRM & ACQUISITION', 'SALES', crmNavItems)}
+          {renderNavSection('CAREER SERVICES', 'STUDIO', careerNavItems)}
+          {renderNavSection('PROJECT DELIVERY', 'EXEC', projectDeliveryNavItems)}
+          {renderNavSection('CRM & SALES', 'ACQ', crmNavItems)}
           {canManageEmployees && renderNavSection('TEAM & RBAC', 'STAFF', empNavItems)}
 
           {/* Quick System Telemetry Card */}
@@ -435,7 +446,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
               ) : (
                 <>
-                  {renderNavSection('OPERATIONS', 'OPS', deliveryNavItems)}
+                  {renderNavSection('CAREER SERVICES', 'STUDIO', careerNavItems)}
+                  {renderNavSection('PROJECT DELIVERY', 'EXEC', projectDeliveryNavItems)}
                   {renderNavSection('CRM & SALES', 'ACQ', crmNavItems)}
                   {canManageEmployees && renderNavSection('TEAM', 'STAFF', empNavItems)}
                 </>

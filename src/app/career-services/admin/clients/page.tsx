@@ -328,13 +328,13 @@ export default function AdminClients360Page() {
             </div>
             <div className="my-2 flex items-baseline gap-2">
               <span className="text-[26px] sm:text-[32px] font-bold text-[#173B8F] tabular-nums font-['Plus_Jakarta_Sans',sans-serif]">
-                $4.85M
+                ₹4.85 Cr
               </span>
               <span className="text-[11px] text-slate-500 font-semibold">ARR Base</span>
             </div>
             <div className="flex items-center justify-between text-[12px] text-slate-500 pt-1 border-t border-slate-100">
               <span>Average Contract ACV</span>
-              <span className="text-slate-800 font-bold">$84.2K</span>
+              <span className="text-slate-800 font-bold">₹8.42 L</span>
             </div>
           </div>
 
@@ -458,7 +458,7 @@ export default function AdminClients360Page() {
                           </td>
 
                           <td className="py-3 px-4 text-right font-['Plus_Jakarta_Sans',sans-serif]">
-                            <div className="font-bold text-slate-900 text-[13px] tabular-nums">$340,000</div>
+                            <div className="font-bold text-slate-900 text-[13px] tabular-nums">₹3,40,000</div>
                             <div className="text-[11px] text-slate-500">Renews Nov 2025</div>
                           </td>
 
@@ -620,7 +620,7 @@ export default function AdminClients360Page() {
                             <div className="text-[11px] text-slate-500">Valid Oct 01, 2024 – Nov 30, 2025 • Auto-renewing</div>
                           </div>
                         </div>
-                        <span className="text-[13px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">$340,000/yr</span>
+                        <span className="text-[13px] font-bold text-[#173B8F] font-['Plus_Jakarta_Sans',sans-serif]">₹3,40,000/yr</span>
                       </div>
                     </div>
 
@@ -701,7 +701,7 @@ export default function AdminClients360Page() {
                         <div className="text-[11px] text-slate-500">Paid on Oct 04, 2024 • Wire Transfer</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[13px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">$85,000.00</div>
+                        <div className="text-[13px] font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">₹85,000.00</div>
                         <span className="text-[10px] text-emerald-700 font-bold">Cleared</span>
                       </div>
                     </div>

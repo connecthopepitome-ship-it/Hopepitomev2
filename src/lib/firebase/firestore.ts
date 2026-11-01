@@ -53,6 +53,8 @@ import type {
   CommercialInvoiceRecord,
   CommercialPaymentRecord,
   ClientRecord,
+  CareerEnquiryRecord,
+  CareerEnquiryStatus,
 } from '../career/types';
 
 // Helper to sanitize undefined values before saving to Firestore
@@ -564,6 +566,41 @@ export function subscribeCrmConsultations(
 
 export async function saveCrmConsultation(consultation: CrmConsultation): Promise<void> {
   await resilientSaveDoc('crm_consultations', consultation.id, consultation);
+}
+
+// 13B. Dedicated Career Enquiries
+export function subscribeCareerEnquiries(
+  callback: (enquiries: CareerEnquiryRecord[]) => void
+): () => void {
+  if (!db) {
+    callback([]);
+    return () => {};
+  }
+  const q = query(collection(db, 'career_enquiries'));
+  return onSnapshot(q, (snapshot) => {
+    const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as CareerEnquiryRecord));
+    list.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+    callback(list);
+  });
+}
+
+export async function saveCareerEnquiry(enquiry: CareerEnquiryRecord): Promise<void> {
+  await resilientSaveDoc('career_enquiries', enquiry.id, enquiry);
+}
+
+export async function updateCareerEnquiryStatus(
+  enquiryId: string,
+  status: CareerEnquiryStatus,
+  adminNotes?: string
+): Promise<void> {
+  const updates: any = {
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+  if (adminNotes !== undefined) {
+    updates.adminNotes = adminNotes;
+  }
+  await resilientSaveDoc('career_enquiries', enquiryId, updates);
 }
 
 // =============================================================================
