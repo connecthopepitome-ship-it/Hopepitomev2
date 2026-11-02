@@ -40,6 +40,7 @@ import {
   Sparkles,
   CreditCard,
   Cpu,
+  FileCheck,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -79,6 +80,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const careerNavItems = useMemo(() => [
     { label: 'Career Enquiries', href: '/career-services/admin/career-enquiries', icon: Sparkles, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'NEW' },
+    { label: 'ATS Resume Audit', href: '/career-services/admin/ats-checker', icon: FileCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'AI' },
     { label: 'Career Customers', href: '/career-services/admin/clients', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Career Projects', href: '/career-services/admin/projects', icon: Briefcase, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: FileBox, color: 'text-amber-600 bg-amber-50 border-amber-100' },

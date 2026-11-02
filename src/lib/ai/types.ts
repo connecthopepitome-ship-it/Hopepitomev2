@@ -53,10 +53,19 @@ export interface SanitizedResumeInput {
   characterCount: number;
 }
 
+export type AtsCategoryKey =
+  | 'STRUCTURE_READABILITY'
+  | 'PROFESSIONAL_SUMMARY'
+  | 'SKILLS_RELEVANCE'
+  | 'EXPERIENCE_ACHIEVEMENTS'
+  | 'EDUCATION_CERTIFICATIONS'
+  | 'FORMATTING_COMPATIBILITY'
+  | 'CONTACT_COMPLETENESS';
+
 export interface AtsCategoryEvaluation {
-  category: 'IMPACT_METRICS' | 'ATS_FORMATTING' | 'KEYWORD_ALIGNMENT' | 'BREVITY_STRUCTURE' | 'SKILLS_CREDENTIALS';
+  category: AtsCategoryKey;
   title: string;
-  weight: number; // e.g. 25, 20, 25, 15, 15 (Total = 100)
+  weight: number; // e.g. 15, 10, 20, 20, 10, 15, 10 (Total = 100)
   rawScore: number; // 0 - 100 from model or deterministic rubric
   weightedScore: number; // (rawScore * weight) / 100
   status: 'EXCELLENT' | 'GOOD' | 'NEEDS_WORK' | 'CRITICAL';
