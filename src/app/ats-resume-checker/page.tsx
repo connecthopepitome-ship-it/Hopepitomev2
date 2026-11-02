@@ -200,6 +200,7 @@ export default function AtsResumeCheckerPage() {
   const [processingStage, setProcessingStage] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [auditResult, setAuditResult] = useState<PublicAtsAuditResult | null>(null);
+  const [showTextEditor, setShowTextEditor] = useState(false);
 
   // Modal / Conversion states
   const [selectedModalCard, setSelectedModalCard] = useState<LockedImprovementCard | null>(null);
@@ -237,6 +238,49 @@ export default function AtsResumeCheckerPage() {
     trackEvent('ats_landing_viewed');
   }, []);
 
+  // Clean text extraction from PDF / DOCX / TXT buffer
+  const extractCleanTextFromBuffer = (buffer: ArrayBuffer, name: string): string => {
+    const decoder = new TextDecoder('latin1');
+    const raw = decoder.decode(buffer);
+
+    if (name.toLowerCase().endsWith('.pdf')) {
+      // 1. Try to extract literal text strings in parentheses: (Sample text)
+      const matches: string[] = [];
+      const parenRegex = /\(([^()\\]*(?:\\.[^()\\]*)*)\)/g;
+      let m;
+      while ((m = parenRegex.exec(raw)) !== null) {
+        const str = m[1].replace(/\\[nrtbf]/g, ' ').replace(/\\/g, '').trim();
+        // Keep real word-like text
+        if (str.length >= 2 && /[a-zA-Z]{2,}/.test(str) && !str.startsWith('/') && !str.startsWith('Font')) {
+          matches.push(str);
+        }
+      }
+
+      if (matches.length >= 15) {
+        let combined = matches.join(' ').replace(/\s{2,}/g, ' ').trim();
+        if (combined.length > 7000) combined = combined.substring(0, 7000);
+        return combined;
+      }
+    }
+
+    // 2. Fallback: Strip PDF/DOCX binary noise tags and stream markers
+    let text = raw
+      .replace(/%PDF-[\d.]+/g, '')
+      .replace(/<<[\s\S]*?>>/g, ' ')
+      .replace(/stream[\s\S]*?endstream/g, ' ')
+      .replace(/\b(obj|endobj|xref|trailer|startxref|\/Filter|\/FlateDecode|\/Length\d*)\b/gi, ' ')
+      .replace(/[^\x20-\x7E\t\n\r]/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    // Keep first 7,000 characters
+    if (text.length > 7000) {
+      text = text.substring(0, 7000);
+    }
+
+    return text;
+  };
+
   // File parsing handler
   const processSelectedFile = (selectedFile: File) => {
     if (!selectedFile) return;
@@ -255,21 +299,21 @@ export default function AtsResumeCheckerPage() {
 
     if (selectedFile.type.includes('text') || selectedFile.name.endsWith('.txt') || selectedFile.name.endsWith('.md')) {
       reader.onload = () => {
-        setResumeText(String(reader.result || ''));
+        const txt = String(reader.result || '').substring(0, 7000);
+        setResumeText(txt);
       };
       reader.readAsText(selectedFile);
     } else {
-      // For PDF / DOCX, extract printable ASCII text chunks
       reader.onload = () => {
         const buffer = reader.result as ArrayBuffer;
-        const decoder = new TextDecoder('utf-8', { fatal: false });
-        const raw = decoder.decode(buffer);
-        const clean = raw.replace(/[^\x20-\x7E\t\n\r]/g, ' ').replace(/\s{2,}/g, ' ');
-        if (clean.length > 80) {
+        const clean = extractCleanTextFromBuffer(buffer, selectedFile.name);
+        if (clean.length >= 60) {
           setResumeText(clean);
         } else {
+          // If PDF is a scanned image or protected, alert the user and open the editor
+          setShowTextEditor(true);
           setResumeText(
-            `[Extracted candidate resume content from ${selectedFile.name}]\nExperience in leadership, corporate projects, and systems engineering.`
+            `[Scanned / Encrypted PDF Detected]\nPlease paste your resume text here to ensure high-accuracy AI auditing.`
           );
         }
       };
@@ -327,10 +371,10 @@ export default function AtsResumeCheckerPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          resumeText,
+          resumeText: resumeText.trim().substring(0, 7000),
           targetRole: targetRole.trim() || 'Professional Role',
           targetIndustry,
-          jobDescription: showJdInput ? jobDescription : undefined,
+          jobDescription: showJdInput ? jobDescription.trim().substring(0, 2000) : undefined,
           fileName: fileName || 'Candidate_Resume.pdf',
           isPublic: true, // Gated conversion mode
         }),
@@ -645,6 +689,40 @@ export default function AtsResumeCheckerPage() {
                         />
                         <p className="text-[11px] text-[#111B35]/60">
                           Adding a job description enables a more relevant job-match assessment against recruiter benchmarks.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Extracted Text Review & Edit Toggle */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setShowTextEditor(!showTextEditor)}
+                        className="font-bold text-[#635BDB] hover:underline flex items-center space-x-1"
+                      >
+                        <span>
+                          {showTextEditor ? '▲ Hide Extracted Resume Text' : '▼ Review / Paste Resume Text (Optional)'}
+                        </span>
+                      </button>
+                      {resumeText ? (
+                        <span className="text-[11px] text-gray-500 font-semibold">
+                          {resumeText.split(/\s+/).filter(Boolean).length} words ({resumeText.length} chars)
+                        </span>
+                      ) : null}
+                    </div>
+                    {showTextEditor && (
+                      <div className="mt-2 space-y-1">
+                        <textarea
+                          rows={6}
+                          value={resumeText}
+                          onChange={(e) => setResumeText(e.target.value.substring(0, 7000))}
+                          placeholder="Paste your resume content here or edit the extracted text..."
+                          className="w-full p-3 rounded-xl border border-[#CBD5E1] text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                        />
+                        <p className="text-[10px] text-gray-500">
+                          You can edit or paste your resume directly to ensure full capture of accomplishments and skills.
                         </p>
                       </div>
                     )}
@@ -1310,3 +1388,4 @@ export default function AtsResumeCheckerPage() {
     </div>
   );
 }
+

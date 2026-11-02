@@ -90,10 +90,10 @@ export default function AtsCheckerWorkspacePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          resumeText,
+          resumeText: resumeText.trim().substring(0, 7000),
           targetRole,
           targetIndustry,
-          jobDescription,
+          jobDescription: jobDescription ? jobDescription.trim().substring(0, 2000) : undefined,
           fileName,
           isPublic: false, // Internal admin gets full unredacted recommendations
         }),

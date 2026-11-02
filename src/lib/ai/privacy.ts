@@ -27,6 +27,13 @@ export function anonymizeResumeText(
 
   let text = rawText;
 
+  // 0. Filter out raw PDF/DOCX binary stream markers and corrupt non-text blocks
+  text = text.replace(/%PDF-[\d.]+/g, '');
+  text = text.replace(/<<[\s\S]*?>>/g, ' ');
+  text = text.replace(/stream[\s\S]*?endstream/g, ' ');
+  text = text.replace(/\b(xref|trailer|startxref|\/Filter|\/FlateDecode|\/Length\d*)\b/gi, ' ');
+  text = text.replace(/[^\x20-\x7E\t\n\r]/g, ' '); // Strip non-printable binary characters
+
   // 1. Remove Email Addresses
   text = text.replace(/[\w.+-]+@[\w-]+\.[\w.-]+/gi, '[EMAIL_REDACTED]');
 
@@ -45,14 +52,25 @@ export function anonymizeResumeText(
   text = text
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+    .filter((line) => line.length > 0 && !line.startsWith('obj') && !line.startsWith('endobj'))
     .join('\n');
+
+  // 6. Hard safety token guard: Cap text to max 8,000 characters (~1,800 tokens)
+  // This guarantees request entity size never exceeds Groq's 7,000 ITPM limit
+  if (text.length > 8000) {
+    const truncated = text.substring(0, 8000);
+    const lastBreak = truncated.lastIndexOf('\n');
+    text = (lastBreak > 6000 ? truncated.substring(0, lastBreak) : truncated) + '\n[...Resume summary & key experience analyzed...]';
+  }
+
+  const cleanJd = (jobDescription || '').trim();
+  const cappedJd = cleanJd.length > 2500 ? cleanJd.substring(0, 2500) + '...' : cleanJd;
 
   return {
     anonymizedText: text,
     targetRole: (targetRole || 'Experienced Professional').trim(),
     targetIndustry: (targetIndustry || 'Technology / Corporate Services').trim(),
-    jobDescription: (jobDescription || '').trim(),
+    jobDescription: cappedJd,
     originalFileName: fileName || 'Candidate_Resume.pdf',
     characterCount: text.length,
   };

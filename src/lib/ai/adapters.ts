@@ -38,12 +38,28 @@ function cleanJsonText(raw: string): any {
   if (!raw) return null;
   let text = raw.trim();
   // Strip Markdown code fences if returned
-  if (text.startsWith('```json')) {
-    text = text.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
-  } else if (text.startsWith('```')) {
-    text = text.replace(/^```\s*/, '').replace(/\s*```$/, '');
+  if (text.includes('```json')) {
+    const match = text.match(/```json\s*([\s\S]*?)\s*```/i);
+    if (match) text = match[1].trim();
+  } else if (text.includes('```')) {
+    const match = text.match(/```\s*([\s\S]*?)\s*```/i);
+    if (match) text = match[1].trim();
   }
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Fallback: extract outermost JSON object { ... }
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(text.substring(firstBrace, lastBrace + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
 }
 
 // =============================================================================
@@ -117,7 +133,9 @@ export class GeminiAdapter implements AiProviderAdapter {
       }
 
       const json = await res.json() as any;
-      const candidateText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const parts = json?.candidates?.[0]?.content?.parts || [];
+      const textPart = parts.find((p: any) => p.text && !p.thought) || parts.find((p: any) => p.text) || parts[0];
+      const candidateText = textPart?.text || '';
       const parsed = cleanJsonText(candidateText);
 
       return {
@@ -199,7 +217,7 @@ export class GroqAdapter implements AiProviderAdapter {
 
       if (!res.ok) {
         const errText = await res.text();
-        const isRateLimit = res.status === 429;
+        const isRateLimit = res.status === 429 || res.status === 413;
         const isDailyQuota = errText.toLowerCase().includes('rate_limit_exceeded') || errText.toLowerCase().includes('daily');
         return {
           success: false,
@@ -214,6 +232,15 @@ export class GroqAdapter implements AiProviderAdapter {
       const json = await res.json() as any;
       const content = json?.choices?.[0]?.message?.content;
       const parsed = cleanJsonText(content);
+
+      if (!parsed) {
+        return {
+          success: false,
+          durationMs,
+          errorCode: 502,
+          errorReason: 'Groq returned non-JSON content',
+        };
+      }
 
       return {
         success: true,
@@ -364,7 +391,7 @@ export class OpenRouterAdapter implements AiProviderAdapter {
 
       if (!res.ok) {
         const errText = await res.text();
-        const isRateLimit = res.status === 429;
+        const isRateLimit = res.status === 429 || res.status === 413;
         const isDailyQuota = errText.toLowerCase().includes('quota') || errText.toLowerCase().includes('credits');
         return {
           success: false,
@@ -379,6 +406,15 @@ export class OpenRouterAdapter implements AiProviderAdapter {
       const json = await res.json() as any;
       const content = json?.choices?.[0]?.message?.content;
       const parsed = cleanJsonText(content);
+
+      if (!parsed) {
+        return {
+          success: false,
+          durationMs,
+          errorCode: 502,
+          errorReason: 'OpenRouter returned non-JSON content',
+        };
+      }
 
       return {
         success: true,
