@@ -201,7 +201,7 @@ export class GroqAdapter implements AiProviderAdapter {
         ],
         response_format: { type: 'json_object' },
         temperature: 0.2,
-        max_tokens: 3000,
+        max_tokens: 2200,
       };
 
       const res = await fetch(endpoint, {
@@ -373,7 +373,7 @@ export class OpenRouterAdapter implements AiProviderAdapter {
         ],
         response_format: { type: 'json_object' },
         temperature: 0.2,
-        max_tokens: 3000,
+        max_tokens: 2200,
       };
 
       const res = await fetch(endpoint, {

@@ -35,12 +35,17 @@ import {
   FileSearch,
   Building2,
   GraduationCap,
+  Globe,
+  TrendingUp,
+  BarChart3,
+  Info,
 } from 'lucide-react';
 import type {
   PublicAtsAuditResult,
   LockedImprovementCard,
   RecommendedServiceItem,
   AtsCategoryKey,
+  RoleMatchCategory,
 } from '@/lib/ai/types';
 
 const CATEGORY_META: Record<
@@ -200,6 +205,205 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
       isPrimary: false,
     },
   ],
+  careerIntelligence: {
+    careerStage: 'Senior professional',
+    inferredDomain: 'Cloud Infrastructure & Enterprise Systems',
+    inferredRole: 'Senior Cloud Solutions Architect',
+    totalYearsExperience: 8,
+    roles: [
+      {
+        id: 'sample_role_1',
+        title: 'Senior Cloud Solutions Architect',
+        category: 'DIRECT_FIT',
+        categoryLabel: 'Direct Fit (Same Line)',
+        compatibilityScore: 92,
+        matchClassification: 'Strong',
+        matchReason: 'Direct alignment with cloud infrastructure design, multi-tenant architectures, and technical leadership.',
+        keyStrengths: ['Enterprise cloud migration experience', 'Microservices design authority', 'Multi-cloud optimization'],
+        isLocked: true,
+      },
+      {
+        id: 'sample_role_2',
+        title: 'Principal Enterprise Infrastructure Architect',
+        category: 'PROGRESSION',
+        categoryLabel: 'Progression (Next Level)',
+        compatibilityScore: 84,
+        matchClassification: 'Good',
+        matchReason: 'Natural next-step leadership advancement taking over org-wide technical governance.',
+        keyStrengths: ['Scalable systems design', 'Executive technical roadmapping', 'Cost governance'],
+        isLocked: true,
+      },
+      {
+        id: 'sample_role_3',
+        title: 'Cloud DevOps & Platform Engineering Lead',
+        category: 'ADJACENT',
+        categoryLabel: 'Adjacent (Transferable)',
+        compatibilityScore: 86,
+        matchClassification: 'Strong',
+        matchReason: 'High transferability of CI/CD orchestration, containerization, and developer productivity tooling.',
+        keyStrengths: ['Kubernetes cluster management', 'Automation framework mastery', 'Site reliability engineering'],
+        isLocked: true,
+      },
+      {
+        id: 'sample_role_4',
+        title: 'Digital Transformation & Cloud Strategy Consultant',
+        category: 'TRANSITION',
+        categoryLabel: 'Career Transition',
+        compatibilityScore: 78,
+        matchClassification: 'Good',
+        matchReason: 'Advisory readiness to guide enterprise clients on modern cloud adoption strategies.',
+        keyStrengths: ['Technical stakeholder communication', 'Vendor evaluation', 'Modernization roadmapping'],
+        isLocked: true,
+      },
+    ],
+    industries: [
+      {
+        id: 'sample_ind_1',
+        industryName: 'Enterprise SaaS & Cloud Infrastructure',
+        category: 'CURRENT',
+        categoryLabel: 'Current Core Industry',
+        compatibilityScore: 94,
+        domainKnowledgeMatch: 'Established subject-matter mastery across enterprise cloud ecosystems.',
+        transferableResponsibilities: ['Architecture review boards', 'High-availability deployments', 'Zero-downtime releases'],
+      },
+      {
+        id: 'sample_ind_2',
+        industryName: 'Fintech & Core Banking Systems',
+        category: 'COMPATIBLE',
+        categoryLabel: 'Compatible Industry',
+        compatibilityScore: 88,
+        domainKnowledgeMatch: 'Strict compliance, data security, and high-frequency transaction resilience overlap.',
+        transferableResponsibilities: ['Financial regulatory compliance', 'Encryption standards', 'Resilient microservices'],
+      },
+      {
+        id: 'sample_ind_3',
+        industryName: 'Healthcare Technology & Life Sciences',
+        category: 'TRANSFERABLE',
+        categoryLabel: 'Transferable Industry',
+        compatibilityScore: 82,
+        domainKnowledgeMatch: 'HIPAA-grade compliance frameworks and secure distributed data pipelines.',
+        transferableResponsibilities: ['Secure infrastructure design', 'Disaster recovery', 'Auditing standards'],
+      },
+      {
+        id: 'sample_ind_4',
+        industryName: 'Management & Technology Advisory',
+        category: 'TRANSITION',
+        categoryLabel: 'Transition Opportunity',
+        compatibilityScore: 76,
+        domainKnowledgeMatch: 'Translating complex engineering architectures into strategic business investments.',
+        transferableResponsibilities: ['Executive briefings', 'TCO optimization studies', 'Vendor assessments'],
+      },
+    ],
+    countries: [
+      {
+        countryCode: 'AE',
+        countryName: 'United Arab Emirates',
+        flagEmoji: '🇦🇪',
+        region: 'Middle East / GCC',
+        alignmentScore: 88,
+        suitableRoles: ['Senior Cloud Solutions Architect', 'Cloud Platform Lead'],
+        relevantIndustries: ['Enterprise Tech', 'Fintech', 'Aviation Tech'],
+        workAuthStatus: 'Requires Verification',
+        marketDataFreshness: 'Q1 2026 Labour Benchmark',
+        briefExplanation: 'Booming tech modernization demand in Dubai and Abu Dhabi with attractive skilled visas.',
+        isVerifiedLiveDemand: true,
+        isLocked: true,
+      },
+      {
+        countryCode: 'GB',
+        countryName: 'United Kingdom',
+        flagEmoji: '🇬🇧',
+        region: 'Western Europe',
+        alignmentScore: 85,
+        suitableRoles: ['Lead Cloud Solutions Architect', 'DevOps Director'],
+        relevantIndustries: ['Banking & Fintech', 'Public Sector Cloud', 'Consulting'],
+        workAuthStatus: 'Requires Verification',
+        marketDataFreshness: 'Q1 2026 Labour Benchmark',
+        briefExplanation: 'High demand on UK Shortage Occupation list for senior cloud and DevOps specialists.',
+        isVerifiedLiveDemand: true,
+        isLocked: true,
+      },
+      {
+        countryCode: 'IN',
+        countryName: 'India',
+        flagEmoji: '🇮🇳',
+        region: 'South Asia / Domestic',
+        alignmentScore: 92,
+        suitableRoles: ['Senior Cloud Solutions Architect', 'Principal Engineer'],
+        relevantIndustries: ['GCC / GBS Tech Hubs', 'Product Unicorns', 'Enterprise IT'],
+        workAuthStatus: 'Known',
+        marketDataFreshness: 'Q1 2026 Labour Benchmark',
+        briefExplanation: 'Rapid expansion of Global Capability Centers (GCCs) in Bengaluru, Hyderabad, and Pune.',
+        isVerifiedLiveDemand: true,
+        isLocked: true,
+      },
+      {
+        countryCode: 'DE',
+        countryName: 'Germany',
+        flagEmoji: '🇩🇪',
+        region: 'European Union',
+        alignmentScore: 81,
+        suitableRoles: ['Cloud Systems Architect', 'Site Reliability Lead'],
+        relevantIndustries: ['Automotive Tech', 'Industrial IoT', 'Fintech'],
+        workAuthStatus: 'Requires Verification',
+        marketDataFreshness: 'Q1 2026 Labour Benchmark',
+        briefExplanation: 'Opportunity Card (Chancenkarte) and EU Blue Card opportunities for technical specialists.',
+        isVerifiedLiveDemand: true,
+        isLocked: true,
+      },
+      {
+        countryCode: 'CA',
+        countryName: 'Canada',
+        flagEmoji: '🇨🇦',
+        region: 'North America',
+        alignmentScore: 83,
+        suitableRoles: ['Senior Cloud Architect', 'Enterprise Solutions Lead'],
+        relevantIndustries: ['Software SaaS', 'Financial Services', 'E-commerce'],
+        workAuthStatus: 'Requires Verification',
+        marketDataFreshness: 'Q1 2026 Labour Benchmark',
+        briefExplanation: 'Category-based Express Entry draws prioritizing STEM occupations.',
+        isVerifiedLiveDemand: true,
+        isLocked: true,
+      },
+      {
+        countryCode: 'SG',
+        countryName: 'Singapore',
+        flagEmoji: '🇸🇬',
+        region: 'Southeast Asia',
+        alignmentScore: 84,
+        suitableRoles: ['Regional Cloud Architect', 'Platform Engineering Lead'],
+        relevantIndustries: ['Global Headquarters', 'Fintech', 'Digital Commerce'],
+        workAuthStatus: 'Requires Verification',
+        marketDataFreshness: 'Q1 2026 Labour Benchmark',
+        briefExplanation: 'APAC regional headquarters demand under the COMPASS points-based employment pass framework.',
+        isVerifiedLiveDemand: true,
+        isLocked: true,
+      },
+    ],
+    competitiveness: {
+      profileCompetitiveness: {
+        score: 87,
+        level: 'High',
+        summary: 'Substantial hands-on architecture experience and quantified cloud transformation outcomes place candidate in the top tier.',
+      },
+      applicationReadiness: {
+        score: 85,
+        level: 'Ready to Apply',
+        summary: 'Document format is clean and readable. Fine-tuning leadership metrics will enhance conversion for executive roles.',
+      },
+      selectionOutlook: {
+        status: 'Strong profile alignment',
+        explanation: 'Evaluated against verified 2026 international benchmarks. Profile demonstrates strong candidate suitability for top-quartile cloud engineering compensation brackets.',
+        disclaimer: 'Selection outlook is a qualitative assessment of document strength and market alignment. It does not constitute a legal or contractual guarantee of employment, interviews, or visa approval.',
+      },
+    },
+    recommendations: {
+      topRoles: ['Senior Cloud Solutions Architect', 'Cloud Platform Lead', 'Enterprise Infrastructure Architect'],
+      topIndustries: ['Enterprise SaaS', 'Fintech', 'Global Capability Centers'],
+      topCountries: ['United Arab Emirates', 'United Kingdom', 'India'],
+      suggestedTransitionPathways: ['Advance from technical specialist to VP of Infrastructure via strategic budget and team ownership.'],
+    },
+  },
   isLocked: true,
 };
 
@@ -223,6 +427,10 @@ export default function AtsResumeCheckerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [auditResult, setAuditResult] = useState<PublicAtsAuditResult | null>(null);
   const [showTextEditor, setShowTextEditor] = useState(false);
+
+  // Career Intelligence Module Filter States
+  const [roleCategoryFilter, setRoleCategoryFilter] = useState<RoleMatchCategory | 'ALL'>('ALL');
+  const [countryRegionFilter, setCountryRegionFilter] = useState<string>('ALL');
 
   // Modal / Conversion states (Custom Quotation Workflow)
   const [selectedModalCard, setSelectedModalCard] = useState<LockedImprovementCard | null>(null);
@@ -1185,6 +1393,475 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
                 })}
               </div>
             </div>
+
+            {/* ========================================================================= */}
+            {/* SECTION 2: AI CAREER COMPATIBILITY & 4-TIER JOB ROLE DISCOVERY */}
+            {/* ========================================================================= */}
+            {activeResult.careerIntelligence && (
+              <div className="space-y-4 pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                  <div>
+                    <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] text-[#635BDB] text-[11px] font-bold uppercase tracking-wider mb-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span>AI Career Trajectory Discovery</span>
+                    </div>
+                    <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
+                      Suitable & Transferable Job Roles
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#111B35]/60">
+                      Discovered across 4 categories: Direct-Fit (same line), Career Progression (next level), Adjacent (transferable skills), and Career Transition.
+                    </p>
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex flex-wrap items-center gap-1.5 bg-white p-1 rounded-xl border border-[#E2E8F0] shadow-xs">
+                    {(['ALL', 'DIRECT_FIT', 'PROGRESSION', 'ADJACENT', 'TRANSITION'] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setRoleCategoryFilter(cat)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                          roleCategoryFilter === cat
+                            ? 'bg-[#635BDB] text-white shadow-xs'
+                            : 'text-gray-600 hover:text-[#111B35] hover:bg-gray-100'
+                        }`}
+                      >
+                        {cat === 'ALL'
+                          ? 'All Roles'
+                          : cat === 'DIRECT_FIT'
+                          ? 'Direct Fit'
+                          : cat === 'PROGRESSION'
+                          ? 'Progression'
+                          : cat === 'ADJACENT'
+                          ? 'Adjacent'
+                          : 'Transition'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Role Recommendations Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {activeResult.careerIntelligence.roles
+                    .filter((r) => roleCategoryFilter === 'ALL' || r.category === roleCategoryFilter)
+                    .map((role) => {
+                      const isStrong = role.matchClassification === 'Strong';
+                      const isGood = role.matchClassification === 'Good';
+                      const isModerate = role.matchClassification === 'Moderate';
+
+                      const badgeBg = isStrong
+                        ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]'
+                        : isGood
+                        ? 'bg-[#EEF2FF] text-[#635BDB] border-[#C7D2FE]'
+                        : isModerate
+                        ? 'bg-[#FFFBEB] text-[#F59E0B] border-[#FDE68A]'
+                        : 'bg-[#F5F3FF] text-[#8B5CF6] border-[#DDD6FE]';
+
+                      return (
+                        <div
+                          key={role.id}
+                          className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm hover:border-[#635BDB]/50 transition-all flex flex-col justify-between space-y-4"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 block mb-1">
+                                  {role.categoryLabel}
+                                </span>
+                                <h3 className="font-extrabold text-base text-[#111B35] leading-snug">
+                                  {role.title}
+                                </h3>
+                              </div>
+
+                              <div className="flex flex-col items-end shrink-0">
+                                <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full border ${badgeBg}`}>
+                                  {role.matchClassification} Match
+                                </span>
+                                <span className="text-xs font-bold text-[#635BDB] mt-1">
+                                  {role.compatibilityScore}% Compatibility
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Progress Indicator */}
+                            <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-700"
+                                style={{
+                                  width: `${role.compatibilityScore}%`,
+                                  backgroundColor: isStrong ? '#10B981' : isGood ? '#635BDB' : isModerate ? '#F59E0B' : '#8B5CF6',
+                                }}
+                              ></div>
+                            </div>
+
+                            <p className="text-xs text-[#111B35]/70 leading-relaxed font-medium">
+                              {role.matchReason}
+                            </p>
+
+                            {/* Key Strengths */}
+                            <div className="space-y-1 pt-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
+                                Core Demonstrated Strengths:
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {role.keyStrengths.map((str, sIdx) => (
+                                  <span
+                                    key={sIdx}
+                                    className="inline-flex items-center space-x-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-gray-700"
+                                  >
+                                    <Check className="w-3 h-3 text-[#10B981]" />
+                                    <span>{str}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Gated Action Blueprint Teaser */}
+                          <div className="pt-3 border-t border-[#F1F5F9] flex items-center justify-between text-xs">
+                            <span className="inline-flex items-center space-x-1.5 text-gray-500 font-medium">
+                              <Lock className="w-3.5 h-3.5 text-gray-400" />
+                              <span>Gap analysis & transition blueprint</span>
+                            </span>
+                            <button
+                              onClick={() => {
+                                setSelectedService({
+                                  code: 'CAREER_TRANSITION',
+                                  name: `Career Strategy: ${role.title}`,
+                                  pricingLabel: 'Custom Pricing',
+                                  tagline: `Targeted roadmap, resume framing, and interview strategy for ${role.title}.`,
+                                  quoteMessage: `Discuss your positioning and application strategy for ${role.title} with a senior consultant.`,
+                                  ctaText: 'Discuss My Requirements',
+                                  addressedAreas: ['Role-Specific Resume Alignment', 'Skill Gap Closure', 'Interview Narrative'],
+                                  isPrimary: true,
+                                });
+                                setConversionModalOpen(true);
+                              }}
+                              className="font-bold text-[#635BDB] hover:text-[#5249CE] flex items-center space-x-1"
+                            >
+                              <span>Unlock Strategy</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* SECTION 3: INDUSTRY COMPATIBILITY & TRANSFERABILITY SCANNER */}
+            {/* ========================================================================= */}
+            {activeResult.careerIntelligence?.industries && (
+              <div className="space-y-4 pt-4">
+                <div>
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] text-[11px] font-bold uppercase tracking-wider mb-1">
+                    <Building2 className="w-3 h-3" />
+                    <span>Cross-Industry Mobility</span>
+                  </div>
+                  <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
+                    Industry Compatibility Scanner
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#111B35]/60">
+                    Evaluates how your evidenced skills, functional experience, and methodologies translate across sectors.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {activeResult.careerIntelligence.industries.map((ind) => (
+                    <div
+                      key={ind.id}
+                      className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between space-y-3"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                            {ind.categoryLabel}
+                          </span>
+                          <span className="text-sm font-extrabold text-[#635BDB]">
+                            {ind.compatibilityScore}%
+                          </span>
+                        </div>
+                        <h3 className="font-extrabold text-sm text-[#111B35] leading-snug">
+                          {ind.industryName}
+                        </h3>
+                        <p className="text-xs text-[#111B35]/70 mt-1.5 leading-relaxed font-medium">
+                          {ind.domainKnowledgeMatch}
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
+                          Transferable Competencies:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {ind.transferableResponsibilities.map((resp, rIdx) => (
+                            <span
+                              key={rIdx}
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#F8FAFC] text-slate-700 border border-slate-200"
+                            >
+                              {resp}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* SECTION 4: GLOBAL CAREER MARKETS (INTERNATIONAL ALIGNMENT) */}
+            {/* ========================================================================= */}
+            {activeResult.careerIntelligence?.countries && (
+              <div className="space-y-4 pt-4">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                  <div>
+                    <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-[11px] font-bold uppercase tracking-wider mb-1">
+                      <Globe className="w-3 h-3" />
+                      <span>International Mobility</span>
+                    </div>
+                    <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
+                      Global Career Market Scanner
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#111B35]/60">
+                      Evaluates profile alignment with official 2026 labour shortages, language requirements, and international recruitment standards across 16 target markets.
+                    </p>
+                  </div>
+
+                  {/* Region Filter */}
+                  <div className="flex flex-wrap items-center gap-1.5 bg-white p-1 rounded-xl border border-[#E2E8F0] shadow-xs">
+                    {(['ALL', 'Middle East / GCC', 'Western Europe', 'South Asia / Domestic', 'European Union', 'North America', 'Southeast Asia'] as const).map((reg) => (
+                      <button
+                        key={reg}
+                        onClick={() => setCountryRegionFilter(reg)}
+                        className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                          countryRegionFilter === reg
+                            ? 'bg-[#10B981] text-white shadow-xs'
+                            : 'text-gray-600 hover:text-[#111B35] hover:bg-gray-100'
+                        }`}
+                      >
+                        {reg === 'ALL'
+                          ? 'All Regions'
+                          : reg === 'Middle East / GCC'
+                          ? 'Middle East / GCC'
+                          : reg === 'Western Europe'
+                          ? 'UK & Ireland'
+                          : reg === 'South Asia / Domestic'
+                          ? 'India'
+                          : reg === 'European Union'
+                          ? 'EU'
+                          : reg === 'North America'
+                          ? 'Canada'
+                          : 'APAC'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {activeResult.careerIntelligence.countries
+                    .filter((c) => countryRegionFilter === 'ALL' || c.region === countryRegionFilter)
+                    .map((country) => {
+                      const isRequiresVerification = country.workAuthStatus === 'Requires Verification';
+                      const isKnown = country.workAuthStatus === 'Known';
+
+                      return (
+                        <div
+                          key={country.countryCode}
+                          className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm hover:border-[#10B981]/50 transition-all flex flex-col justify-between space-y-4"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center space-x-2.5">
+                                <span className="text-2xl leading-none">{country.flagEmoji}</span>
+                                <div>
+                                  <h3 className="font-extrabold text-base text-[#111B35]">
+                                    {country.countryName}
+                                  </h3>
+                                  <span className="text-[10px] font-semibold text-gray-400">
+                                    {country.region}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="text-right">
+                                <span className="text-lg font-extrabold text-[#10B981]">
+                                  {country.alignmentScore}%
+                                </span>
+                                <span className="text-[10px] font-bold text-gray-400 block -mt-1">
+                                  Alignment
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Work Authorization Pill (Strict Non-Fabrication Rule) */}
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`inline-flex items-center space-x-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                                  isKnown
+                                    ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]'
+                                    : 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]'
+                                }`}
+                              >
+                                <Info className="w-3 h-3" />
+                                <span>Work Auth: {country.workAuthStatus}</span>
+                              </span>
+                              <span className="text-[10px] font-medium text-gray-400">
+                                {country.marketDataFreshness}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-[#111B35]/70 leading-relaxed font-medium">
+                              {country.briefExplanation}
+                            </p>
+
+                            {/* Suitable Roles in this Country */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
+                                In-Demand Target Roles:
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {country.suitableRoles.map((r, rIdx) => (
+                                  <span
+                                    key={rIdx}
+                                    className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-50 text-gray-700 border border-gray-200"
+                                  >
+                                    {r}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                            <span className="inline-flex items-center space-x-1.5 text-gray-400 font-medium text-[11px]">
+                              <Lock className="w-3 h-3" />
+                              <span>Visa & format playbook</span>
+                            </span>
+                            <button
+                              onClick={() => {
+                                setSelectedService({
+                                  code: 'INTERNATIONAL_CAREER_APPLICATION',
+                                  name: `${country.countryName} Market Application Strategy`,
+                                  pricingLabel: 'Custom Pricing',
+                                  tagline: `Format resume to ${country.countryName} specifications and prepare target country applications.`,
+                                  quoteMessage: `Discuss your career relocation, resume formatting, and international application strategy for ${country.countryName}.`,
+                                  ctaText: 'Discuss My Requirements',
+                                  addressedAreas: [`${country.countryName} Standard Formatting`, 'Work Visa Alignment', 'Regional Recruiter Outreach'],
+                                  isPrimary: false,
+                                });
+                                setConversionModalOpen(true);
+                              }}
+                              className="font-bold text-[#10B981] hover:text-[#059669] flex items-center space-x-1"
+                            >
+                              <span>Country Strategy</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Important Non-Fabrication Disclaimer */}
+                <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-600 text-xs flex items-start space-x-2.5">
+                  <Info className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong>International Compliance Notice:</strong> Market compatibility scores reflect resume alignment with official 2026 published critical skill lists and labour guidelines. Hopepitome provides professional resume optimization and does not issue visas, guarantee employer sponsorship, or promise hiring outcomes.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* SECTION 5: CAREER COMPETITIVENESS & APPLICATION READINESS */}
+            {/* ========================================================================= */}
+            {activeResult.careerIntelligence?.competitiveness && (
+              <div className="space-y-4 pt-4">
+                <div>
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#F5F3FF] border border-[#DDD6FE] text-[#7C3AED] text-[11px] font-bold uppercase tracking-wider mb-1">
+                    <TrendingUp className="w-3 h-3" />
+                    <span>Market Readiness</span>
+                  </div>
+                  <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
+                    Competitiveness & Application Readiness
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#111B35]/60">
+                    Comprehensive assessment of profile strength, application preparedness, and hiring outlook.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Card 1: Profile Competitiveness */}
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between space-y-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Profile Competitiveness
+                      </span>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-3xl font-extrabold text-[#635BDB]">
+                          {activeResult.careerIntelligence.competitiveness.profileCompetitiveness.score}/100
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#EEF2FF] text-[#635BDB]">
+                          {activeResult.careerIntelligence.competitiveness.profileCompetitiveness.level}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#111B35]/70 mt-3 leading-relaxed font-medium">
+                        {activeResult.careerIntelligence.competitiveness.profileCompetitiveness.summary}
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-gray-100 text-[11px] font-semibold text-gray-400">
+                      Benchmarked against candidate peer group
+                    </div>
+                  </div>
+
+                  {/* Card 2: Application Readiness */}
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between space-y-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Application Readiness
+                      </span>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-3xl font-extrabold text-[#10B981]">
+                          {activeResult.careerIntelligence.competitiveness.applicationReadiness.score}/100
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#ECFDF5] text-[#10B981]">
+                          {activeResult.careerIntelligence.competitiveness.applicationReadiness.level}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#111B35]/70 mt-3 leading-relaxed font-medium">
+                        {activeResult.careerIntelligence.competitiveness.applicationReadiness.summary}
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-gray-100 text-[11px] font-semibold text-gray-400">
+                      Layout clarity, parsing stability & contact flow
+                    </div>
+                  </div>
+
+                  {/* Card 3: Qualitative Selection Outlook */}
+                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between space-y-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Qualitative Selection Outlook
+                      </span>
+                      <div className="mt-1">
+                        <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#F5F3FF] text-[#7C3AED] inline-block">
+                          {activeResult.careerIntelligence.competitiveness.selectionOutlook.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#111B35]/70 mt-3 leading-relaxed font-medium">
+                        {activeResult.careerIntelligence.competitiveness.selectionOutlook.explanation}
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-gray-100 text-[10px] text-gray-400 leading-tight">
+                      {activeResult.careerIntelligence.competitiveness.selectionOutlook.disclaimer}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* LOCKED DETAILED INSIGHTS (CORE CONVERSION EXPERIENCE) */}
             <div className="space-y-4 pt-4">

@@ -4,6 +4,9 @@
  * deterministic scoring, and provider health management.
  */
 
+export * from './career-types';
+import type { CareerIntelligenceResult, PublicCareerIntelligence } from './career-types';
+
 export type AiProviderName = 'gemini' | 'groq' | 'cloudflare' | 'openrouter';
 
 export type ProviderHealthStatus = 'HEALTHY' | 'COOLDOWN' | 'RATE_LIMITED' | 'QUOTA_EXHAUSTED' | 'DISABLED' | 'UNCONFIGURED';
@@ -114,6 +117,7 @@ export interface AtsAssessmentResult {
   matchedKeywords: string[];
   missingKeywords: string[];
   detectedWordCount: number;
+  careerIntelligence?: CareerIntelligenceResult;
   providerAudit: {
     selectedProvider: AiProviderName;
     modelUsed: string;
@@ -217,6 +221,7 @@ export interface PublicAtsAuditResult {
   strengthTitles: string[];
   improvementAreas: LockedImprovementCard[];
   recommendedServices: RecommendedServiceItem[];
+  careerIntelligence?: PublicCareerIntelligence;
   isLocked: boolean;
 }
 
