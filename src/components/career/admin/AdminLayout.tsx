@@ -39,6 +39,7 @@ import {
   ArrowRight,
   Sparkles,
   CreditCard,
+  Cpu,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -100,6 +101,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Quotations', href: '/career-services/admin/crm/quotations', icon: Receipt, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     { label: 'Follow-ups & Calls', href: '/career-services/admin/crm/follow-ups', icon: PhoneCall, color: 'text-amber-600 bg-amber-50 border-amber-100' },
     { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: Calendar, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+    { label: 'AI Providers & ATS', href: '/career-services/admin/crm/settings/ai-providers', icon: Cpu, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'FREE' },
     { label: 'Sales Reports', href: '/career-services/admin/crm/reports', icon: BarChart3, color: 'text-teal-600 bg-teal-50 border-teal-100' },
   ], []);
 

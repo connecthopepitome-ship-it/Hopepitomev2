@@ -5,6 +5,8 @@ import { EdgeFirestoreClient } from './lib/firebase/edge-firestore';
 import { EdgeAuthAdminClient, generateTemporaryPassword } from './lib/firebase/edge-auth';
 import { DEFAULT_STAFF_ROLES, DEFAULT_DEPARTMENTS } from './lib/career/permissions';
 import { WorkOrderStatus, StaffUser } from './lib/career/types';
+import { globalAtsEngine } from './lib/ai/engine';
+import { VERIFIED_FREE_MODELS } from './lib/ai/models';
 
 interface Env {
   ASSETS: {
@@ -33,6 +35,13 @@ interface Env {
   // Google Apps Script Web App
   GAS_WEB_APP_URL?: string;
   GAS_SHARED_SECRET?: string;
+  // Multi-Provider AI (Free-Tier Only)
+  GEMINI_API_KEY?: string;
+  GROQ_API_KEY?: string;
+  OPENROUTER_API_KEY?: string;
+  AI?: {
+    run: (model: string, input: any) => Promise<any>;
+  };
 }
 
 // In-memory fallback stores for edge resiliency and testing before secrets are populated
@@ -890,6 +899,109 @@ export default {
         return new Response(
           JSON.stringify({ success: false, error: err?.message || 'Failed to assemble workspace bundle.' }),
           { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // MULTI-PROVIDER AI: GET PROVIDER HEALTH & VERIFIED FREE MODELS
+    // =========================================================================
+    if (url.pathname === '/api/career/ai/providers/status') {
+      try {
+        const healthMap = globalAtsEngine.syncProviderHealth(env);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            health: healthMap,
+            verifiedModels: VERIFIED_FREE_MODELS,
+            mode: 'free_only',
+            allowPaidFallback: false,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to check AI health.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // MULTI-PROVIDER AI: RUN ATS EVALUATION WITH AUTOMATIC FREE-TIER FAILOVER
+    // =========================================================================
+    if (url.pathname === '/api/career/ai/ats-evaluate') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as any;
+        const resumeText = body?.resumeText || '';
+        const targetRole = body?.targetRole || 'Professional Role';
+        const targetIndustry = body?.targetIndustry || 'Corporate / Technology';
+        const jobDescription = body?.jobDescription || '';
+        const fileName = body?.fileName || 'candidate_resume.pdf';
+        const customerId = body?.customerId;
+        const projectId = body?.projectId;
+
+        if (!resumeText || resumeText.trim().length < 50) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Resume text must contain at least 50 characters of professional content.',
+            }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        // Run analysis through multi-provider engine with automatic failover
+        const assessment = await globalAtsEngine.analyzeResumeWithFailover(
+          resumeText,
+          {
+            targetRole,
+            targetIndustry,
+            jobDescription,
+            fileName,
+          },
+          env
+        );
+
+        // Persist assessment result in Firestore 'ats_assessments' for audit & history
+        const now = new Date().toISOString();
+        const assessmentRecord = {
+          ...assessment,
+          customerId: customerId || 'guest',
+          projectId: projectId || null,
+          fileName,
+          createdAt: now,
+        };
+
+        try {
+          await firestore.setDocument('ats_assessments', assessment.assessmentId, assessmentRecord);
+        } catch (dbErr) {
+          console.warn('[Firestore Assessment Persistence Warning]:', dbErr);
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            assessment: assessmentRecord,
+            message: `ATS evaluation completed successfully via ${assessment.providerAudit.selectedProvider} (${assessment.providerAudit.modelUsed}).`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[ATS Evaluation Failure]:', err);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: err?.message || 'ATS evaluation failed. Please retry in a few moments.',
+          }),
+          { status: 503, headers: CORS_HEADERS }
         );
       }
     }
