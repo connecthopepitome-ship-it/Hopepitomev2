@@ -71,14 +71,14 @@ export default function NewServiceOrderPage() {
     {
       tier: 'ESSENTIAL' as const,
       name: 'Essential Kickstart',
-      price: '₹2,499',
+      price: 'Custom Quotation',
       timeline: '3-4 Business Days',
       features: ['Single-document overhaul', 'ATS keyword analysis', '2 revision rounds'],
     },
     {
       tier: 'PROFESSIONAL' as const,
       name: 'Professional Pivot',
-      price: '₹4,499',
+      price: 'Custom Quotation',
       popular: true,
       timeline: '4-5 Business Days',
       features: ['Full resume rebuild', 'Cover letter template', 'LinkedIn profile copy', '3 revision rounds'],
@@ -86,7 +86,7 @@ export default function NewServiceOrderPage() {
     {
       tier: 'EXECUTIVE' as const,
       name: 'Executive Leadership',
-      price: '₹8,999',
+      price: 'Custom Quotation',
       timeline: '5-7 Business Days',
       features: ['Executive dossier & biography', 'Board/C-suite positioning', 'LinkedIn strategy', 'Priority specialist review'],
     },

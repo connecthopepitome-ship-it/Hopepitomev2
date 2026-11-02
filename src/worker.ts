@@ -942,8 +942,8 @@ export default {
       try {
         const body = (await request.json().catch(() => null)) as any;
         const resumeText = body?.resumeText || '';
-        const targetRole = body?.targetRole || 'Professional Role';
-        const targetIndustry = body?.targetIndustry || 'Corporate / Technology';
+        const targetRole = body?.targetRole || '';
+        const targetIndustry = body?.targetIndustry || '';
         const jobDescription = body?.jobDescription || '';
         const fileName = body?.fileName || 'candidate_resume.pdf';
         const customerId = body?.customerId;

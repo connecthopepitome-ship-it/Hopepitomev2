@@ -62,6 +62,17 @@ export type AtsCategoryKey =
   | 'FORMATTING_COMPATIBILITY'
   | 'CONTACT_COMPLETENESS';
 
+export type CareerStage =
+  | 'STUDENT_GRADUATE'
+  | 'ENTRY_LEVEL'
+  | 'EARLY_CAREER'
+  | 'MID_CAREER'
+  | 'EXPERIENCED'
+  | 'SENIOR'
+  | 'LEADERSHIP_MANAGEMENT'
+  | 'EXECUTIVE'
+  | 'CAREER_CHANGER';
+
 export interface AtsCategoryEvaluation {
   category: AtsCategoryKey;
   title: string;
@@ -69,6 +80,8 @@ export interface AtsCategoryEvaluation {
   rawScore: number; // 0 - 100 from model or deterministic rubric
   weightedScore: number; // (rawScore * weight) / 100
   status: 'EXCELLENT' | 'GOOD' | 'NEEDS_WORK' | 'CRITICAL';
+  confidence?: 'HIGH' | 'MEDIUM' | 'LOW';
+  rationale?: string;
   evidencePoints: string[];
   missingElements: string[];
   recommendations: string[];
@@ -79,7 +92,20 @@ export interface AtsAssessmentResult {
   timestamp: string;
   targetRole: string;
   targetIndustry?: string;
+  inferredDomain?: string;
+  careerStage?: string;
+  inferredRole?: string;
   overallScore: number; // 0 - 100 deterministic weighted score
+  generalQualityScore: number; // Dimension A: General Quality independent of specific job
+  atsCompatibilityScore: number; // Dimension B: ATS Parsing & Readability Compatibility
+  jobMatchScore?: number | null; // Dimension C: Job Match Score (only if job description supplied)
+  jobMatchDetails?: {
+    requiredSkillsFound: string[];
+    transferableSkillsFound: string[];
+    requiredSkillsNotEvidenced: string[];
+    preferredSkillsFound: string[];
+    experienceAlignmentSummary: string;
+  };
   grade: 'A+' | 'A' | 'B' | 'C' | 'D';
   summary: string;
   topStrengths: string[];
@@ -141,17 +167,22 @@ export interface LockedImprovementCard {
   teaserBullets: string[];
   recommendedServiceCode: string;
   recommendedServiceName: string;
-  servicePriceInr: number;
+  pricingLabel: string; // "Quote Based on Requirements"
+  ctaText: string; // "Request a Custom Quote"
   reason: string;
+  servicePriceInr?: number;
 }
 
 export interface RecommendedServiceItem {
   code: string;
   name: string;
-  priceInr: number;
+  pricingLabel: string; // "Custom Pricing"
   tagline: string;
+  quoteMessage: string;
+  ctaText: string;
   addressedAreas: string[];
   isPrimary: boolean;
+  priceInr?: number;
 }
 
 export interface PublicAtsAuditResult {
@@ -159,16 +190,29 @@ export interface PublicAtsAuditResult {
   timestamp: string;
   targetRole: string;
   targetIndustry?: string;
+  inferredDomain?: string;
+  careerStage?: string;
+  inferredRole?: string;
   overallScore: number;
+  generalQualityScore: number;
+  atsCompatibilityScore: number;
+  jobMatchScore?: number | null;
+  jobMatchDetails?: {
+    requiredSkillsFound: string[];
+    transferableSkillsFound: string[];
+    requiredSkillsNotEvidenced: string[];
+    preferredSkillsFound: string[];
+    experienceAlignmentSummary: string;
+  };
+  jobMatchKeywordSummary?: {
+    matchedCount: number;
+    sampleKeywords: string[];
+    transferableCount?: number;
+  };
   grade: 'A+' | 'A' | 'B' | 'C' | 'D';
   interpretation: 'Excellent' | 'Good' | 'Fair / Needs Attention' | 'Needs Improvement';
   summary: string;
   hasJobDescription: boolean;
-  jobMatchScore?: number;
-  jobMatchKeywordSummary?: {
-    matchedCount: number;
-    sampleKeywords: string[];
-  };
   categories: PublicAtsCategoryItem[];
   strengthTitles: string[];
   improvementAreas: LockedImprovementCard[];

@@ -31,6 +31,10 @@ import {
   X,
   ExternalLink,
   Check,
+  Compass,
+  FileSearch,
+  Building2,
+  GraduationCap,
 } from 'lucide-react';
 import type {
   PublicAtsAuditResult,
@@ -38,10 +42,6 @@ import type {
   RecommendedServiceItem,
   AtsCategoryKey,
 } from '@/lib/ai/types';
-
-// Palette definitions matching user specification:
-// Deep navy: #111B35, Electric indigo: #635BDB, Violet: #8B5CF6, Teal: #14B8A6,
-// Emerald: #10B981, Coral: #F97373, Amber: #F59E0B, Background: #F7F8FC
 
 const CATEGORY_META: Record<
   AtsCategoryKey,
@@ -98,84 +98,105 @@ const CATEGORY_META: Record<
   },
 };
 
-// Interactive Sample Audit Preview Data
+// Interactive Sample Audit Preview Data (Universal & Custom Pricing Compliant)
 const SAMPLE_PREVIEW: PublicAtsAuditResult = {
   assessmentId: 'SAMPLE-ATS-AUDIT',
   timestamp: new Date().toISOString(),
   targetRole: 'Senior Cloud Solutions Architect',
   targetIndustry: 'Technology & Enterprise SaaS',
-  overallScore: 74,
+  inferredDomain: 'Cloud Infrastructure & Enterprise Systems',
+  careerStage: 'Senior professional',
+  inferredRole: 'Senior Cloud Solutions Architect',
+  overallScore: 78,
+  generalQualityScore: 82,
+  atsCompatibilityScore: 85,
   grade: 'B',
   interpretation: 'Good',
   summary:
-    'Strong core technical competencies in AWS and Kubernetes with high-impact quantifiable achievements. Key improvements required in executive summary positioning, missing niche keywords, and single-column formatting stability.',
+    'Strong core technical depth and verified career progression with high-impact system modernization achievements. Key improvements identified in executive summary positioning, parser-safe layout standardization, and strategic keyword alignment.',
   hasJobDescription: true,
-  jobMatchScore: 82,
+  jobMatchScore: 84,
   jobMatchKeywordSummary: {
-    matchedCount: 14,
-    sampleKeywords: ['AWS EKS', 'Kubernetes', 'Terraform', 'Microservices', 'Enterprise Architecture'],
+    matchedCount: 12,
+    sampleKeywords: ['AWS Architecture', 'Kubernetes', 'Microservices', 'Distributed Systems', 'DevOps'],
+    transferableCount: 4,
+  },
+  jobMatchDetails: {
+    requiredSkillsFound: ['AWS Architecture', 'Kubernetes', 'Microservices', 'Distributed Systems'],
+    transferableSkillsFound: ['Agile Team Leadership', 'System Resilience', 'Cost Optimization'],
+    requiredSkillsNotEvidenced: ['Terraform Cloud Enterprise'],
+    preferredSkillsFound: ['Mentorship', 'CI/CD Pipelines'],
+    experienceAlignmentSummary: 'Strong alignment with senior cloud architecture and cross-functional engineering leadership requirements.',
   },
   categories: [
-    { category: 'STRUCTURE_READABILITY', title: 'Resume Structure & Readability', weight: 15, rawScore: 75, weightedScore: 11, status: 'GOOD' },
-    { category: 'PROFESSIONAL_SUMMARY', title: 'Professional Summary', weight: 10, rawScore: 65, weightedScore: 7, status: 'NEEDS_WORK' },
-    { category: 'SKILLS_RELEVANCE', title: 'Skills & Keyword Relevance', weight: 20, rawScore: 80, weightedScore: 16, status: 'GOOD' },
+    { category: 'STRUCTURE_READABILITY', title: 'Resume Structure & Readability', weight: 15, rawScore: 80, weightedScore: 12, status: 'GOOD' },
+    { category: 'PROFESSIONAL_SUMMARY', title: 'Professional Summary', weight: 10, rawScore: 70, weightedScore: 7, status: 'GOOD' },
+    { category: 'SKILLS_RELEVANCE', title: 'Skills & Keyword Relevance', weight: 20, rawScore: 85, weightedScore: 17, status: 'EXCELLENT' },
     { category: 'EXPERIENCE_ACHIEVEMENTS', title: 'Work Experience & Achievements', weight: 20, rawScore: 75, weightedScore: 15, status: 'GOOD' },
     { category: 'EDUCATION_CERTIFICATIONS', title: 'Education & Certifications', weight: 10, rawScore: 80, weightedScore: 8, status: 'GOOD' },
-    { category: 'FORMATTING_COMPATIBILITY', title: 'Formatting & ATS Parsing Compatibility', weight: 15, rawScore: 60, weightedScore: 9, status: 'NEEDS_WORK' },
-    { category: 'CONTACT_COMPLETENESS', title: 'Contact Details & Completeness', weight: 10, rawScore: 85, weightedScore: 8, status: 'EXCELLENT' },
+    { category: 'FORMATTING_COMPATIBILITY', title: 'Formatting & ATS Parsing Compatibility', weight: 15, rawScore: 75, weightedScore: 11, status: 'GOOD' },
+    { category: 'CONTACT_COMPLETENESS', title: 'Contact Details & Completeness', weight: 10, rawScore: 80, weightedScore: 8, status: 'GOOD' },
   ],
   strengthTitles: [
-    'Substantial quantified business metric impact',
-    'High density of modern cloud infrastructure tools',
-    'Clear chronological progression across leadership roles',
+    'Substantial system modernization and engineering impact',
+    'Demonstrated expertise across core cloud infrastructure tools',
+    'Clear chronological progression with verified career momentum',
   ],
   improvementAreas: [
     {
-      id: 'imp_formatting',
-      category: 'FORMATTING_COMPATIBILITY',
-      title: 'ATS Formatting & Parsing Stability',
-      teaserSubtitle: 'Unlock full analysis to discover:',
-      teaserBullets: [
-        'Hidden formatting bugs causing 28% parsing drop-off in Workday',
-        'Multi-column layout table scrambling risks',
-        'Single-column parse-certified layout template',
-      ],
-      recommendedServiceCode: 'ATS_OPTIMISATION',
-      recommendedServiceName: 'ATS Resume Optimisation',
-      servicePriceInr: 1999,
-      reason: 'Standardise layout hierarchy and eliminate parsing bottlenecks.',
-    },
-    {
       id: 'imp_summary',
       category: 'PROFESSIONAL_SUMMARY',
-      title: 'Professional Summary & Positioning',
+      title: 'Professional Summary & Executive Pitch',
       teaserSubtitle: 'Unlock full analysis to discover:',
       teaserBullets: [
-        'What critical value proposition is missing from your opening hook',
-        'How to align your summary with target executive trajectory',
+        'What core value proposition is missing from your opening narrative',
+        'How to align your summary with your target career trajectory',
         'Tailored 3-sentence elevator pitch rewrite blueprint',
       ],
       recommendedServiceCode: 'RESUME_WRITING',
       recommendedServiceName: 'Professional Resume Writing',
-      servicePriceInr: 2499,
-      reason: 'Craft an executive elevator pitch tailored to hiring decision-makers.',
+      pricingLabel: 'Quote Based on Requirements',
+      ctaText: 'Request a Custom Quote',
+      reason: 'Craft an authentic, high-impact elevator pitch tailored to hiring decision-makers.',
+    },
+    {
+      id: 'imp_formatting',
+      category: 'FORMATTING_COMPATIBILITY',
+      title: 'ATS Formatting & Parser Stability',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'Hidden layout elements that trigger text scrambling in Workday and Taleo',
+        'Single-column vs two-column compatibility diagnosis for your document',
+        'Parse-certified layout guidelines tailored for enterprise ATS portals',
+      ],
+      recommendedServiceCode: 'ATS_OPTIMISATION',
+      recommendedServiceName: 'ATS Resume Optimisation',
+      pricingLabel: 'Quote Based on Requirements',
+      ctaText: 'Get a Custom Quote',
+      reason: 'Ensure seamless 100% parse-compliance across enterprise hiring systems.',
     },
   ],
   recommendedServices: [
     {
-      code: 'ATS_OPTIMISATION',
-      name: 'ATS Resume Optimisation',
-      priceInr: 1999,
-      tagline: 'Algorithmic keyword optimization ensuring 90%+ parse scores across Workday, Taleo, and Greenhouse.',
-      addressedAreas: ['ATS Layout & Tables', 'Keyword Frequency Injection', 'Parse Verification'],
+      code: 'RESUME_WRITING',
+      name: 'Professional Resume Writing',
+      pricingLabel: 'Custom Pricing',
+      tagline: 'Tailored executive narrative, achievement framing, and strategic career storytelling.',
+      quoteMessage:
+        'Every professional journey is different. We review your experience, career goals and resume requirements before preparing a customised quotation.',
+      ctaText: 'Request a Custom Quote',
+      addressedAreas: ['Narrative Positioning', 'Achievement Phrasing', 'Executive Elevator Pitch'],
       isPrimary: true,
     },
     {
-      code: 'RESUME_WRITING',
-      name: 'Professional Resume Writing',
-      priceInr: 2499,
-      tagline: 'Executive-level resume writing tailored for leadership and international placement.',
-      addressedAreas: ['Accomplishment Metric Phrasing', 'Executive Elevator Pitch', 'C-A-R Bullets'],
+      code: 'ATS_OPTIMISATION',
+      name: 'ATS Resume Optimisation',
+      pricingLabel: 'Custom Pricing',
+      tagline: 'Algorithmic structure refinement, parse validation, and keyword alignment across enterprise ATS platforms.',
+      quoteMessage:
+        'Get your resume reviewed and improved based on its structure, content, target role and optimisation requirements.',
+      ctaText: 'Get a Custom Quote',
+      addressedAreas: ['ATS Layout Refinement', 'Domain Keyword Alignment', 'Parser Verification'],
       isPrimary: false,
     },
   ],
@@ -189,7 +210,8 @@ export default function AtsResumeCheckerPage() {
   const [fileSize, setFileSize] = useState(0);
   const [resumeText, setResumeText] = useState('');
   const [targetRole, setTargetRole] = useState('');
-  const [targetIndustry, setTargetIndustry] = useState('Technology & Corporate Services');
+  const [targetIndustry, setTargetIndustry] = useState('');
+  const [careerSeniority, setCareerSeniority] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [showJdInput, setShowJdInput] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -202,7 +224,7 @@ export default function AtsResumeCheckerPage() {
   const [auditResult, setAuditResult] = useState<PublicAtsAuditResult | null>(null);
   const [showTextEditor, setShowTextEditor] = useState(false);
 
-  // Modal / Conversion states
+  // Modal / Conversion states (Custom Quotation Workflow)
   const [selectedModalCard, setSelectedModalCard] = useState<LockedImprovementCard | null>(null);
   const [selectedService, setSelectedService] = useState<RecommendedServiceItem | null>(null);
   const [conversionModalOpen, setConversionModalOpen] = useState(false);
@@ -213,6 +235,8 @@ export default function AtsResumeCheckerPage() {
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
+  const [leadCareerGoals, setLeadCareerGoals] = useState('');
+  const [leadRequirements, setLeadRequirements] = useState('');
   const [leadContactMethod, setLeadContactMethod] = useState<'WhatsApp' | 'Email' | 'Phone Call'>('WhatsApp');
 
   const uploadSectionRef = useRef<HTMLDivElement>(null);
@@ -244,13 +268,11 @@ export default function AtsResumeCheckerPage() {
     const raw = decoder.decode(buffer);
 
     if (name.toLowerCase().endsWith('.pdf')) {
-      // 1. Try to extract literal text strings in parentheses: (Sample text)
       const matches: string[] = [];
       const parenRegex = /\(([^()\\]*(?:\\.[^()\\]*)*)\)/g;
       let m;
       while ((m = parenRegex.exec(raw)) !== null) {
         const str = m[1].replace(/\\[nrtbf]/g, ' ').replace(/\\/g, '').trim();
-        // Keep real word-like text
         if (str.length >= 2 && /[a-zA-Z]{2,}/.test(str) && !str.startsWith('/') && !str.startsWith('Font')) {
           matches.push(str);
         }
@@ -263,7 +285,6 @@ export default function AtsResumeCheckerPage() {
       }
     }
 
-    // 2. Fallback: Strip PDF/DOCX binary noise tags and stream markers
     let text = raw
       .replace(/%PDF-[\d.]+/g, '')
       .replace(/<<[\s\S]*?>>/g, ' ')
@@ -273,7 +294,6 @@ export default function AtsResumeCheckerPage() {
       .replace(/\s{2,}/g, ' ')
       .trim();
 
-    // Keep first 7,000 characters
     if (text.length > 7000) {
       text = text.substring(0, 7000);
     }
@@ -310,10 +330,9 @@ export default function AtsResumeCheckerPage() {
         if (clean.length >= 60) {
           setResumeText(clean);
         } else {
-          // If PDF is a scanned image or protected, alert the user and open the editor
           setShowTextEditor(true);
           setResumeText(
-            `[Scanned / Encrypted PDF Detected]\nPlease paste your resume text here to ensure high-accuracy AI auditing.`
+            `[Scanned or Image-Based PDF Detected]\nPlease paste your resume text here to ensure high-accuracy AI auditing across all categories.`
           );
         }
       };
@@ -342,7 +361,7 @@ export default function AtsResumeCheckerPage() {
     }
   };
 
-  // Run audit submission
+  // Run audit submission with universal intelligence (zero artificial role penalties)
   const handleStartAudit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -359,9 +378,11 @@ export default function AtsResumeCheckerPage() {
     setViewState('processing');
     setProcessingStage(1);
     setErrorMessage(null);
-    trackEvent('ats_audit_started', { targetRole, hasJobDescription: Boolean(jobDescription) });
+    trackEvent('ats_audit_started', {
+      targetRole: targetRole || 'auto-infer',
+      hasJobDescription: Boolean(jobDescription),
+    });
 
-    // Simulated progress stage updates while backend executes
     const stageTimer1 = setTimeout(() => setProcessingStage(2), 700);
     const stageTimer2 = setTimeout(() => setProcessingStage(3), 1400);
     const stageTimer3 = setTimeout(() => setProcessingStage(4), 2100);
@@ -372,11 +393,12 @@ export default function AtsResumeCheckerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resumeText: resumeText.trim().substring(0, 7000),
-          targetRole: targetRole.trim() || 'Professional Role',
-          targetIndustry,
-          jobDescription: showJdInput ? jobDescription.trim().substring(0, 2000) : undefined,
+          targetRole: targetRole.trim(),
+          targetIndustry: targetIndustry.trim(),
+          careerSeniority: careerSeniority.trim(),
+          jobDescription: showJdInput && jobDescription.trim().length >= 30 ? jobDescription.trim().substring(0, 2000) : undefined,
           fileName: fileName || 'Candidate_Resume.pdf',
-          isPublic: true, // Gated conversion mode
+          isPublic: true,
         }),
       });
 
@@ -388,7 +410,7 @@ export default function AtsResumeCheckerPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete resume audit. Please retry.');
+        throw new Error(data.error || 'Failed to complete resume audit. Please retry in a few moments.');
       }
 
       setAuditResult(data.assessment);
@@ -396,11 +418,12 @@ export default function AtsResumeCheckerPage() {
       trackEvent('ats_audit_completed', {
         assessmentId: data.assessment.assessmentId,
         overallScore: data.assessment.overallScore,
+        generalQualityScore: data.assessment.generalQualityScore,
+        atsCompatibilityScore: data.assessment.atsCompatibilityScore,
       });
 
-      // Pre-fill target role in lead form
-      if (targetRole) {
-        // Will be used in enquiry
+      if (data.assessment.targetRole) {
+        setLeadCareerGoals(data.assessment.targetRole);
       }
     } catch (err: any) {
       setViewState('idle');
@@ -408,14 +431,17 @@ export default function AtsResumeCheckerPage() {
     }
   };
 
-  // Open locked insight modal
+  // Open locked insight modal for custom quotation request
   const handleOpenLockedCard = (card: LockedImprovementCard) => {
     setSelectedModalCard(card);
     const mappedService: RecommendedServiceItem = {
       code: card.recommendedServiceCode,
       name: card.recommendedServiceName,
-      priceInr: card.servicePriceInr,
+      pricingLabel: 'Quote Based on Requirements',
       tagline: card.reason,
+      quoteMessage:
+        'Every professional journey is different. We review your experience, career goals and resume requirements before preparing a customised quotation.',
+      ctaText: card.ctaText || 'Request a Custom Quote',
       addressedAreas: card.teaserBullets,
       isPrimary: true,
     };
@@ -424,7 +450,7 @@ export default function AtsResumeCheckerPage() {
     trackEvent('locked_insight_opened', { category: card.category, service: card.recommendedServiceCode });
   };
 
-  // Open service recommendation
+  // Open service recommendation for custom quotation
   const handleSelectService = (service: RecommendedServiceItem) => {
     setSelectedService(service);
     setSelectedModalCard(null);
@@ -432,7 +458,7 @@ export default function AtsResumeCheckerPage() {
     trackEvent('service_recommendation_clicked', { serviceCode: service.code });
   };
 
-  // Submit Career Enquiry from Modal
+  // Submit Career Enquiry from Modal (Creates CRM lead with custom quotation preference)
   const handleSubmitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -451,10 +477,13 @@ export default function AtsResumeCheckerPage() {
         preferredContactMethod: leadContactMethod,
         serviceRequired: selectedService?.name || 'Professional Resume Writing',
         selectedServices: [selectedService?.name || 'Professional Resume Writing'],
-        targetRole: targetRole || auditResult?.targetRole || 'Professional Role',
-        requirements: `Origin: Free ATS Resume Audit (${auditResult?.assessmentId || 'direct'}). Score: ${
-          auditResult?.overallScore || 'N/A'
-        }/100. Selected Service: ${selectedService?.name}.`,
+        targetRole: leadCareerGoals || targetRole || auditResult?.targetRole || 'Professional Role',
+        careerStage: auditResult?.careerStage || 'Experienced professional',
+        pricingPreference: 'CUSTOM_QUOTATION',
+        requirements: `Origin: Universal ATS Resume Audit (${auditResult?.assessmentId || 'direct'}).
+Overall Score: ${auditResult?.overallScore || 'N/A'}/100 (Quality: ${auditResult?.generalQualityScore || 'N/A'}, ATS: ${auditResult?.atsCompatibilityScore || 'N/A'}).
+Selected Service: ${selectedService?.name}.
+Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based on audit.'}`,
         assessmentId: auditResult?.assessmentId,
         resumeFileName: fileName || 'Candidate_Resume.pdf',
         consent: true,
@@ -522,7 +551,7 @@ export default function AtsResumeCheckerPage() {
         </div>
       </header>
 
-      {/* 2. HERO / UPLOAD / PROCESSING / RESULTS VIEWPORT */}
+      {/* 2. MAIN VIEWPORT */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* --- VIEW 1: LANDING & UPLOAD VIEW --- */}
         {viewState === 'idle' && (
@@ -531,14 +560,14 @@ export default function AtsResumeCheckerPage() {
             <div className="text-center max-w-3xl mx-auto space-y-4">
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] text-[#635BDB] text-xs font-bold uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Next-Gen Enterprise ATS Parser</span>
+                <span>Universal Multi-Industry ATS Intelligence</span>
               </div>
               <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111B35] tracking-tight leading-tight">
-                Is your resume <span className="text-[#635BDB]">ATS-ready</span>?
+                How does your resume rate with <span className="text-[#635BDB]">recruiters & ATS</span>?
               </h1>
               <p className="text-base sm:text-lg text-[#111B35]/70 leading-relaxed max-w-2xl mx-auto">
-                Get your free AI-powered resume audit. Discover your resume score and the areas that need
-                attention before applying to top companies.
+                Get an objective, inclusive AI resume audit calibrated across all professions, experience levels, and
+                career stages — from healthcare and engineering to supply chain, finance, and IT.
               </p>
 
               {/* 3-Step Mini Visual */}
@@ -547,19 +576,19 @@ export default function AtsResumeCheckerPage() {
                   <span className="w-7 h-7 rounded-lg bg-[#EEF2FF] text-[#635BDB] font-extrabold text-sm flex items-center justify-center shrink-0">
                     1
                   </span>
-                  <span className="text-xs font-semibold text-[#111B35]">Upload your resume (PDF/DOCX)</span>
+                  <span className="text-xs font-semibold text-[#111B35]">Upload resume (PDF/DOCX/TXT)</span>
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center space-x-3">
                   <span className="w-7 h-7 rounded-lg bg-[#F0FDFA] text-[#14B8A6] font-extrabold text-sm flex items-center justify-center shrink-0">
                     2
                   </span>
-                  <span className="text-xs font-semibold text-[#111B35]">Get your 7-category score</span>
+                  <span className="text-xs font-semibold text-[#111B35]">View 3-dimension fair score</span>
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center space-x-3">
                   <span className="w-7 h-7 rounded-lg bg-[#F5F3FF] text-[#8B5CF6] font-extrabold text-sm flex items-center justify-center shrink-0">
                     3
                   </span>
-                  <span className="text-xs font-semibold text-[#111B35]">Discover how to improve it</span>
+                  <span className="text-xs font-semibold text-[#111B35]">Get a bespoke custom quote</span>
                 </div>
               </div>
             </div>
@@ -636,65 +665,98 @@ export default function AtsResumeCheckerPage() {
                   )}
                 </div>
 
-                {/* Form Fields */}
+                {/* Optional Candidate Context Inputs (Universal - Never Required) */}
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-[#111B35]/70 mb-1">
-                        Target Job Title
+                        Target Job Title <span className="text-gray-400 font-normal lowercase">(optional)</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. Senior Software Architect"
+                        placeholder="e.g. Registered Nurse, Lead Architect"
                         value={targetRole}
                         onChange={(e) => setTargetRole(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
                       />
+                      <p className="text-[10px] text-gray-400 mt-1">Leave empty to auto-detect from resume</p>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-[#111B35]/70 mb-1">
-                        Target Industry
+                        Industry / Domain <span className="text-gray-400 font-normal lowercase">(optional)</span>
                       </label>
                       <select
                         value={targetIndustry}
                         onChange={(e) => setTargetIndustry(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB] bg-white"
                       >
-                        <option value="Technology & Software">Technology & Software</option>
-                        <option value="Corporate & Consulting">Corporate & Consulting</option>
-                        <option value="Banking & Financial Services">Banking & Financial Services</option>
-                        <option value="Healthcare & Life Sciences">Healthcare & Life Sciences</option>
-                        <option value="Engineering & Operations">Engineering & Operations</option>
+                        <option value="">Auto-Detect from Resume (Default)</option>
+                        <option value="Healthcare & Nursing">Healthcare & Life Sciences</option>
+                        <option value="IT, Software & Cloud">IT, Software & Cloud</option>
+                        <option value="Engineering & Manufacturing">Engineering & Manufacturing</option>
+                        <option value="Supply Chain, Logistics & Procurement">Supply Chain & Logistics</option>
+                        <option value="Finance, Banking & Accounting">Finance & Accounting</option>
+                        <option value="Sales, Marketing & PR">Sales & Marketing</option>
+                        <option value="Human Resources & Recruiting">Human Resources</option>
+                        <option value="Education, Academia & Research">Education & Research</option>
+                        <option value="Operations & Administration">Operations & Administration</option>
+                        <option value="Hospitality & Retail">Hospitality & Retail</option>
+                        <option value="Creative, Media & Design">Creative & Design</option>
+                        <option value="Consulting & Strategy">Consulting & Strategy</option>
                       </select>
+                      <p className="text-[10px] text-gray-400 mt-1">Understands all industries inclusively</p>
                     </div>
                   </div>
 
-                  {/* Optional Job Description Toggle */}
+                  {/* Career Stage Selector */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#111B35]/70 mb-1">
+                      Career Stage <span className="text-gray-400 font-normal lowercase">(optional)</span>
+                    </label>
+                    <select
+                      value={careerSeniority}
+                      onChange={(e) => setCareerSeniority(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB] bg-white"
+                    >
+                      <option value="">Auto-Detect from Resume (Default)</option>
+                      <option value="Student / Graduate">Student / Recent Graduate</option>
+                      <option value="Entry-level">Entry-Level Professional (0-2 years)</option>
+                      <option value="Mid-career">Mid-Career Professional (3-7 years)</option>
+                      <option value="Experienced professional">Experienced Professional (8+ years)</option>
+                      <option value="Senior professional">Senior / Principal Specialist</option>
+                      <option value="Manager / Leadership">Team Manager / Leadership</option>
+                      <option value="Executive">Executive / Director / C-Suite</option>
+                      <option value="Career changer">Career Changer / Returning Professional</option>
+                    </select>
+                    <p className="text-[10px] text-gray-400 mt-1">Adapts evaluation criteria so graduates and career changers are never unfairly penalized</p>
+                  </div>
+
+                  {/* Optional Benchmark Job Description */}
                   <div className="pt-2">
                     <button
                       type="button"
                       onClick={() => setShowJdInput(!showJdInput)}
                       className="text-xs font-bold text-[#635BDB] hover:underline flex items-center space-x-1"
                     >
-                      <span>{showJdInput ? '— Remove Benchmark Job Description' : '+ Add Target Job Description (Optional)'}</span>
+                      <span>{showJdInput ? '— Remove Benchmark Job Description' : '+ Add Benchmark Job Description (Optional for Job Match Score)'}</span>
                     </button>
                     {showJdInput && (
                       <div className="mt-2 space-y-1">
                         <textarea
                           rows={4}
-                          placeholder="Paste target job description to compute a separate Job Match & Keyword alignment score..."
+                          placeholder="Paste a target job description to compute a separate semantic Job Match score comparing required vs transferable skills..."
                           value={jobDescription}
                           onChange={(e) => setJobDescription(e.target.value)}
                           className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
                         />
                         <p className="text-[11px] text-[#111B35]/60">
-                          Adding a job description enables a more relevant job-match assessment against recruiter benchmarks.
+                          Job match is assessed as an independent score and does not diminish your general resume quality score.
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Extracted Text Review & Edit Toggle */}
+                  {/* Text Review Accordion */}
                   <div className="pt-2 border-t border-slate-100">
                     <div className="flex items-center justify-between text-xs">
                       <button
@@ -718,17 +780,17 @@ export default function AtsResumeCheckerPage() {
                           rows={6}
                           value={resumeText}
                           onChange={(e) => setResumeText(e.target.value.substring(0, 7000))}
-                          placeholder="Paste your resume content here or edit the extracted text..."
+                          placeholder="Paste your resume content here or edit the extracted text directly..."
                           className="w-full p-3 rounded-xl border border-[#CBD5E1] text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
                         />
                         <p className="text-[10px] text-gray-500">
-                          You can edit or paste your resume directly to ensure full capture of accomplishments and skills.
+                          You can edit or paste your resume directly to ensure full capture of achievements and skills.
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Privacy Reassurance Check */}
+                  {/* Privacy Disclosure */}
                   <div className="flex items-start space-x-2 pt-2">
                     <input
                       id="privacy-consent"
@@ -738,8 +800,8 @@ export default function AtsResumeCheckerPage() {
                       className="mt-0.5 w-4 h-4 text-[#635BDB] border-gray-300 rounded focus:ring-[#635BDB]"
                     />
                     <label htmlFor="privacy-consent" className="text-xs text-[#111B35]/70 cursor-pointer">
-                      <strong>Client-Side Privacy Protection</strong>: Personal emails, direct phone numbers, and addresses
-                      are automatically redacted prior to AI transmission. Resumes are kept strictly confidential.
+                      <strong>Client-Side Privacy Redaction</strong>: Personal emails, direct phone numbers, and physical addresses
+                      are redacted client-side before transmission. Resumes are kept strictly confidential.
                     </label>
                   </div>
                 </div>
@@ -767,7 +829,7 @@ export default function AtsResumeCheckerPage() {
                   onClick={() => setViewState('sample')}
                   className="text-xs font-semibold text-[#635BDB] hover:underline"
                 >
-                  Want to see what you get? Click here to view a Sample Audit Scorecard
+                  Want to see how it looks? Click here to view a Sample Multi-Score Audit
                 </button>
               </div>
             </div>
@@ -786,20 +848,20 @@ export default function AtsResumeCheckerPage() {
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-2xl font-extrabold text-[#111B35]">Analyzing Your Resume...</h2>
+              <h2 className="text-2xl font-extrabold text-[#111B35]">Analyzing Your Resume Fairly...</h2>
               <p className="text-xs sm:text-sm text-[#111B35]/60 max-w-sm mx-auto">
-                Auditing against Workday, Taleo, and Greenhouse enterprise parsing benchmarks.
+                Auditing against universal recruiter clarity, enterprise ATS compatibility, and career-stage standards.
               </p>
             </div>
 
             {/* 5 Progress Stages */}
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm text-left space-y-4">
               {[
-                { stage: 1, title: 'Reading resume file' },
-                { stage: 2, title: 'Extracting professional information & redacting PII' },
-                { stage: 3, title: 'Checking ATS layout & parsing compatibility' },
-                { stage: 4, title: 'Evaluating resume quality across 7 standard categories' },
-                { stage: 5, title: 'Preparing audit scorecard & improvement roadmap' },
+                { stage: 1, title: 'Reading resume text & classifying professional domain' },
+                { stage: 2, title: 'Calibrating assessment to candidate career stage & role context' },
+                { stage: 3, title: 'Evaluating General Resume Quality & communication impact' },
+                { stage: 4, title: 'Auditing ATS Parsing Compatibility & formatting risks' },
+                { stage: 5, title: 'Synthesizing 7-category scorecard & tailored recommendations' },
               ].map((item) => {
                 const isDone = processingStage > item.stage;
                 const isCurrent = processingStage === item.stage;
@@ -827,16 +889,16 @@ export default function AtsResumeCheckerPage() {
           </div>
         )}
 
-        {/* --- VIEW 3: RESULTS DASHBOARD (FLAGSHIP CONVERSION PRODUCT) --- */}
+        {/* --- VIEW 3: RESULTS DASHBOARD (UNIVERSAL MULTI-SCORE AUDIT & BESPOKE QUOTING) --- */}
         {(viewState === 'results' || viewState === 'sample') && activeResult && (
           <div className="space-y-10">
-            {/* Sample Banner if previewing sample */}
+            {/* Sample Banner */}
             {viewState === 'sample' && (
               <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] flex items-center justify-between text-xs sm:text-sm">
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4 text-[#F59E0B]" />
                   <span>
-                    <strong>SAMPLE AUDIT PREVIEW</strong> — This is an illustrative audit demonstrating the Hopepitome ATS scorecard.
+                    <strong>SAMPLE AUDIT PREVIEW</strong> — Demonstrating the 3 distinct score dimensions and custom pricing workflow.
                   </span>
                 </div>
                 <button
@@ -848,15 +910,37 @@ export default function AtsResumeCheckerPage() {
               </div>
             )}
 
+            {/* Inferred Context Banner (Confirms Universal Inclusion) */}
+            <div className="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="font-bold text-[#635BDB] flex items-center space-x-1.5">
+                  <Compass className="w-4 h-4" />
+                  <span>Inferred Profile Context:</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-[#EEF2FF] text-[#635BDB] font-semibold">
+                  Domain: {activeResult.inferredDomain || 'Professional Services'}
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-[#F5F3FF] text-[#8B5CF6] font-semibold">
+                  Stage: {activeResult.careerStage || 'Experienced Professional'}
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] text-[#0D9488] font-semibold">
+                  Primary Role: {activeResult.inferredRole || activeResult.targetRole}
+                </span>
+              </div>
+              <span className="text-gray-500 text-[11px] font-medium">
+                Fair & Inclusive Calibration • Zero Rigid Keyword Penalties
+              </span>
+            </div>
+
             {/* Header / Meta Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-6">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#635BDB]">Verified AI Assessment</span>
                 <h1 className="text-2xl sm:text-4xl font-extrabold text-[#111B35] tracking-tight">
-                  Your Resume Audit Is Ready
+                  Your Resume Scorecard & Diagnosis
                 </h1>
                 <p className="text-xs sm:text-sm text-[#111B35]/60 mt-1">
-                  Target Trajectory: <strong>{activeResult.targetRole || 'Professional Role'}</strong> • Evaluated on{' '}
+                  Target Trajectory: <strong>{activeResult.targetRole || activeResult.inferredRole}</strong> • Evaluated on{' '}
                   {new Date(activeResult.timestamp).toLocaleDateString()}
                 </p>
               </div>
@@ -867,7 +951,7 @@ export default function AtsResumeCheckerPage() {
                   className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-[#CBD5E1] bg-white text-xs sm:text-sm font-semibold text-[#111B35] hover:bg-gray-50 shadow-sm"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download Basic PDF</span>
+                  <span>Download Summary PDF</span>
                 </button>
                 <button
                   onClick={() => {
@@ -883,14 +967,12 @@ export default function AtsResumeCheckerPage() {
               </div>
             </div>
 
-            {/* Scorecard Hero Block */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Overall Score Circle Card */}
-              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#111B35]/60 mb-3">Overall ATS Score</span>
-
-                {/* Animated Circular Gauge */}
-                <div className="relative w-36 h-36 flex items-center justify-center my-2">
+            {/* THREE SEPARATE SCORE DIMENSIONS (PART A SECTION 3 SPECIFICATION) */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Pillar 0: Overall Composite Score */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col items-center justify-center text-center">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#111B35]/60 mb-2">Overall Score</span>
+                <div className="relative w-28 h-28 flex items-center justify-center my-1">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="8" fill="transparent" />
                     <circle
@@ -914,95 +996,133 @@ export default function AtsResumeCheckerPage() {
                     />
                   </svg>
                   <div className="absolute flex flex-col items-center">
-                    <span className="text-4xl font-extrabold text-[#111B35] tracking-tight">
+                    <span className="text-3xl font-extrabold text-[#111B35] tracking-tight">
                       {activeResult.overallScore}
                     </span>
-                    <span className="text-[11px] font-semibold text-[#111B35]/50">out of 100</span>
+                    <span className="text-[10px] font-semibold text-[#111B35]/50">out of 100</span>
                   </div>
                 </div>
+                <span
+                  className={`mt-2 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${
+                    activeResult.overallScore >= 85
+                      ? 'bg-[#ECFDF5] text-[#10B981]'
+                      : activeResult.overallScore >= 70
+                      ? 'bg-[#EEF2FF] text-[#635BDB]'
+                      : activeResult.overallScore >= 50
+                      ? 'bg-[#FFFBEB] text-[#F59E0B]'
+                      : 'bg-[#FEF2F2] text-[#F97373]'
+                  }`}
+                >
+                  Grade {activeResult.grade} • {activeResult.interpretation}
+                </span>
+              </div>
 
-                <div className="mt-2 flex items-center space-x-2">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-extrabold ${
-                      activeResult.overallScore >= 85
-                        ? 'bg-[#ECFDF5] text-[#10B981]'
-                        : activeResult.overallScore >= 70
-                        ? 'bg-[#EEF2FF] text-[#635BDB]'
-                        : activeResult.overallScore >= 50
-                        ? 'bg-[#FFFBEB] text-[#F59E0B]'
-                        : 'bg-[#FEF2F2] text-[#F97373]'
-                    }`}
-                  >
-                    Grade {activeResult.grade} • {activeResult.interpretation}
-                  </span>
+              {/* Pillar 1: General Resume Quality Score (Independent of Job) */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] text-[#635BDB] flex items-center justify-center">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <span className="text-2xl font-extrabold text-[#635BDB]">{activeResult.generalQualityScore}/100</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-[#111B35]">General Resume Quality</h3>
+                  <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
+                    Evaluates completeness, career clarity, achievement communication, and presentation independent of any specific job.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
+                  Content & Communication Integrity
                 </div>
               </div>
 
-              {/* Executive Summary & Key Highlights */}
-              <div className="md:col-span-2 bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between">
-                <div className="space-y-4">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#635BDB]">Executive Assessment</span>
-                    <p className="text-sm sm:text-base text-[#111B35] leading-relaxed mt-1 font-medium">
-                      {activeResult.summary}
-                    </p>
-                  </div>
-
-                  {/* Optional Job Match Score if enabled */}
-                  {activeResult.hasJobDescription && activeResult.jobMatchScore && (
-                    <div className="p-3.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Target className="w-5 h-5 text-[#14B8A6]" />
-                        <div>
-                          <p className="text-xs font-bold text-[#111B35]">Benchmark Job Match Score</p>
-                          <p className="text-[11px] text-[#111B35]/70">
-                            {activeResult.jobMatchKeywordSummary?.matchedCount || 0} core keyword matches identified
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xl font-extrabold text-[#14B8A6]">
-                        {activeResult.jobMatchScore}%
-                      </span>
+              {/* Pillar 2: ATS Compatibility Score */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#F0FDFA] text-[#14B8A6] flex items-center justify-center">
+                      <FileCheck className="w-4 h-4" />
                     </div>
-                  )}
-
-                  {/* Strengths (Short Titles Only) */}
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#10B981] block mb-2">
-                      Key Strengths (Titles Only)
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {activeResult.strengthTitles.map((title, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center space-x-2 text-xs font-semibold text-[#111B35] p-2 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0]"
-                        >
-                          <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
-                          <span className="truncate">{title}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <span className="text-2xl font-extrabold text-[#14B8A6]">{activeResult.atsCompatibilityScore}/100</span>
                   </div>
+                  <h3 className="text-sm font-bold text-[#111B35]">ATS Compatibility Score</h3>
+                  <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
+                    Evaluates parser readability, section recognize-ability, reading flow, and layout stability across hiring systems.
+                  </p>
                 </div>
+                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
+                  Workday, Taleo & Greenhouse Readability
+                </div>
+              </div>
 
-                <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#111B35]/60">
-                  <span>Deterministic 7-Category Rubric Total: 100%</span>
-                  <span>Fortune 500 ATS Calibration</span>
+              {/* Pillar 3: Job Match Score (Optional) */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#F5F3FF] text-[#8B5CF6] flex items-center justify-center">
+                      <Target className="w-4 h-4" />
+                    </div>
+                    {activeResult.hasJobDescription && activeResult.jobMatchScore !== null ? (
+                      <span className="text-2xl font-extrabold text-[#8B5CF6]">{activeResult.jobMatchScore}%</span>
+                    ) : (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Optional</span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-bold text-[#111B35]">Job Description Match</h3>
+                  {activeResult.hasJobDescription && activeResult.jobMatchScore !== null ? (
+                    <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
+                      Semantic skill comparison: {activeResult.jobMatchKeywordSummary?.matchedCount || 0} core skills matched,{' '}
+                      {activeResult.jobMatchKeywordSummary?.transferableCount || 0} transferable competencies identified.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
+                      Calculated only when a benchmark Job Description is provided. Not penalized when omitted.
+                    </p>
+                  )}
+                </div>
+                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
+                  {activeResult.hasJobDescription ? 'Semantic Competency Fit' : 'Independent of General Quality'}
+                </div>
+              </div>
+            </div>
+
+            {/* Executive Summary & Key Highlights */}
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm space-y-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#635BDB]">Executive Assessment</span>
+                <p className="text-sm sm:text-base text-[#111B35] leading-relaxed mt-1 font-medium">
+                  {activeResult.summary}
+                </p>
+              </div>
+
+              {/* Strengths (Short Titles Only) */}
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#10B981] block mb-2">
+                  Key Strengths Evidenced in Resume
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {activeResult.strengthTitles.map((title, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center space-x-2 text-xs font-semibold text-[#111B35] p-2.5 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0]"
+                    >
+                      <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+                      <span className="truncate">{title}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* Seven Standardized Audit Categories */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-extrabold text-[#111B35]">
-                    Seven-Category ATS Evaluation
-                  </h2>
-                  <p className="text-xs text-[#111B35]/60">
-                    Each dimension is audited independently according to industry-standard parsing algorithms.
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-extrabold text-[#111B35]">
+                  Seven Standardized Category Dimensions
+                </h2>
+                <p className="text-xs text-[#111B35]/60">
+                  Each dimension is evaluated fairly based on your career stage without penalizing unconventional or non-linear paths.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1066,22 +1186,20 @@ export default function AtsResumeCheckerPage() {
               </div>
             </div>
 
-            {/* LOCKED INSIGHTS SECTION (CORE CONVERSION STRATEGY) */}
+            {/* LOCKED DETAILED INSIGHTS (CORE CONVERSION EXPERIENCE) */}
             <div className="space-y-4 pt-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[11px] font-bold uppercase tracking-wider mb-1">
-                    <Lock className="w-3 h-3" />
-                    <span>Areas Requiring Improvement</span>
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
-                    Locked Detailed Insights & Action Plan
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#111B35]/60">
-                    Your free audit identifies the titles of areas needing attention. Personalized rewrite suggestions,
-                    exact missing keywords, and the complete step-by-step roadmap are unlocked when choosing a service.
-                  </p>
+              <div>
+                <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[11px] font-bold uppercase tracking-wider mb-1">
+                  <Lock className="w-3 h-3" />
+                  <span>Areas Requiring Attention</span>
                 </div>
+                <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
+                  Locked Detailed Insights & Action Plan
+                </h2>
+                <p className="text-xs sm:text-sm text-[#111B35]/60">
+                  Your free audit identifies the titles of areas needing improvement. Detailed personalized diagnosis,
+                  line-by-line rewrite suggestions, and the complete step-by-step roadmap are unlocked when choosing a service.
+                </p>
               </div>
 
               {/* Locked Improvement Cards Grid */}
@@ -1105,8 +1223,8 @@ export default function AtsResumeCheckerPage() {
                         <p className="text-xs font-semibold text-[#111B35]/60 pl-8">{card.teaserSubtitle}</p>
                       </div>
 
-                      <span className="text-[11px] font-bold px-2 py-1 rounded-lg bg-[#EEF2FF] text-[#635BDB] shrink-0">
-                        ₹{card.servicePriceInr}
+                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#EEF2FF] text-[#635BDB] shrink-0">
+                        {card.pricingLabel || 'Quote Based on Requirements'}
                       </span>
                     </div>
 
@@ -1133,7 +1251,7 @@ export default function AtsResumeCheckerPage() {
               </div>
             </div>
 
-            {/* RECOMMENDED SERVICES & CONVERSION SECTION */}
+            {/* RECOMMENDED SERVICES & CUSTOM QUOTATION SECTION (PART B SPECIFICATION) */}
             <div className="bg-gradient-to-br from-[#111B35] to-[#1E293B] rounded-3xl p-6 sm:p-10 text-white shadow-xl space-y-8">
               <div className="text-center max-w-2xl mx-auto space-y-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-[#14B8A6]">
@@ -1143,12 +1261,12 @@ export default function AtsResumeCheckerPage() {
                   Recommended Career Services for Your Resume
                 </h2>
                 <p className="text-xs sm:text-sm text-gray-300">
-                  Based on your actual weakest audit categories, our senior resume writers and ATS engineers can
-                  personally rewrite and optimize your career portfolio.
+                  Hopepitome provides customised resume and career services. Pricing is determined after understanding
+                  your exact experience, career trajectory, and project requirements.
                 </p>
               </div>
 
-              {/* Service Cards */}
+              {/* Service Cards (Strictly No Fixed Prices) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {activeResult.recommendedServices.map((service) => (
                   <div
@@ -1166,15 +1284,17 @@ export default function AtsResumeCheckerPage() {
                             Complementary Service
                           </span>
                         )}
-                        <span className="text-xl font-extrabold text-[#14B8A6]">₹{service.priceInr}</span>
+                        <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-white/10 text-[#14B8A6]">
+                          {service.pricingLabel || 'Custom Pricing'}
+                        </span>
                       </div>
 
                       <h3 className="text-lg font-bold text-white">{service.name}</h3>
-                      <p className="text-xs text-gray-300 leading-relaxed">{service.tagline}</p>
+                      <p className="text-xs text-gray-200 leading-relaxed font-medium">{service.quoteMessage}</p>
 
                       <div className="space-y-1.5 pt-2">
                         <span className="text-[11px] font-bold text-[#14B8A6] uppercase tracking-wider block">
-                          Addresses Identified Gaps:
+                          Addresses Identified Needs:
                         </span>
                         {service.addressedAreas.map((area, aIdx) => (
                           <div key={aIdx} className="flex items-center space-x-2 text-xs text-gray-200">
@@ -1189,7 +1309,7 @@ export default function AtsResumeCheckerPage() {
                       onClick={() => handleSelectService(service)}
                       className="w-full py-3 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] hover:opacity-95 text-white font-extrabold text-sm flex items-center justify-center space-x-2 shadow-lg transition-all"
                     >
-                      <span>Choose This Service — ₹{service.priceInr}</span>
+                      <span>{service.ctaText || 'Request a Custom Quote'}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -1200,15 +1320,15 @@ export default function AtsResumeCheckerPage() {
               <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-around gap-4 text-xs text-gray-300">
                 <span className="flex items-center space-x-1.5">
                   <ShieldCheck className="w-4 h-4 text-[#10B981]" />
-                  <span>100% Fortune 500 ATS Pass Guarantee</span>
+                  <span>Custom Quote Based on Actual Scope</span>
                 </span>
                 <span className="flex items-center space-x-1.5">
                   <Clock className="w-4 h-4 text-[#14B8A6]" />
-                  <span>Rapid 3–5 Business Day Turnaround</span>
+                  <span>24-Hour Quotation Turnaround</span>
                 </span>
                 <span className="flex items-center space-x-1.5">
                   <Award className="w-4 h-4 text-[#8B5CF6]" />
-                  <span>2 Free Revision Rounds Included</span>
+                  <span>Direct Senior Consultant Consultation</span>
                 </span>
               </div>
             </div>
@@ -1216,7 +1336,7 @@ export default function AtsResumeCheckerPage() {
         )}
       </main>
 
-      {/* 3. CONVERSION MODAL & MOBILE BOTTOM SHEET */}
+      {/* 3. CUSTOM QUOTATION REQUEST MODAL & MOBILE BOTTOM SHEET */}
       {conversionModalOpen && selectedService && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
@@ -1224,7 +1344,7 @@ export default function AtsResumeCheckerPage() {
             <div className="p-5 sm:p-6 bg-gradient-to-r from-[#111B35] to-[#1E293B] text-white flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#14B8A6]">
-                  {selectedModalCard ? 'Unlock Comprehensive Diagnosis' : 'Select Career Service'}
+                  Custom Quotation Request
                 </span>
                 <h3 className="text-lg font-extrabold text-white mt-0.5">{selectedService.name}</h3>
               </div>
@@ -1248,21 +1368,21 @@ export default function AtsResumeCheckerPage() {
                     <CheckCircle2 className="w-10 h-10" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-xl font-extrabold text-[#111B35]">Enquiry Successfully Registered!</h4>
+                    <h4 className="text-xl font-extrabold text-[#111B35]">Quotation Request Registered!</h4>
                     <p className="text-xs text-[#111B35]/60">
-                      Your ATS audit results and resume reference have been linked in our Project Hub.
+                      Your ATS audit score ({auditResult?.overallScore || '78'}/100) and resume reference have been securely linked.
                     </p>
                   </div>
                   <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] inline-block text-xs font-bold text-[#111B35]">
                     Reference ID: <span className="text-[#635BDB]">{enquirySuccessRef}</span>
                   </div>
-                  <p className="text-xs text-[#111B35]/70 max-w-sm mx-auto">
-                    A Senior Career Strategist will review your audit gaps and message you via WhatsApp or Email within 2
-                    hours to finalize your project requirements.
+                  <p className="text-xs text-[#111B35]/70 max-w-sm mx-auto leading-relaxed">
+                    A Senior Career Consultant will review your audit findings and career goals to prepare a transparent,
+                    tailored quotation within 24 hours.
                   </p>
                   <div className="pt-2">
                     <a
-                      href={`https://wa.me/919496338879?text=Hello%20Hopepitome%20Career%20Studio,%20I%20completed%20an%20ATS%20audit%20and%20would%20like%20to%20proceed%20with%20${encodeURIComponent(
+                      href={`https://wa.me/919496338879?text=Hello%20Hopepitome%20Career%20Studio,%20I%20completed%20an%20ATS%20audit%20and%20would%20like%20to%20request%20a%20custom%20quote%20for%20${encodeURIComponent(
                         selectedService.name
                       )}%20(Ref:%20${enquirySuccessRef})`}
                       target="_blank"
@@ -1270,7 +1390,7 @@ export default function AtsResumeCheckerPage() {
                       className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#25D366] text-white text-xs font-bold shadow-md hover:opacity-95"
                     >
                       <MessageSquare className="w-4 h-4" />
-                      <span>Chat on WhatsApp Directly</span>
+                      <span>Message on WhatsApp Directly</span>
                     </a>
                   </div>
                 </div>
@@ -1278,12 +1398,16 @@ export default function AtsResumeCheckerPage() {
                 /* Intake Form */
                 <form onSubmit={handleSubmitEnquiry} className="space-y-5">
                   {/* Service Deliverable Highlights */}
-                  <div className="p-4 rounded-xl bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-[#111B35]">Service Price (INR)</p>
-                      <p className="text-[11px] text-[#111B35]/70">Full rewrite, line-by-line audit & 2 revisions</p>
+                  <div className="p-4 rounded-xl bg-[#EEF2FF] border border-[#C7D2FE] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#111B35]">Pricing Policy</span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#635BDB] text-white">
+                        Custom Quotation
+                      </span>
                     </div>
-                    <span className="text-2xl font-extrabold text-[#635BDB]">₹{selectedService.priceInr}</span>
+                    <p className="text-xs text-[#111B35]/80 leading-relaxed pt-1">
+                      {selectedService.quoteMessage}
+                    </p>
                   </div>
 
                   {/* Contact Inputs */}
@@ -1293,7 +1417,7 @@ export default function AtsResumeCheckerPage() {
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Jane Doe"
+                        placeholder="e.g. Anumol Sebastian"
                         value={leadName}
                         onChange={(e) => setLeadName(e.target.value)}
                         className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
@@ -1304,7 +1428,7 @@ export default function AtsResumeCheckerPage() {
                       <input
                         type="email"
                         required
-                        placeholder="e.g. jane.doe@example.com"
+                        placeholder="e.g. anumol@example.com"
                         value={leadEmail}
                         onChange={(e) => setLeadEmail(e.target.value)}
                         className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
@@ -1315,10 +1439,30 @@ export default function AtsResumeCheckerPage() {
                       <input
                         type="tel"
                         required
-                        placeholder="e.g. +91 98765 43210"
+                        placeholder="e.g. +91 98460 00000"
                         value={leadPhone}
                         onChange={(e) => setLeadPhone(e.target.value)}
                         className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Target Career Goal / Role</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Senior Tech Lead, Director of Operations"
+                        value={leadCareerGoals}
+                        onChange={(e) => setLeadCareerGoals(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Specific Requirements or Timeline</label>
+                      <textarea
+                        rows={2}
+                        placeholder="Tell us about your target geography, timeline, or specific challenges..."
+                        value={leadRequirements}
+                        onChange={(e) => setLeadRequirements(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
                       />
                     </div>
 
@@ -1345,22 +1489,22 @@ export default function AtsResumeCheckerPage() {
 
                   <p className="text-[11px] text-[#111B35]/50 leading-relaxed">
                     By submitting, your resume reference ({fileName || 'Uploaded resume'}) and assessment score (
-                    {auditResult?.overallScore || '74'}/100) are securely linked to your customer profile. No payment is
-                    charged now.
+                    {auditResult?.overallScore || '78'}/100) are securely linked to your enquiry. Pricing will be proposed
+                    transparently based on your actual scope. No payment is charged now.
                   </p>
 
                   <button
                     type="submit"
                     disabled={enquirySubmitting}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] hover:opacity-95 text-white font-extrabold text-sm sm:text-base flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50"
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] hover:opacity-95 text-white font-extrabold text-sm flex items-center justify-center space-x-2 shadow-md transition-all"
                   >
                     {enquirySubmitting ? (
-                      <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                      <span className="flex items-center space-x-2">
+                        <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+                        <span>Submitting Request...</span>
+                      </span>
                     ) : (
-                      <>
-                        <span>Request Service Consultation — ₹{selectedService.priceInr}</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </>
+                      <span>{selectedService.ctaText || 'Request Custom Quote'}</span>
                     )}
                   </button>
                 </form>
@@ -1369,23 +1513,6 @@ export default function AtsResumeCheckerPage() {
           </div>
         </div>
       )}
-
-      {/* 4. FOOTER */}
-      <footer className="bg-white border-t border-[#E2E8F0] py-8 text-center text-xs text-[#111B35]/60 space-y-2">
-        <p>© {new Date().getFullYear()} Hopepitome Career Studio. All rights reserved.</p>
-        <div className="flex justify-center space-x-4">
-          <Link href="/career-services" className="hover:text-[#635BDB]">
-            Career Services
-          </Link>
-          <Link href="/career-services/admin/login" className="hover:text-[#635BDB]">
-            Staff Login
-          </Link>
-          <Link href="/career-services/portal/login" className="hover:text-[#635BDB]">
-            Client Portal
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }
-
