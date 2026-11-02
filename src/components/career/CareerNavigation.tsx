@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Menu, X, ArrowUpRight, Sparkles, User, Shield } from 'lucide-react';
 
 const navItems = [
+  { label: 'Free ATS Audit', href: '/ats-resume-checker' },
   { label: 'Services', href: '#services' },
   { label: 'Why Hopepitome', href: '#why-us' },
   { label: 'How It Works', href: '#how-it-works' },

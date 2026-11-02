@@ -124,3 +124,56 @@ export interface AiProviderConfig {
   }>;
 }
 
+export interface PublicAtsCategoryItem {
+  category: AtsCategoryKey;
+  title: string;
+  weight: number;
+  rawScore: number;
+  weightedScore: number;
+  status: 'EXCELLENT' | 'GOOD' | 'NEEDS_WORK' | 'CRITICAL';
+}
+
+export interface LockedImprovementCard {
+  id: string;
+  category: AtsCategoryKey;
+  title: string;
+  teaserSubtitle: string;
+  teaserBullets: string[];
+  recommendedServiceCode: string;
+  recommendedServiceName: string;
+  servicePriceInr: number;
+  reason: string;
+}
+
+export interface RecommendedServiceItem {
+  code: string;
+  name: string;
+  priceInr: number;
+  tagline: string;
+  addressedAreas: string[];
+  isPrimary: boolean;
+}
+
+export interface PublicAtsAuditResult {
+  assessmentId: string;
+  timestamp: string;
+  targetRole: string;
+  targetIndustry?: string;
+  overallScore: number;
+  grade: 'A+' | 'A' | 'B' | 'C' | 'D';
+  interpretation: 'Excellent' | 'Good' | 'Fair / Needs Attention' | 'Needs Improvement';
+  summary: string;
+  hasJobDescription: boolean;
+  jobMatchScore?: number;
+  jobMatchKeywordSummary?: {
+    matchedCount: number;
+    sampleKeywords: string[];
+  };
+  categories: PublicAtsCategoryItem[];
+  strengthTitles: string[];
+  improvementAreas: LockedImprovementCard[];
+  recommendedServices: RecommendedServiceItem[];
+  isLocked: boolean;
+}
+
+

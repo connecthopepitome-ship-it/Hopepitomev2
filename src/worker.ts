@@ -7,6 +7,7 @@ import { DEFAULT_STAFF_ROLES, DEFAULT_DEPARTMENTS } from './lib/career/permissio
 import { WorkOrderStatus, StaffUser } from './lib/career/types';
 import { globalAtsEngine } from './lib/ai/engine';
 import { VERIFIED_FREE_MODELS } from './lib/ai/models';
+import { transformToPublicAtsAudit } from './lib/ai/scoring';
 
 interface Env {
   ASSETS: {
@@ -947,6 +948,7 @@ export default {
         const fileName = body?.fileName || 'candidate_resume.pdf';
         const customerId = body?.customerId;
         const projectId = body?.projectId;
+        const isPublic = body?.isPublic !== false; // Default to public gated audit
 
         if (!resumeText || resumeText.trim().length < 50) {
           return new Response(
@@ -970,14 +972,20 @@ export default {
           env
         );
 
-        // Persist assessment result in Firestore 'ats_assessments' for audit & history
+        // Transform into conversion-optimized public audit (strips recommendations and missing keywords)
+        const publicAssessment = isPublic ? transformToPublicAtsAudit(assessment, jobDescription) : null;
+
+        // Persist full assessment result in Firestore 'ats_assessments' for audit, client portal, & history
         const now = new Date().toISOString();
         const assessmentRecord = {
           ...assessment,
+          isPublic,
+          publicAssessment,
           customerId: customerId || 'guest',
           projectId: projectId || null,
           fileName,
           createdAt: now,
+          conversionStatus: 'AUDIT_COMPLETED',
         };
 
         try {
@@ -989,7 +997,8 @@ export default {
         return new Response(
           JSON.stringify({
             success: true,
-            assessment: assessmentRecord,
+            isPublic,
+            assessment: isPublic ? publicAssessment : assessmentRecord,
             message: `ATS evaluation completed successfully via ${assessment.providerAudit.selectedProvider} (${assessment.providerAudit.modelUsed}).`,
           }),
           { status: 200, headers: CORS_HEADERS }
@@ -1002,6 +1011,113 @@ export default {
             error: err?.message || 'ATS evaluation failed. Please retry in a few moments.',
           }),
           { status: 503, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // MULTI-PROVIDER AI: ATS CONVERSION ANALYTICS & EVENT TRACKING
+    // =========================================================================
+    if (url.pathname === '/api/career/ai/track-event') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const eventName = body?.eventName || 'unknown_event';
+        const assessmentId = body?.assessmentId || null;
+        const serviceCode = body?.serviceCode || null;
+        const categoryId = body?.categoryId || null;
+        const now = new Date().toISOString();
+        const eventId = `ev_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+        await firestore.setDocument('ats_analytics', eventId, {
+          eventId,
+          eventName,
+          assessmentId,
+          serviceCode,
+          categoryId,
+          timestamp: now,
+        });
+
+        return new Response(JSON.stringify({ success: true, eventId }), {
+          status: 200,
+          headers: CORS_HEADERS,
+        });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ success: false, error: e?.message }), {
+          status: 200,
+          headers: CORS_HEADERS,
+        });
+      }
+    }
+
+    // =========================================================================
+    // ADMIN: ATS AUDITS & CONVERSION ANALYTICS
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/ats-analytics') {
+      try {
+        const assessmentsDocs = await firestore.listDocuments('ats_assessments', 100);
+        const analyticsDocs = await firestore.listDocuments('ats_analytics', 200);
+
+        const totalAudits = assessmentsDocs.length;
+        const convertedAudits = assessmentsDocs.filter((a: any) => a.conversionStatus === 'ENQUIRED' || a.enquiryId).length;
+        const conversionRate = totalAudits > 0 ? Math.round((convertedAudits / totalAudits) * 100) : 0;
+
+        const providerCounts: Record<string, number> = {};
+        for (const a of assessmentsDocs as any[]) {
+          const prov = a.providerAudit?.selectedProvider || 'groq';
+          providerCounts[prov] = (providerCounts[prov] || 0) + 1;
+        }
+
+        const eventsCount: Record<string, number> = {};
+        for (const ev of analyticsDocs as any[]) {
+          const name = ev.eventName || 'other';
+          eventsCount[name] = (eventsCount[name] || 0) + 1;
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            stats: {
+              totalAudits,
+              convertedAudits,
+              conversionRate,
+              providerCounts,
+              eventsCount,
+              recentAudits: assessmentsDocs.slice(0, 10).map((a: any) => ({
+                assessmentId: a.assessmentId,
+                targetRole: a.targetRole,
+                overallScore: a.overallScore,
+                grade: a.grade,
+                createdAt: a.createdAt,
+                conversionStatus: a.conversionStatus || 'AUDIT_COMPLETED',
+                enquiryId: a.enquiryId || null,
+                customerId: a.customerId || null,
+                selectedProvider: a.providerAudit?.selectedProvider || 'groq',
+              })),
+            },
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            stats: {
+              totalAudits: 0,
+              convertedAudits: 0,
+              conversionRate: 0,
+              providerCounts: { groq: 0, gemini: 0, openrouter: 0 },
+              eventsCount: {},
+              recentAudits: [],
+            },
+          }),
+          { status: 200, headers: CORS_HEADERS }
         );
       }
     }
@@ -1683,9 +1799,25 @@ export default {
             hasResume: Boolean(enquiry.resumeFileName && driveFileId),
             projectId: projectId,
             leadId: leadId,
+            assessmentId: (body as any)?.assessmentId || null,
             submittedAt: nowStr,
             updatedAt: nowStr,
           });
+
+          // 3b. Link ATS Assessment if enquiry originated from ATS Resume Checker
+          if ((body as any)?.assessmentId) {
+            try {
+              await firestore.setDocument('ats_assessments', (body as any).assessmentId, {
+                enquiryId: enquiry.referenceCode,
+                customerId: clientId,
+                convertedAt: nowStr,
+                conversionStatus: 'ENQUIRED',
+                selectedService: enquiry.serviceRequired || selectedServicesList[0] || 'Professional Resume Writing',
+              });
+            } catch (e) {
+              console.warn('[Assessment Link Warning]:', e);
+            }
+          }
 
           // 4. Create Draft Intake Record in 'projects' (Project Hub)
           const milestones = [

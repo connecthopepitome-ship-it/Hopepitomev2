@@ -11,7 +11,17 @@
  * Total Weight = 100%
  */
 
-import { AtsAssessmentResult, AtsCategoryEvaluation, AtsCategoryKey, SanitizedResumeInput, AiProviderName } from './types';
+import {
+  AtsAssessmentResult,
+  AtsCategoryEvaluation,
+  AtsCategoryKey,
+  SanitizedResumeInput,
+  AiProviderName,
+  PublicAtsAuditResult,
+  PublicAtsCategoryItem,
+  LockedImprovementCard,
+  RecommendedServiceItem,
+} from './types';
 
 export const ATS_CATEGORY_WEIGHTS: Record<AtsCategoryKey, { title: string; weight: number }> = {
   STRUCTURE_READABILITY: { title: 'Resume Structure & Readability', weight: 15 },
@@ -185,4 +195,280 @@ export function calculateDeterministicAtsScore(
     },
   };
 }
+
+/**
+ * PUBLIC AUDIT TRANSFORMER (FREE TIER VS LOCKED ENFORCEMENT)
+ * Strips all proprietary recommendations, missing keywords, and evidence points from
+ * public responses to strictly enforce conversion gating on the backend.
+ */
+export function transformToPublicAtsAudit(
+  assessment: AtsAssessmentResult,
+  jobDescription?: string
+): PublicAtsAuditResult {
+  const categories: PublicAtsCategoryItem[] = assessment.categories.map((c) => ({
+    category: c.category,
+    title: c.title,
+    weight: c.weight,
+    rawScore: c.rawScore,
+    weightedScore: c.weightedScore,
+    status: c.status,
+  }));
+
+  // Interpretation label
+  let interpretation: PublicAtsAuditResult['interpretation'] = 'Needs Improvement';
+  if (assessment.overallScore >= 85) {
+    interpretation = 'Excellent';
+  } else if (assessment.overallScore >= 70) {
+    interpretation = 'Good';
+  } else if (assessment.overallScore >= 50) {
+    interpretation = 'Fair / Needs Attention';
+  }
+
+  // Extract short strength titles (titles only, no deep details)
+  const strengthTitles = (assessment.topStrengths || [])
+    .map((s) => {
+      const parts = s.split(/[:–—\-]/);
+      return parts[0].trim().substring(0, 60);
+    })
+    .filter(Boolean)
+    .slice(0, 4);
+
+  if (strengthTitles.length === 0) {
+    strengthTitles.push('Clear Chronological Layout', 'Standard Section Headers');
+  }
+
+  // Pre-configured teaser metadata for locked insight cards
+  const categoryTeaserMap: Record<
+    AtsCategoryKey,
+    {
+      title: string;
+      teaserSubtitle: string;
+      teaserBullets: string[];
+      serviceCode: string;
+      serviceName: string;
+      priceInr: number;
+      reason: string;
+    }
+  > = {
+    STRUCTURE_READABILITY: {
+      title: 'Resume Structure & Hierarchy',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'Which sections fail automated recruiter skimming scans',
+        'How to re-order your career trajectory for maximum visual impact',
+        'Executive section headers that prevent enterprise portal parsing drop-offs',
+      ],
+      serviceCode: 'ATS_OPTIMISATION',
+      serviceName: 'ATS Resume Optimisation',
+      priceInr: 1999,
+      reason: 'Standardise layout hierarchy and eliminate structure parsing bottlenecks.',
+    },
+    PROFESSIONAL_SUMMARY: {
+      title: 'Professional Summary & Positioning',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'What critical value proposition is missing from your opening hook',
+        'How to align your summary with your target executive trajectory',
+        'Tailored 3-sentence elevator pitch rewrite blueprint',
+      ],
+      serviceCode: 'RESUME_WRITING',
+      serviceName: 'Professional Resume Writing',
+      priceInr: 2499,
+      reason: 'Craft an irresistible executive elevator pitch tailored to hiring decision-makers.',
+    },
+    SKILLS_RELEVANCE: {
+      title: 'Role-Specific Keywords & Competencies',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'Exact high-frequency industry keywords missing from your profile',
+        'How to structure core competencies for 90%+ keyword density match',
+        'Categorized skills breakdown tailored to target job descriptions',
+      ],
+      serviceCode: 'ATS_OPTIMISATION',
+      serviceName: 'ATS Resume Optimisation',
+      priceInr: 1999,
+      reason: 'Inject target industry keywords to bypass algorithmic applicant filters.',
+    },
+    EXPERIENCE_ACHIEVEMENTS: {
+      title: 'Achievement Statements & Impact Metrics',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'Which experience statements lack quantifiable business impact',
+        'How to convert task descriptions into high-value accomplishment bullets',
+        'C-A-R (Context, Action, Result) phrasing rewrites for your major projects',
+      ],
+      serviceCode: 'RESUME_WRITING',
+      serviceName: 'Professional Resume Writing',
+      priceInr: 2499,
+      reason: 'Transform day-to-day duties into high-impact revenue and efficiency metrics.',
+    },
+    EDUCATION_CERTIFICATIONS: {
+      title: 'Education & Credential Positioning',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'How to spotlight continuing education and accredited credentials',
+        'Placement optimizations to prevent education from overshadowing achievements',
+        'Recommended professional accreditations for your target role',
+      ],
+      serviceCode: 'RESUME_WRITING',
+      serviceName: 'Professional Resume Writing',
+      priceInr: 2499,
+      reason: 'Properly frame academic foundations and highlight professional credentials.',
+    },
+    FORMATTING_COMPATIBILITY: {
+      title: 'ATS Formatting & Parsing Stability',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'Hidden formatting errors that cause automated parsing to fail',
+        'Table, column, and margin bugs that scramble data in enterprise portals',
+        'Single-column ATS-certified Word and PDF layout template',
+      ],
+      serviceCode: 'ATS_OPTIMISATION',
+      serviceName: 'ATS Resume Optimisation',
+      priceInr: 1999,
+      reason: 'Ensure 100% parse-compliance across Workday, Taleo, and Greenhouse.',
+    },
+    CONTACT_COMPLETENESS: {
+      title: 'Contact Details & Profile Presence',
+      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserBullets: [
+        'Optimized contact header format compliant with privacy & ATS standards',
+        'Custom LinkedIn URL vanity slug and portfolio link formatting',
+        'Location and telephone formatting standards for international recruiters',
+      ],
+      serviceCode: 'LINKEDIN_MAKEOVER',
+      serviceName: 'LinkedIn Profile Makeover',
+      priceInr: 2999,
+      reason: 'Unify your contact presence and elevate your digital recruiter footprint.',
+    },
+  };
+
+  // Build locked improvement cards for categories needing work (sorted by weakest rawScore first)
+  const sortedCategories = [...assessment.categories].sort((a, b) => a.rawScore - b.rawScore);
+  const improvementAreas: LockedImprovementCard[] = [];
+
+  for (const cat of sortedCategories) {
+    if (cat.rawScore < 85) {
+      const teaser = categoryTeaserMap[cat.category];
+      if (teaser) {
+        improvementAreas.push({
+          id: `imp_${cat.category.toLowerCase()}`,
+          category: cat.category,
+          title: teaser.title,
+          teaserSubtitle: teaser.teaserSubtitle,
+          teaserBullets: teaser.teaserBullets,
+          recommendedServiceCode: teaser.serviceCode,
+          recommendedServiceName: teaser.serviceName,
+          servicePriceInr: teaser.priceInr,
+          reason: teaser.reason,
+        });
+      }
+    }
+  }
+
+  // If candidate scored high across all, still provide top 2 enhancement blueprints
+  if (improvementAreas.length === 0) {
+    const top2 = sortedCategories.slice(0, 2);
+    for (const cat of top2) {
+      const teaser = categoryTeaserMap[cat.category];
+      if (teaser) {
+        improvementAreas.push({
+          id: `imp_${cat.category.toLowerCase()}`,
+          category: cat.category,
+          title: teaser.title,
+          teaserSubtitle: teaser.teaserSubtitle,
+          teaserBullets: teaser.teaserBullets,
+          recommendedServiceCode: teaser.serviceCode,
+          recommendedServiceName: teaser.serviceName,
+          servicePriceInr: teaser.priceInr,
+          reason: teaser.reason,
+        });
+      }
+    }
+  }
+
+  // Determine Primary & Secondary Recommended Services based on actual weakest categories
+  const weakest = sortedCategories[0]?.category;
+  let primaryService: RecommendedServiceItem = {
+    code: 'ATS_OPTIMISATION',
+    name: 'ATS Resume Optimisation',
+    priceInr: 1999,
+    tagline: 'Algorithmic keyword optimization ensuring 90%+ parse scores across Workday, Taleo, and Greenhouse.',
+    addressedAreas: ['ATS Layout & Tables', 'Keyword Frequency Injection', 'Parse Verification'],
+    isPrimary: true,
+  };
+
+  let secondaryService: RecommendedServiceItem = {
+    code: 'RESUME_WRITING',
+    name: 'Professional Resume Writing',
+    priceInr: 2499,
+    tagline: 'Executive-level resume writing tailored for leadership and international placement.',
+    addressedAreas: ['Accomplishment Metric Phrasing', 'Executive Elevator Pitch', 'C-A-R Bullets'],
+    isPrimary: false,
+  };
+
+  if (weakest === 'EXPERIENCE_ACHIEVEMENTS' || weakest === 'PROFESSIONAL_SUMMARY') {
+    primaryService = {
+      code: 'RESUME_WRITING',
+      name: 'Professional Resume Writing',
+      priceInr: 2499,
+      tagline: 'Executive-level resume writing tailored for leadership and international placement.',
+      addressedAreas: ['Accomplishment Metric Phrasing', 'Executive Elevator Pitch', 'C-A-R Bullets'],
+      isPrimary: true,
+    };
+    secondaryService = {
+      code: 'ATS_OPTIMISATION',
+      name: 'ATS Resume Optimisation',
+      priceInr: 1999,
+      tagline: 'Algorithmic keyword optimization ensuring 90%+ parse scores across Workday, Taleo, and Greenhouse.',
+      addressedAreas: ['ATS Layout & Tables', 'Keyword Frequency Injection', 'Parse Verification'],
+      isPrimary: false,
+    };
+  } else if (weakest === 'CONTACT_COMPLETENESS') {
+    secondaryService = {
+      code: 'LINKEDIN_MAKEOVER',
+      name: 'LinkedIn Profile Makeover',
+      priceInr: 2999,
+      tagline: 'Transform your LinkedIn profile into a recruiter magnet with SEO headlines and storytelling About section.',
+      addressedAreas: ['LinkedIn Headline & Story', 'Recruiter Search Discoverability', 'Featured Assets'],
+      isPrimary: false,
+    };
+  }
+
+  // Job Match calculation if jobDescription provided
+  const hasJobDescription = Boolean(jobDescription && jobDescription.trim().length > 30);
+  let jobMatchScore: number | undefined;
+  let jobMatchKeywordSummary: PublicAtsAuditResult['jobMatchKeywordSummary'] | undefined;
+
+  if (hasJobDescription) {
+    const matchedCount = assessment.matchedKeywords.length;
+    const missingCount = assessment.missingKeywords.length;
+    const totalKeywords = Math.max(1, matchedCount + missingCount);
+    jobMatchScore = Math.min(95, Math.max(35, Math.round((matchedCount / totalKeywords) * 100)));
+    jobMatchKeywordSummary = {
+      matchedCount,
+      sampleKeywords: assessment.matchedKeywords.slice(0, 5),
+    };
+  }
+
+  return {
+    assessmentId: assessment.assessmentId,
+    timestamp: assessment.timestamp,
+    targetRole: assessment.targetRole,
+    targetIndustry: assessment.targetIndustry,
+    overallScore: assessment.overallScore,
+    grade: assessment.grade,
+    interpretation,
+    summary: assessment.summary,
+    hasJobDescription,
+    jobMatchScore,
+    jobMatchKeywordSummary,
+    categories,
+    strengthTitles,
+    improvementAreas: improvementAreas.slice(0, 5),
+    recommendedServices: [primaryService, secondaryService],
+    isLocked: true,
+  };
+}
+
 

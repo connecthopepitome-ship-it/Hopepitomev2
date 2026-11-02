@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/career/admin/AdminLayout';
 import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import {
@@ -61,6 +61,19 @@ export default function AtsCheckerWorkspacePage() {
     }
   };
 
+  const [adminAnalytics, setAdminAnalytics] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/career/admin/ats-analytics')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setAdminAnalytics(data.stats);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const handleRunEvaluation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resumeText.trim() || resumeText.length < 50) {
@@ -82,6 +95,7 @@ export default function AtsCheckerWorkspacePage() {
           targetIndustry,
           jobDescription,
           fileName,
+          isPublic: false, // Internal admin gets full unredacted recommendations
         }),
       });
 
@@ -122,7 +136,46 @@ export default function AtsCheckerWorkspacePage() {
               Audits resumes across Fortune 500 ATS benchmark rules with multi-provider free AI failover.
             </p>
           </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/ats-resume-checker"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] text-white text-xs font-bold shadow-sm hover:opacity-95"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Open Public ATS Checker</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
+
+        {/* Live Conversion & Acquisition Metrics Banner */}
+        {adminAnalytics && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Total Audits</span>
+              <span className="text-2xl font-extrabold text-slate-900 mt-0.5 block">{adminAnalytics.totalAudits}</span>
+              <span className="text-[11px] text-slate-400">Public & admin submissions</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#10B981] block">Converted to Enquiries</span>
+              <span className="text-2xl font-extrabold text-[#10B981] mt-0.5 block">{adminAnalytics.convertedAudits}</span>
+              <span className="text-[11px] text-slate-400">Customer leads acquired</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#635BDB] block">Conversion Rate</span>
+              <span className="text-2xl font-extrabold text-[#635BDB] mt-0.5 block">{adminAnalytics.conversionRate}%</span>
+              <span className="text-[11px] text-slate-400">Audit-to-lead ratio</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#14B8A6] block">Active AI Engine</span>
+              <span className="text-base font-extrabold text-[#111B35] mt-1 block">Groq LPU (Qwen 3.8)</span>
+              <span className="text-[11px] text-[#10B981] font-semibold">100% Free-Tier Verified</span>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Input Configuration Column */}
