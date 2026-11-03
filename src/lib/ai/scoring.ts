@@ -155,10 +155,10 @@ ${input.anonymizedText}
 
 REQUIRED JSON STRUCTURE:
 {
-  "inferredDomain": "Primary industry or professional sector (e.g. Healthcare, Software, Supply Chain)",
+  "inferredDomain": "Primary industry or domain (e.g. Healthcare, Software, Supply Chain, Finance)",
   "careerStage": "One of: Student / Graduate | Entry-level | Early career | Mid-career | Experienced professional | Senior professional | Manager / Leadership | Executive | Career changer",
   "inferredRole": "Identified primary profession or candidate title",
-  "summary": "2-3 sentence executive summary of resume strengths and professional trajectory",
+  "summary": "2-3 sentence executive assessment of resume quality and trajectory",
   "generalQualityScore": 82,
   "atsCompatibilityScore": 88,
   "jobMatch": ${
@@ -166,21 +166,21 @@ REQUIRED JSON STRUCTURE:
       ? `{
     "score": 78,
     "requiredSkillsFound": ["Skill A", "Skill B"],
-    "transferableSkillsFound": ["Skill C", "Skill D"],
-    "requiredSkillsNotEvidenced": ["Skill E"],
-    "preferredSkillsFound": ["Skill F"],
+    "transferableSkillsFound": ["Skill C"],
+    "requiredSkillsNotEvidenced": ["Skill D"],
+    "preferredSkillsFound": ["Skill E"],
     "experienceAlignmentSummary": "Brief semantic alignment evaluation"
   }`
       : 'null'
   },
   "topStrengths": [
-    "Strength 1: Concise title with verified evidence",
-    "Strength 2: Concise title with verified evidence",
-    "Strength 3: Concise title with verified evidence"
+    "Concise title with verified evidence",
+    "Concise title with verified evidence",
+    "Concise title with verified evidence"
   ],
   "criticalGaps": [
-    "Opportunity 1: Actionable improvement area",
-    "Opportunity 2: Actionable improvement area"
+    "Actionable improvement area",
+    "Actionable improvement area"
   ],
   "matchedKeywords": ["Keyword1", "Keyword2", "Keyword3"],
   "missingKeywords": ["OptionalKeyword1", "OptionalKeyword2"],
@@ -189,10 +189,10 @@ REQUIRED JSON STRUCTURE:
       "category": "STRUCTURE_READABILITY",
       "rawScore": 85,
       "confidence": "HIGH",
-      "evidencePoints": ["Clear section headings", "Readable bullet formatting"],
+      "evidencePoints": ["Logical headings and clean section layout"],
       "missingElements": [],
-      "rationale": "Clear hierarchy and logical ordering facilitate rapid human review and automated indexing.",
-      "recommendations": ["Enhance visual separation between previous employers"]
+      "rationale": "Clear hierarchy facilitates rapid human review and automated indexing.",
+      "recommendations": ["Enhance visual separation between previous roles"]
     },
     {
       "category": "PROFESSIONAL_SUMMARY",
@@ -201,42 +201,42 @@ REQUIRED JSON STRUCTURE:
       "evidencePoints": ["Clear statement of career focus"],
       "missingElements": [],
       "rationale": "Opening overview articulates core value proposition and career level.",
-      "recommendations": ["Sharpen the opening sentence to highlight primary specialization"]
+      "recommendations": ["Sharpen opening sentence to highlight primary specialization"]
     },
     {
       "category": "SKILLS_RELEVANCE",
-      "rawScore": 80,
+      "rawScore": 82,
       "confidence": "HIGH",
-      "evidencePoints": ["Relevant domain tools and methodologies cited"],
+      "evidencePoints": ["Domain tools and methodologies cited"],
       "missingElements": [],
       "rationale": "Core competencies reflect modern practices appropriate to this discipline.",
       "recommendations": ["Group skills into logical sub-categories"]
     },
     {
       "category": "EXPERIENCE_ACHIEVEMENTS",
-      "rawScore": 75,
+      "rawScore": 78,
       "confidence": "HIGH",
-      "evidencePoints": ["Clear responsibilities and key projects described"],
+      "evidencePoints": ["Responsibilities and outcomes described"],
       "missingElements": [],
       "rationale": "Work experience demonstrates meaningful contribution and functional progression.",
-      "recommendations": ["Highlight the direct outcome or stakeholder benefit of major responsibilities"]
+      "recommendations": ["Highlight the direct outcome or stakeholder benefit of major projects"]
     },
     {
       "category": "EDUCATION_CERTIFICATIONS",
       "rawScore": 85,
       "confidence": "HIGH",
-      "evidencePoints": ["Relevant educational background and training noted"],
+      "evidencePoints": ["Academic background and credentials noted"],
       "missingElements": [],
       "rationale": "Academic foundations and continuous learning are clearly positioned.",
       "recommendations": ["Include dates or awarding institutions where helpful"]
     },
     {
       "category": "FORMATTING_COMPATIBILITY",
-      "rawScore": 85,
+      "rawScore": 88,
       "confidence": "HIGH",
-      "evidencePoints": ["Standard chronological layout", "Clean text flow"],
+      "evidencePoints": ["Standard text flow and clear hierarchy"],
       "missingElements": [],
-      "rationale": "Standard fonts and clear hierarchy ensure seamless text extraction across parsers.",
+      "rationale": "Standard layout ensures seamless text extraction across parsers.",
       "recommendations": ["Maintain consistent date and location alignment"]
     },
     {

@@ -93,69 +93,101 @@ export class GeminiAdapter implements AiProviderAdapter {
     }
 
     const { systemPrompt, userPrompt } = buildAtsPrompt(input);
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${apiKey}`;
+    const candidateModels = Array.from(new Set([this.modelName, 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite']));
+    let lastError: any = null;
 
-    try {
-      const payload = {
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+    for (const model of candidateModels) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      try {
+        const payload = {
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+            },
+          ],
+          generationConfig: {
+            response_mime_type: 'application/json',
+            temperature: 0.2,
+            maxOutputTokens: 2500,
           },
-        ],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          temperature: 0.2,
-          maxOutputTokens: 3000,
-        },
-      };
+        };
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
 
-      const durationMs = Date.now() - startTime;
+        const durationMs = Date.now() - startTime;
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const isRateLimit = res.status === 429;
-        const isDailyQuota = errText.toLowerCase().includes('resource_exhausted') || errText.toLowerCase().includes('quota');
+        if (!res.ok) {
+          const errText = await res.text();
+          const isRateLimit = res.status === 429;
+          const isDailyQuota = errText.toLowerCase().includes('resource_exhausted') || errText.toLowerCase().includes('quota');
+          lastError = {
+            success: false,
+            durationMs,
+            errorCode: res.status,
+            errorReason: `Gemini HTTP ${res.status} (${model}): ${errText.substring(0, 300)}`,
+            isRateLimit,
+            isDailyQuota,
+          };
+          // If 503 (high demand) or 404, try the next model candidate
+          if (res.status === 503 || res.status === 404) {
+            continue;
+          }
+          return lastError;
+        }
+
+        const json = await res.json() as any;
+        const parts = json?.candidates?.[0]?.content?.parts || [];
+        const textPart = parts.find((p: any) => p.text && !p.thought) || parts.find((p: any) => p.text) || parts[0];
+        const candidateText = textPart?.text || '';
+        const parsed = cleanJsonText(candidateText);
+
+        if (!parsed) {
+          lastError = {
+            success: false,
+            durationMs,
+            errorCode: 502,
+            errorReason: `Gemini (${model}) returned non-JSON content`,
+          };
+          continue;
+        }
+
+        // Successfully updated active model
+        this.modelName = model;
+
         return {
-          success: false,
+          success: true,
+          rawJson: parsed,
           durationMs,
-          errorCode: res.status,
-          errorReason: `Gemini HTTP ${res.status}: ${errText.substring(0, 300)}`,
-          isRateLimit,
-          isDailyQuota,
+          tokensUsed: {
+            promptTokens: json?.usageMetadata?.promptTokenCount || 0,
+            completionTokens: json?.usageMetadata?.candidatesTokenCount || 0,
+            totalTokens: json?.usageMetadata?.totalTokenCount || 0,
+          },
+        };
+      } catch (err: any) {
+        lastError = {
+          success: false,
+          durationMs: Date.now() - startTime,
+          errorCode: 500,
+          errorReason: `Gemini (${model}) Network/Parsing Error: ${err.message}`,
         };
       }
+    }
 
-      const json = await res.json() as any;
-      const parts = json?.candidates?.[0]?.content?.parts || [];
-      const textPart = parts.find((p: any) => p.text && !p.thought) || parts.find((p: any) => p.text) || parts[0];
-      const candidateText = textPart?.text || '';
-      const parsed = cleanJsonText(candidateText);
-
-      return {
-        success: true,
-        rawJson: parsed,
-        durationMs,
-        tokensUsed: {
-          promptTokens: json?.usageMetadata?.promptTokenCount || 0,
-          completionTokens: json?.usageMetadata?.candidatesTokenCount || 0,
-          totalTokens: json?.usageMetadata?.totalTokenCount || 0,
-        },
-      };
-    } catch (err: any) {
-      return {
+    return (
+      lastError || {
         success: false,
         durationMs: Date.now() - startTime,
         errorCode: 500,
-        errorReason: `Gemini Network/Parsing Error: ${err.message}`,
-      };
-    }
+        errorReason: 'All Gemini model candidates exhausted',
+      }
+    );
   }
 }
 
@@ -191,75 +223,97 @@ export class GroqAdapter implements AiProviderAdapter {
 
     const { systemPrompt, userPrompt } = buildAtsPrompt(input);
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    const candidateModels = Array.from(new Set([this.modelName, 'openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.8-27b']));
+    let lastError: any = null;
 
-    try {
-      const payload = {
-        model: this.modelName,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.2,
-        max_tokens: 2200,
-      };
+    for (const model of candidateModels) {
+      try {
+        const payload = {
+          model,
+          messages: [
+            { role: 'system', content: `${systemPrompt}\nOutput valid JSON.` },
+            { role: 'user', content: userPrompt },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+          max_tokens: 1600,
+        };
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(payload),
+        });
 
-      const durationMs = Date.now() - startTime;
+        const durationMs = Date.now() - startTime;
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const isRateLimit = res.status === 429 || res.status === 413;
-        const isDailyQuota = errText.toLowerCase().includes('rate_limit_exceeded') || errText.toLowerCase().includes('daily');
+        if (!res.ok) {
+          const errText = await res.text();
+          const isRateLimit = res.status === 429 || res.status === 413;
+          const isDailyQuota = errText.toLowerCase().includes('rate_limit_exceeded') || errText.toLowerCase().includes('daily');
+          lastError = {
+            success: false,
+            durationMs,
+            errorCode: res.status,
+            errorReason: `Groq HTTP ${res.status} (${model}): ${errText.substring(0, 300)}`,
+            isRateLimit,
+            isDailyQuota,
+          };
+          // If 413 (payload/OTPM limit) or 429 (rate limit), try next candidate model
+          if (res.status === 413 || res.status === 429) {
+            continue;
+          }
+          return lastError;
+        }
+
+        const json = await res.json() as any;
+        const content = json?.choices?.[0]?.message?.content;
+        const parsed = cleanJsonText(content);
+
+        if (!parsed) {
+          lastError = {
+            success: false,
+            durationMs,
+            errorCode: 502,
+            errorReason: `Groq (${model}) returned non-JSON content`,
+          };
+          continue;
+        }
+
+        // Successfully updated active model
+        this.modelName = model;
+
         return {
-          success: false,
+          success: true,
+          rawJson: parsed,
           durationMs,
-          errorCode: res.status,
-          errorReason: `Groq HTTP ${res.status}: ${errText.substring(0, 300)}`,
-          isRateLimit,
-          isDailyQuota,
+          tokensUsed: {
+            promptTokens: json?.usage?.prompt_tokens || 0,
+            completionTokens: json?.usage?.completion_tokens || 0,
+            totalTokens: json?.usage?.total_tokens || 0,
+          },
+        };
+      } catch (err: any) {
+        lastError = {
+          success: false,
+          durationMs: Date.now() - startTime,
+          errorCode: 500,
+          errorReason: `Groq (${model}) Network/Parsing Error: ${err.message}`,
         };
       }
+    }
 
-      const json = await res.json() as any;
-      const content = json?.choices?.[0]?.message?.content;
-      const parsed = cleanJsonText(content);
-
-      if (!parsed) {
-        return {
-          success: false,
-          durationMs,
-          errorCode: 502,
-          errorReason: 'Groq returned non-JSON content',
-        };
-      }
-
-      return {
-        success: true,
-        rawJson: parsed,
-        durationMs,
-        tokensUsed: {
-          promptTokens: json?.usage?.prompt_tokens || 0,
-          completionTokens: json?.usage?.completion_tokens || 0,
-          totalTokens: json?.usage?.total_tokens || 0,
-        },
-      };
-    } catch (err: any) {
-      return {
+    return (
+      lastError || {
         success: false,
         durationMs: Date.now() - startTime,
         errorCode: 500,
-        errorReason: `Groq Network/Parsing Error: ${err.message}`,
-      };
-    }
+        errorReason: 'All Groq model candidates exhausted',
+      }
+    );
   }
 }
 
@@ -363,77 +417,98 @@ export class OpenRouterAdapter implements AiProviderAdapter {
 
     const { systemPrompt, userPrompt } = buildAtsPrompt(input);
     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    const candidateModels = Array.from(new Set([this.modelName, 'liquid/lfm-2.5-2.6b:free', 'nvidia/nemotron-3.5-lightning:free', 'cohere/north-mini-code:free']));
+    let lastError: any = null;
 
-    try {
-      const payload = {
-        model: this.modelName,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.2,
-        max_tokens: 2200,
-      };
+    for (const model of candidateModels) {
+      try {
+        const payload = {
+          model,
+          messages: [
+            { role: 'system', content: `${systemPrompt}\nOutput valid JSON.` },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.2,
+          max_tokens: 1600,
+        };
 
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://hopepitome.com',
-          'X-Title': 'Hopepitome ATS Checker',
-        },
-        body: JSON.stringify(payload),
-      });
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://hopepitome.com',
+            'X-Title': 'Hopepitome ATS Checker',
+          },
+          body: JSON.stringify(payload),
+        });
 
-      const durationMs = Date.now() - startTime;
+        const durationMs = Date.now() - startTime;
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const isRateLimit = res.status === 429 || res.status === 413;
-        const isDailyQuota = errText.toLowerCase().includes('quota') || errText.toLowerCase().includes('credits');
+        if (!res.ok) {
+          const errText = await res.text();
+          const isRateLimit = res.status === 429 || res.status === 413;
+          const isDailyQuota = errText.toLowerCase().includes('quota') || errText.toLowerCase().includes('credits');
+          lastError = {
+            success: false,
+            durationMs,
+            errorCode: res.status,
+            errorReason: `OpenRouter HTTP ${res.status} (${model}): ${errText.substring(0, 300)}`,
+            isRateLimit,
+            isDailyQuota,
+          };
+          // Try next model if rate limited or server error
+          if (res.status === 429 || res.status === 503 || res.status === 404) {
+            continue;
+          }
+          return lastError;
+        }
+
+        const json = await res.json() as any;
+        const content = json?.choices?.[0]?.message?.content;
+        const parsed = cleanJsonText(content);
+
+        if (!parsed) {
+          lastError = {
+            success: false,
+            durationMs,
+            errorCode: 502,
+            errorReason: `OpenRouter (${model}) returned non-JSON content`,
+          };
+          continue;
+        }
+
+        // Successfully updated active model
+        this.modelName = model;
+
         return {
-          success: false,
+          success: true,
+          rawJson: parsed,
           durationMs,
-          errorCode: res.status,
-          errorReason: `OpenRouter HTTP ${res.status}: ${errText.substring(0, 300)}`,
-          isRateLimit,
-          isDailyQuota,
+          tokensUsed: {
+            promptTokens: json?.usage?.prompt_tokens || 0,
+            completionTokens: json?.usage?.completion_tokens || 0,
+            totalTokens: json?.usage?.total_tokens || 0,
+          },
+        };
+      } catch (err: any) {
+        lastError = {
+          success: false,
+          durationMs: Date.now() - startTime,
+          errorCode: 500,
+          errorReason: `OpenRouter (${model}) Network/Parsing Error: ${err.message}`,
         };
       }
+    }
 
-      const json = await res.json() as any;
-      const content = json?.choices?.[0]?.message?.content;
-      const parsed = cleanJsonText(content);
-
-      if (!parsed) {
-        return {
-          success: false,
-          durationMs,
-          errorCode: 502,
-          errorReason: 'OpenRouter returned non-JSON content',
-        };
-      }
-
-      return {
-        success: true,
-        rawJson: parsed,
-        durationMs,
-        tokensUsed: {
-          promptTokens: json?.usage?.prompt_tokens || 0,
-          completionTokens: json?.usage?.completion_tokens || 0,
-          totalTokens: json?.usage?.total_tokens || 0,
-        },
-      };
-    } catch (err: any) {
-      return {
+    return (
+      lastError || {
         success: false,
         durationMs: Date.now() - startTime,
         errorCode: 500,
-        errorReason: `OpenRouter Network/Parsing Error: ${err.message}`,
-      };
-    }
+        errorReason: 'All OpenRouter model candidates exhausted',
+      }
+    );
   }
 }
 

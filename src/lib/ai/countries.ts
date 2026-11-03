@@ -221,3 +221,4 @@ export function calculateCountryAlignmentScore(
     100;
   return Math.max(20, Math.min(98, Math.round(weighted)));
 }
+

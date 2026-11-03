@@ -177,3 +177,4 @@ export interface PublicCareerIntelligence {
     suggestedTransitionPathways: string[];
   };
 }
+
