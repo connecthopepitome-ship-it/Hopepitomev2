@@ -17,8 +17,8 @@ export function anonymizeResumeText(
   if (!rawText) {
     return {
       anonymizedText: '',
-      targetRole: targetRole || 'Target Professional Role',
-      targetIndustry: targetIndustry || 'Technology / Corporate',
+      targetRole: targetRole || '',
+      targetIndustry: targetIndustry || '',
       jobDescription: jobDescription || '',
       originalFileName: fileName || 'resume.pdf',
       characterCount: 0,
@@ -68,8 +68,8 @@ export function anonymizeResumeText(
 
   return {
     anonymizedText: text,
-    targetRole: (targetRole || 'Experienced Professional').trim(),
-    targetIndustry: (targetIndustry || 'Technology / Corporate Services').trim(),
+    targetRole: (targetRole || '').trim(),
+    targetIndustry: (targetIndustry || '').trim(),
     jobDescription: cappedJd,
     originalFileName: fileName || 'Candidate_Resume.pdf',
     characterCount: text.length,

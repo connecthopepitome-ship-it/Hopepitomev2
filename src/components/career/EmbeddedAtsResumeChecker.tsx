@@ -35,6 +35,7 @@ import type {
   RecommendedServiceItem,
   RoleMatchCategory,
 } from '@/lib/ai/types';
+import { extractCleanTextFromDocument } from '@/lib/document-parser';
 
 // Sample preview data for interactive demonstration
 const SAMPLE_PREVIEW: PublicAtsAuditResult = {
@@ -370,42 +371,6 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
   const checkerSectionRef = useRef<HTMLDivElement>(null);
 
-  // Text extraction from PDF / DOCX / TXT buffer
-  const extractCleanTextFromBuffer = (buffer: ArrayBuffer, name: string): string => {
-    const decoder = new TextDecoder('latin1');
-    const raw = decoder.decode(buffer);
-
-    if (name.toLowerCase().endsWith('.pdf')) {
-      const matches: string[] = [];
-      const parenRegex = /\(([^()\\]*(?:\\.[^()\\]*)*)\)/g;
-      let m;
-      while ((m = parenRegex.exec(raw)) !== null) {
-        const str = m[1].replace(/\\[nrtbf]/g, ' ').replace(/\\/g, '').trim();
-        if (str.length >= 2 && /[a-zA-Z]{2,}/.test(str) && !str.startsWith('/') && !str.startsWith('Font')) {
-          matches.push(str);
-        }
-      }
-
-      if (matches.length >= 15) {
-        let combined = matches.join(' ').replace(/\s{2,}/g, ' ').trim();
-        if (combined.length > 7000) combined = combined.substring(0, 7000);
-        return combined;
-      }
-    }
-
-    let text = raw
-      .replace(/%PDF-[\d.]+/g, '')
-      .replace(/<<[\s\S]*?>>/g, ' ')
-      .replace(/stream[\s\S]*?endstream/g, ' ')
-      .replace(/\b(obj|endobj|xref|trailer|startxref|\/Filter|\/FlateDecode|\/Length\d*)\b/gi, ' ')
-      .replace(/[^\x20-\x7E\t\n\r]/g, ' ')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-
-    if (text.length > 7000) text = text.substring(0, 7000);
-    return text;
-  };
-
   const handleFile = async (selectedFile: File | null) => {
     if (!selectedFile) return;
 
@@ -432,14 +397,14 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     try {
       const buffer = await selectedFile.arrayBuffer();
-      const extracted = extractCleanTextFromBuffer(buffer, selectedFile.name);
-      if (extracted.length < 50) {
-        setGenericErrorMessage('We could not read enough clear text from this file. Please ensure it is not scanned as an image.');
+      const extracted = await extractCleanTextFromDocument(buffer, selectedFile.name);
+      if (!extracted || extracted.length < 50) {
+        setGenericErrorMessage('We could not read enough clear text from this file. Please ensure it is a text-based PDF or Word document rather than a flat image scan.');
         return;
       }
       setResumeText(extracted);
-    } catch {
-      setGenericErrorMessage('Failed to read file content. Please try another format.');
+    } catch (err: any) {
+      setGenericErrorMessage('Failed to read file content. Please try another file or plain text format.');
     }
   };
 

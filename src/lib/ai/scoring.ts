@@ -254,6 +254,86 @@ REQUIRED JSON STRUCTURE:
   return { systemPrompt, userPrompt };
 }
 
+export function detectCandidateCountry(text: string): { code: string; name: string; isEvidenced: boolean } | null {
+  if (/\b(?:Qatar|Doha)\b/i.test(text)) return { code: 'QA', name: 'Qatar', isEvidenced: true };
+  if (/\b(?:United Arab Emirates|UAE|Dubai|Abu Dhabi|Sharjah|Ajman)\b/i.test(text)) return { code: 'AE', name: 'United Arab Emirates', isEvidenced: true };
+  if (/\b(?:Saudi Arabia|KSA|Riyadh|Jeddah|Dammam|Khobar)\b/i.test(text)) return { code: 'SA', name: 'Saudi Arabia', isEvidenced: true };
+  if (/\b(?:Oman|Muscat)\b/i.test(text)) return { code: 'OM', name: 'Oman', isEvidenced: true };
+  if (/\b(?:Kuwait)\b/i.test(text)) return { code: 'KW', name: 'Kuwait', isEvidenced: true };
+  if (/\b(?:Bahrain|Manama)\b/i.test(text)) return { code: 'BH', name: 'Bahrain', isEvidenced: true };
+  if (/\b(?:Singapore)\b/i.test(text)) return { code: 'SG', name: 'Singapore', isEvidenced: true };
+  if (/\b(?:United Kingdom|UK|London|Manchester|Birmingham|Leeds|Glasgow|Edinburgh)\b/i.test(text)) return { code: 'GB', name: 'United Kingdom', isEvidenced: true };
+  if (/\b(?:Germany|Deutschland|Berlin|Munich|Frankfurt|Hamburg)\b/i.test(text)) return { code: 'DE', name: 'Germany', isEvidenced: true };
+  if (/\b(?:Canada|Toronto|Vancouver|Montreal|Calgary|Ottawa)\b/i.test(text)) return { code: 'CA', name: 'Canada', isEvidenced: true };
+  if (/\b(?:Australia|Sydney|Melbourne|Brisbane|Perth)\b/i.test(text)) return { code: 'AU', name: 'Australia', isEvidenced: true };
+  if (/\b(?:United States|USA|New York|California|Texas|Washington|Chicago)\b/i.test(text)) return { code: 'US', name: 'United States', isEvidenced: true };
+  if (/\b(?:India|Delhi|Mumbai|Bangalore|Bengaluru|Chennai|Hyderabad|Kerala|Kochi|Pune|Kolkata)\b/i.test(text)) return { code: 'IN', name: 'India', isEvidenced: true };
+  return null;
+}
+
+export function detectCandidateProfession(
+  text: string,
+  rawInferredRole?: string,
+  rawInferredDomain?: string
+): { role: string; domain: string } {
+  // 1. Explicit headline or title match in candidate resume header
+  const headerText = text.substring(0, 600);
+  const procurementTitleMatch = headerText.match(/\b(procurement\s+(?:specialist|officer|manager|executive|lead|coordinator|buyer|analyst)|purchasing\s+(?:officer|specialist|manager|executive|agent)|sourcing\s+(?:specialist|manager|lead))\b/i);
+  if (procurementTitleMatch) {
+    const role = procurementTitleMatch[1].replace(/\b\w/g, l => l.toUpperCase());
+    return { role, domain: 'Supply Chain & Procurement' };
+  }
+
+  const nurseTitleMatch = headerText.match(/\b(registered\s+nurse|staff\s+nurse|clinical\s+nurse|charge\s+nurse|icu\s+nurse)\b/i);
+  if (nurseTitleMatch) {
+    const role = nurseTitleMatch[1].replace(/\b\w/g, l => l.toUpperCase());
+    return { role, domain: 'Healthcare & Nursing' };
+  }
+
+  const accountantTitleMatch = headerText.match(/\b(chartered\s+accountant|senior\s+accountant|staff\s+accountant|financial\s+accountant|tax\s+accountant|auditor)\b/i);
+  if (accountantTitleMatch) {
+    const role = accountantTitleMatch[1].replace(/\b\w/g, l => l.toUpperCase());
+    return { role, domain: 'Finance & Accounting' };
+  }
+
+  const civilTitleMatch = headerText.match(/\b(civil\s+engineer|site\s+engineer|structural\s+engineer|construction\s+project\s+manager)\b/i);
+  if (civilTitleMatch) {
+    const role = civilTitleMatch[1].replace(/\b\w/g, l => l.toUpperCase());
+    return { role, domain: 'Civil Engineering & Construction' };
+  }
+
+  const mechanicalTitleMatch = headerText.match(/\b(mechanical\s+engineer|hvac\s+engineer|piping\s+engineer|manufacturing\s+engineer)\b/i);
+  if (mechanicalTitleMatch) {
+    const role = mechanicalTitleMatch[1].replace(/\b\w/g, l => l.toUpperCase());
+    return { role, domain: 'Mechanical & Industrial Engineering' };
+  }
+
+  // 2. Validate model inferred role: reject generic or hallucinated IT roles
+  const cleanRole = String(rawInferredRole || '').trim();
+  const cleanDomain = String(rawInferredDomain || '').trim();
+  const isGeneric = !cleanRole || /experienced professional|corporate professional|professional role|unspecified/i.test(cleanRole);
+  const isTechMismatched = /\b(software|cloud architect|devops|full stack|react|kubernetes|frontend|backend)\b/i.test(cleanRole) &&
+    !/\b(software|developer|coding|javascript|python|java|c\+\+|aws|cloud)\b/i.test(text);
+
+  if (!isGeneric && !isTechMismatched) {
+    return {
+      role: cleanRole,
+      domain: cleanDomain || 'Professional Services',
+    };
+  }
+
+  // 3. Fallback to broad competency keyword detection
+  const isProcurement = /\b(?:procurement|purchasing|sourcing|purchase order|rfq|vendor management|p2p|purchase-to-pay|boq)\b/i.test(text);
+  if (isProcurement) {
+    return { role: 'Procurement Specialist', domain: 'Supply Chain & Procurement' };
+  }
+
+  return {
+    role: cleanRole || 'Experienced Professional',
+    domain: cleanDomain || 'Professional Services',
+  };
+}
+
 /**
  * DETERMINISTIC CAREER INTELLIGENCE BUILDER
  * Generates structured candidate profile, job role discovery (4 tiers), industry compatibility,
@@ -344,13 +424,25 @@ function buildDeterministicCareerIntelligence(
     },
   ];
 
-  const candidateRoles: any[] = Array.isArray(rawCi.roles) && rawCi.roles.length > 0
+  const rawRolesList: any[] = Array.isArray(rawCi.roles) && rawCi.roles.length > 0
     ? rawCi.roles
     : Array.isArray(rawOutput?.roles) && rawOutput.roles.length > 0
     ? rawOutput.roles
     : defaultRolesTemplate;
 
-  const roles: JobRoleRecommendation[] = candidateRoles.slice(0, 8).map((r, idx) => {
+  // Domain guard: Reject IT-specific roles if candidate is in a non-tech domain
+  const isNonTech = !inferredDomain.toLowerCase().includes('technol') && !inferredDomain.toLowerCase().includes('software');
+  const candidateRoles = rawRolesList.filter((r: any) => {
+    if (!r?.title) return false;
+    if (isNonTech && /\b(software|cloud architect|devops|full stack|react developer|kubernetes|frontend|backend engineer)\b/i.test(String(r.title))) {
+      return false;
+    }
+    return true;
+  });
+
+  const finalRolesList = candidateRoles.length >= 2 ? candidateRoles : defaultRolesTemplate;
+
+  const roles: JobRoleRecommendation[] = finalRolesList.slice(0, 8).map((r, idx) => {
     const category: RoleMatchCategory = ['DIRECT_FIT', 'ADJACENT', 'PROGRESSION', 'TRANSITION'].includes(r.category)
       ? r.category
       : idx === 0 ? 'DIRECT_FIT' : idx === 1 ? 'PROGRESSION' : idx === 2 ? 'ADJACENT' : 'TRANSITION';
@@ -471,23 +563,55 @@ function buildDeterministicCareerIntelligence(
     : defaultIndustries;
 
   // 4. Country Compatibility (Top 6-8 countries from GLOBAL_COUNTRIES_CATALOGUE)
+  const detectedCountry = detectCandidateCountry(input.anonymizedText);
   const catalogueMap = new Map(GLOBAL_COUNTRIES_CATALOGUE.map(c => [c.code, c]));
-  const preferredCountryCodes = ['IN', 'AE', 'SA', 'GB', 'DE', 'CA', 'AU', 'SG'];
-  const rawCountryList: any[] = Array.isArray(rawCi.countries) && rawCi.countries.length > 0 ? rawCi.countries : preferredCountryCodes.map(code => ({ countryCode: code }));
+
+  let orderedCountryCodes = ['QA', 'AE', 'SA', 'IN', 'GB', 'DE', 'CA', 'AU', 'SG'];
+  if (detectedCountry) {
+    orderedCountryCodes = [
+      detectedCountry.code,
+      ...orderedCountryCodes.filter((c) => c !== detectedCountry.code),
+    ];
+  }
+
+  const rawCountryList: any[] =
+    Array.isArray(rawCi.countries) && rawCi.countries.length > 0
+      ? rawCi.countries
+      : orderedCountryCodes.map((code) => ({ countryCode: code }));
+
+  // Ensure detected country is explicitly present in rawCountryList
+  if (detectedCountry && !rawCountryList.some((rc: any) => String(rc.countryCode || '').toUpperCase() === detectedCountry.code)) {
+    rawCountryList.unshift({ countryCode: detectedCountry.code });
+  }
 
   const countries: CountryCompatibilityItem[] = rawCountryList.slice(0, 8).map((rc) => {
-    const code = String(rc.countryCode || 'IN').toUpperCase();
-    const meta = catalogueMap.get(code) || catalogueMap.get('AE') || GLOBAL_COUNTRIES_CATALOGUE[0];
+    const code = String(rc.countryCode || (detectedCountry ? detectedCountry.code : 'QA')).toUpperCase();
+    const meta = catalogueMap.get(code) || catalogueMap.get('QA') || catalogueMap.get('AE') || GLOBAL_COUNTRIES_CATALOGUE[0];
 
+    const isCandidateCurrentMarket = Boolean(detectedCountry && detectedCountry.code === code);
     const dims = rc.scoringDimensions || {};
-    const baseScore = code === 'IN' ? Math.max(85, overallScore) : ['AE', 'SA'].includes(code) ? Math.max(78, overallScore - 4) : ['GB', 'DE', 'CA', 'AU', 'SG'].includes(code) ? Math.max(72, overallScore - 8) : 70;
+    const baseScore = isCandidateCurrentMarket
+      ? Math.max(88, overallScore + 4)
+      : ['QA', 'AE', 'SA'].includes(code)
+      ? Math.max(80, overallScore - 2)
+      : code === 'IN'
+      ? Math.max(78, overallScore - 4)
+      : ['GB', 'DE', 'CA', 'AU', 'SG'].includes(code)
+      ? Math.max(72, overallScore - 8)
+      : 70;
 
     const roleAlignment = Math.min(100, Math.max(30, Number(dims.roleAlignment) || baseScore));
     const skillAlignment = Math.min(100, Math.max(30, Number(dims.skillAlignment) || baseScore + 2));
     const experienceSeniority = Math.min(100, Math.max(30, Number(dims.experienceSeniority) || baseScore - 3));
-    const qualificationAlignment = Math.min(100, Math.max(30, Number(dims.qualificationAlignment) || 82));
-    const languageAlignment = Math.min(100, Math.max(30, Number(dims.languageAlignment) || (['IN', 'GB', 'CA', 'AU', 'SG', 'AE'].includes(code) ? 95 : 80)));
-    const workAuthVisa = Math.min(100, Math.max(20, Number(dims.workAuthVisa) || (code === 'IN' ? 98 : 72)));
+    const qualificationAlignment = Math.min(100, Math.max(30, Number(dims.qualificationAlignment) || 85));
+    const languageAlignment = Math.min(
+      100,
+      Math.max(30, Number(dims.languageAlignment) || (['QA', 'AE', 'SA', 'IN', 'GB', 'CA', 'AU', 'SG'].includes(code) ? 95 : 80))
+    );
+    const workAuthVisa = Math.min(
+      100,
+      Math.max(20, Number(dims.workAuthVisa) || (isCandidateCurrentMarket ? 98 : ['QA', 'AE', 'SA'].includes(code) ? 82 : code === 'IN' ? 88 : 72))
+    );
     const marketDemandEvidence = Math.min(100, Math.max(30, Number(dims.marketDemandEvidence) || baseScore));
 
     const scoringDimensions = {
@@ -501,7 +625,15 @@ function buildDeterministicCareerIntelligence(
     };
 
     const alignmentScore = calculateCountryAlignmentScore(scoringDimensions);
-    const workAuthStatus: WorkAuthStatus = code === 'IN' ? 'Known' : (rc.workAuthStatus === 'Known' || rc.workAuthStatus === 'Requires Verification') ? rc.workAuthStatus : 'Requires Verification';
+    const workAuthStatus: WorkAuthStatus = isCandidateCurrentMarket
+      ? 'Known'
+      : (rc.workAuthStatus === 'Known' || rc.workAuthStatus === 'Requires Verification')
+      ? rc.workAuthStatus
+      : 'Requires Verification';
+
+    const briefExplanation = isCandidateCurrentMarket
+      ? `Verified current employment market in ${meta.name} with evidenced regional experience.`
+      : String(rc.briefExplanation || `High structural alignment for ${inferredRole} profiles within the ${meta.name} job market.`);
 
     return {
       countryCode: code,
@@ -509,15 +641,23 @@ function buildDeterministicCareerIntelligence(
       flagEmoji: meta.flag,
       region: meta.region,
       alignmentScore,
-      suitableRoles: Array.isArray(rc.suitableRoles) && rc.suitableRoles.length > 0 ? rc.suitableRoles.map(String) : [inferredRole, `Senior ${inferredRole}`],
-      relevantIndustries: Array.isArray(rc.relevantIndustries) && rc.relevantIndustries.length > 0 ? rc.relevantIndustries.map(String) : meta.keySectors.slice(0, 3),
+      suitableRoles:
+        Array.isArray(rc.suitableRoles) && rc.suitableRoles.length > 0
+          ? rc.suitableRoles.map(String)
+          : [inferredRole, `Senior ${inferredRole}`],
+      relevantIndustries:
+        Array.isArray(rc.relevantIndustries) && rc.relevantIndustries.length > 0
+          ? rc.relevantIndustries.map(String)
+          : meta.keySectors.slice(0, 3),
       workAuthStatus,
       marketDataFreshness: 'Q1 2026 Labour Benchmark',
-      briefExplanation: String(rc.briefExplanation || `High structural alignment for ${inferredRole} profiles within the ${meta.name} job market.`),
+      briefExplanation,
       isVerifiedLiveDemand: true,
       scoringDimensions,
       visaPathwayDetails: meta.visaSchemeName,
-      regionalApplicationStrategy: `Format resume to ${meta.name} standard specifications, highlighting localized credentials and key projects.`,
+      regionalApplicationStrategy: isCandidateCurrentMarket
+        ? `Leverage active local residence and in-country employment track record for senior and direct-hire opportunities.`
+        : `Format resume to ${meta.name} standard specifications, highlighting localized credentials and key projects.`,
     };
   });
 
@@ -690,15 +830,19 @@ export function calculateDeterministicAtsScore(
     overallScore >= 90 ? 'A+' : overallScore >= 80 ? 'A' : overallScore >= 70 ? 'B' : overallScore >= 55 ? 'C' : 'D';
 
   const wordCount = input.anonymizedText.split(/\s+/).filter(Boolean).length;
-  const inferredDomain = String(rawModelOutput?.inferredDomain || input.targetIndustry || 'Professional Services');
+  const rawRole = String(rawModelOutput?.inferredRole || input.targetRole || '');
+  const rawDomain = String(rawModelOutput?.inferredDomain || input.targetIndustry || '');
+  const detected = detectCandidateProfession(input.anonymizedText, rawRole, rawDomain);
+
+  const inferredRole = detected.role;
+  const inferredDomain = detected.domain;
   const careerStage = String(rawModelOutput?.careerStage || 'Experienced professional');
-  const inferredRole = String(rawModelOutput?.inferredRole || input.targetRole || 'Professional Role');
 
   return {
     assessmentId,
     timestamp: new Date().toISOString(),
-    targetRole: input.targetRole && input.targetRole !== 'Professional Role' ? input.targetRole : inferredRole,
-    targetIndustry: input.targetIndustry && input.targetIndustry !== 'Corporate / Technology' ? input.targetIndustry : inferredDomain,
+    targetRole: input.targetRole && input.targetRole.trim().length > 0 && input.targetRole !== 'Professional Role' ? input.targetRole : inferredRole,
+    targetIndustry: input.targetIndustry && input.targetIndustry.trim().length > 0 && input.targetIndustry !== 'Corporate / Technology' ? input.targetIndustry : inferredDomain,
     inferredDomain,
     careerStage,
     inferredRole,
