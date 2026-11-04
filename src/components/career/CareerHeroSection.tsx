@@ -48,28 +48,26 @@ export function CareerHeroSection() {
 
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-[#17152F] leading-[1.12]">
-              Your Next Career Move{' '}
+              Make Your Next{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#48C7E8]">
-                Starts Here.
+                Career Move Count.
               </span>
             </h1>
 
             {/* Supporting Text */}
             <p className="text-base sm:text-lg text-[#24233A]/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
-              Resume. LinkedIn. Portfolio. Job Search.{' '}
-              <span className="text-[#17152F] font-semibold">
-                Everything you need to present yourself with confidence.
-              </span>
+              Professional resume support, career positioning and job-search services designed to help you move forward.
             </p>
 
             {/* Dual Action CTAs */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
               <button
                 type="button"
-                onClick={() => scrollTo('#intake')}
+                onClick={() => scrollTo('#resume-checker')}
                 className="w-full sm:w-auto px-7 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#7357F5] hover:opacity-95 shadow-lg shadow-[#7357F5]/30 flex items-center justify-center gap-2.5 transition transform active:scale-95"
               >
-                <span>Build My Career Profile</span>
+                <Sparkles className="w-4 h-4 text-[#FFD66B]" />
+                <span>Check My Resume Free</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -78,7 +76,7 @@ export function CareerHeroSection() {
                 onClick={() => scrollTo('#services')}
                 className="w-full sm:w-auto px-6 py-3.5 rounded-2xl text-sm font-bold text-[#17152F] bg-white hover:bg-white/90 border border-[#7357F5]/20 hover:border-[#7357F5]/40 shadow-sm transition"
               >
-                Explore Services
+                Explore Our Services
               </button>
             </div>
 

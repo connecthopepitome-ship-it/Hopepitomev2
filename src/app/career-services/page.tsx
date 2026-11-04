@@ -1,15 +1,17 @@
 import { CareerNavigation } from '@/components/career/CareerNavigation';
 import { CareerHeroSection } from '@/components/career/CareerHeroSection';
+import { EmbeddedAtsResumeChecker } from '@/components/career/EmbeddedAtsResumeChecker';
 import { CareerIntakeWizard } from '@/components/career/CareerIntakeWizard';
 import { CareerWhyUsSection } from '@/components/career/CareerWhyUsSection';
 import { CareerProcessSection } from '@/components/career/CareerProcessSection';
+import { CareerFaqSection } from '@/components/career/CareerFaqSection';
 import { CareerFinalCtaSection } from '@/components/career/CareerFinalCtaSection';
 import { CareerFooter } from '@/components/career/CareerFooter';
 
 export const metadata = {
-  title: 'Hopepitome Career Services — Modern Digital Career Studio',
+  title: 'Hopepitome Career Services — Free AI Resume Checker & Career Studio',
   description:
-    'Resume writing, ATS optimisation, LinkedIn profile makeovers, portfolio websites, and managed job search assistance for ambitious professionals.',
+    'Free AI resume checker, ATS score assessment, professional resume writing, ATS optimisation, LinkedIn profile makeovers, and career positioning for ambitious professionals.',
 };
 
 export default function CareerServicesPage() {
@@ -20,23 +22,29 @@ export default function CareerServicesPage() {
 
       {/* Main Studio Editorial Flow */}
       <main className="flex-1 flex flex-col">
-        {/* 2. Striking Split-Layout Hero Section */}
+        {/* Section 1 — Career Services Hero */}
         <CareerHeroSection />
 
-        {/* 3. Service Selection & Compact 3-Step Intake Flow */}
+        {/* Section 2 — Embedded AI Resume Checker */}
+        <EmbeddedAtsResumeChecker />
+
+        {/* Section 3 — Service Catalogue & Compact Intake Flow */}
         <CareerIntakeWizard />
 
-        {/* 4. Why Hopepitome Feature Cards */}
+        {/* Section 4 — Why Hopepitome Feature Cards */}
         <CareerWhyUsSection />
 
-        {/* 5. How It Works 3-Step Visual Process */}
+        {/* Section 5 — How It Works 3-Step Visual Process */}
         <CareerProcessSection />
 
-        {/* 6. High-Converting Final Call to Action */}
+        {/* Section 6 — Frequently Asked Questions */}
+        <CareerFaqSection />
+
+        {/* Section 7 — High-Converting Final Call to Action */}
         <CareerFinalCtaSection />
       </main>
 
-      {/* 7. Modern Studio Footer */}
+      {/* 8. Modern Studio Footer */}
       <CareerFooter />
     </div>
   );
