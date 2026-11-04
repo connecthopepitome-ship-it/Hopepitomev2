@@ -654,7 +654,21 @@ export function calculateDeterministicAtsScore(
   const formatScoreSum = formatCategories.reduce((acc, c) => acc + c.weightedScore, 0);
   const atsCompatibilityScore = Math.min(100, Math.round((formatScoreSum / 40) * 100));
 
-  // 4. Dimension C: Job Match Score (Only if Job Description supplied)
+  // 4. Supporting Indicator: Recruiter Visibility (Indicative resume presentation score)
+  const expScore = parsedCategories.find((c) => c.category === 'EXPERIENCE_ACHIEVEMENTS')?.rawScore || 75;
+  const sumScore = parsedCategories.find((c) => c.category === 'PROFESSIONAL_SUMMARY')?.rawScore || 75;
+  const sklScore = parsedCategories.find((c) => c.category === 'SKILLS_RELEVANCE')?.rawScore || 75;
+  const recruiterVisibilityScore = Math.min(100, Math.round(0.4 * expScore + 0.3 * sumScore + 0.3 * sklScore));
+  const recruiterVisibilityLabel: AtsAssessmentResult['recruiterVisibilityLabel'] =
+    recruiterVisibilityScore >= 90
+      ? 'Strong'
+      : recruiterVisibilityScore >= 75
+      ? 'Good potential'
+      : recruiterVisibilityScore >= 60
+      ? 'Needs improvement'
+      : 'Requires significant improvement';
+
+  // 5. Dimension C: Job Match Score (Only if Job Description supplied)
   const hasJobDescription = Boolean(input.jobDescription && input.jobDescription.trim().length >= 30);
   let jobMatchScore: number | null = null;
   let jobMatchDetails: AtsAssessmentResult['jobMatchDetails'] = undefined;
@@ -691,6 +705,8 @@ export function calculateDeterministicAtsScore(
     overallScore,
     generalQualityScore,
     atsCompatibilityScore,
+    recruiterVisibilityScore,
+    recruiterVisibilityLabel,
     jobMatchScore,
     jobMatchDetails,
     grade,
@@ -745,14 +761,14 @@ export function transformToPublicAtsAudit(
     status: c.status,
   }));
 
-  // Interpretation label
-  let interpretation: PublicAtsAuditResult['interpretation'] = 'Needs Improvement';
-  if (assessment.overallScore >= 85) {
-    interpretation = 'Excellent';
-  } else if (assessment.overallScore >= 70) {
-    interpretation = 'Good';
-  } else if (assessment.overallScore >= 50) {
-    interpretation = 'Fair / Needs Attention';
+  // Interpretation label based on Hopepitome assessment bands
+  let interpretation: PublicAtsAuditResult['interpretation'] = 'Significant improvements recommended';
+  if (assessment.overallScore >= 90) {
+    interpretation = 'Excellent profile presentation';
+  } else if (assessment.overallScore >= 75) {
+    interpretation = 'Good potential';
+  } else if (assessment.overallScore >= 60) {
+    interpretation = 'Needs improvement';
   }
 
   // Extract short strength titles (titles only, no proprietary details)
@@ -1030,6 +1046,9 @@ export function transformToPublicAtsAudit(
     overallScore: assessment.overallScore,
     generalQualityScore: assessment.generalQualityScore,
     atsCompatibilityScore: assessment.atsCompatibilityScore,
+    recruiterVisibilityScore: assessment.recruiterVisibilityScore || assessment.generalQualityScore,
+    recruiterVisibilityLabel:
+      assessment.recruiterVisibilityLabel || (assessment.overallScore >= 75 ? 'Good potential' : 'Needs improvement'),
     jobMatchScore: hasJobDescription ? assessment.jobMatchScore : null,
     jobMatchDetails: hasJobDescription ? assessment.jobMatchDetails : undefined,
     jobMatchKeywordSummary: hasJobDescription && assessment.jobMatchDetails

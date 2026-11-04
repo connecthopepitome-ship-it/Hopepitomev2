@@ -101,6 +101,8 @@ export interface AtsAssessmentResult {
   overallScore: number; // 0 - 100 deterministic weighted score
   generalQualityScore: number; // Dimension A: General Quality independent of specific job
   atsCompatibilityScore: number; // Dimension B: ATS Parsing & Readability Compatibility
+  recruiterVisibilityScore?: number;
+  recruiterVisibilityLabel?: 'Strong' | 'Good potential' | 'Needs improvement' | 'Requires significant improvement';
   jobMatchScore?: number | null; // Dimension C: Job Match Score (only if job description supplied)
   jobMatchDetails?: {
     requiredSkillsFound: string[];
@@ -200,6 +202,8 @@ export interface PublicAtsAuditResult {
   overallScore: number;
   generalQualityScore: number;
   atsCompatibilityScore: number;
+  recruiterVisibilityScore?: number;
+  recruiterVisibilityLabel?: 'Strong' | 'Good potential' | 'Needs improvement' | 'Requires significant improvement';
   jobMatchScore?: number | null;
   jobMatchDetails?: {
     requiredSkillsFound: string[];
@@ -214,7 +218,7 @@ export interface PublicAtsAuditResult {
     transferableCount?: number;
   };
   grade: 'A+' | 'A' | 'B' | 'C' | 'D';
-  interpretation: 'Excellent' | 'Good' | 'Fair / Needs Attention' | 'Needs Improvement';
+  interpretation: 'Excellent profile presentation' | 'Good potential' | 'Needs improvement' | 'Significant improvements recommended' | 'Excellent' | 'Good' | 'Fair / Needs Attention';
   summary: string;
   hasJobDescription: boolean;
   categories: PublicAtsCategoryItem[];

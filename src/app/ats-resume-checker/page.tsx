@@ -10,10 +10,8 @@ import {
   AlertCircle,
   Clock,
   Download,
-  Share2,
   FileCheck,
   Zap,
-  Layers,
   ArrowRight,
   ShieldCheck,
   Lock,
@@ -21,24 +19,20 @@ import {
   Target,
   Briefcase,
   Award,
-  BookOpen,
-  UserCheck,
-  Sliders,
   RefreshCw,
   Phone,
   MessageSquare,
   Mail,
   X,
-  ExternalLink,
   Check,
   Compass,
-  FileSearch,
   Building2,
-  GraduationCap,
   Globe,
   TrendingUp,
-  BarChart3,
   Info,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import type {
   PublicAtsAuditResult,
@@ -47,61 +41,6 @@ import type {
   AtsCategoryKey,
   RoleMatchCategory,
 } from '@/lib/ai/types';
-
-const CATEGORY_META: Record<
-  AtsCategoryKey,
-  { icon: any; color: string; bg: string; borderColor: string; maxWeight: number }
-> = {
-  STRUCTURE_READABILITY: {
-    icon: Layers,
-    color: '#635BDB',
-    bg: '#EEF2FF',
-    borderColor: '#C7D2FE',
-    maxWeight: 15,
-  },
-  PROFESSIONAL_SUMMARY: {
-    icon: UserCheck,
-    color: '#8B5CF6',
-    bg: '#F5F3FF',
-    borderColor: '#DDD6FE',
-    maxWeight: 10,
-  },
-  SKILLS_RELEVANCE: {
-    icon: Sliders,
-    color: '#14B8A6',
-    bg: '#F0FDFA',
-    borderColor: '#99F6E4',
-    maxWeight: 20,
-  },
-  EXPERIENCE_ACHIEVEMENTS: {
-    icon: Briefcase,
-    color: '#10B981',
-    bg: '#ECFDF5',
-    borderColor: '#A7F3D0',
-    maxWeight: 20,
-  },
-  EDUCATION_CERTIFICATIONS: {
-    icon: BookOpen,
-    color: '#F59E0B',
-    bg: '#FFFBEB',
-    borderColor: '#FDE68A',
-    maxWeight: 10,
-  },
-  FORMATTING_COMPATIBILITY: {
-    icon: FileCheck,
-    color: '#635BDB',
-    bg: '#EEF2FF',
-    borderColor: '#C7D2FE',
-    maxWeight: 15,
-  },
-  CONTACT_COMPLETENESS: {
-    icon: Award,
-    color: '#EC4899',
-    bg: '#FDF2F8',
-    borderColor: '#FBCFE8',
-    maxWeight: 10,
-  },
-};
 
 // Interactive Sample Audit Preview Data (Universal & Custom Pricing Compliant)
 const SAMPLE_PREVIEW: PublicAtsAuditResult = {
@@ -112,11 +51,13 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
   inferredDomain: 'Cloud Infrastructure & Enterprise Systems',
   careerStage: 'Senior professional',
   inferredRole: 'Senior Cloud Solutions Architect',
-  overallScore: 78,
-  generalQualityScore: 82,
-  atsCompatibilityScore: 85,
-  grade: 'B',
-  interpretation: 'Good',
+  overallScore: 82,
+  generalQualityScore: 85,
+  atsCompatibilityScore: 88,
+  recruiterVisibilityScore: 84,
+  recruiterVisibilityLabel: 'Good potential',
+  grade: 'A',
+  interpretation: 'Good potential',
   summary:
     'Strong core technical depth and verified career progression with high-impact system modernization achievements. Key improvements identified in executive summary positioning, parser-safe layout standardization, and strategic keyword alignment.',
   hasJobDescription: true,
@@ -131,16 +72,17 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
     transferableSkillsFound: ['Agile Team Leadership', 'System Resilience', 'Cost Optimization'],
     requiredSkillsNotEvidenced: ['Terraform Cloud Enterprise'],
     preferredSkillsFound: ['Mentorship', 'CI/CD Pipelines'],
-    experienceAlignmentSummary: 'Strong alignment with senior cloud architecture and cross-functional engineering leadership requirements.',
+    experienceAlignmentSummary:
+      'Strong alignment with senior cloud architecture and cross-functional engineering leadership requirements.',
   },
   categories: [
-    { category: 'STRUCTURE_READABILITY', title: 'Resume Structure & Readability', weight: 15, rawScore: 80, weightedScore: 12, status: 'GOOD' },
-    { category: 'PROFESSIONAL_SUMMARY', title: 'Professional Summary', weight: 10, rawScore: 70, weightedScore: 7, status: 'GOOD' },
-    { category: 'SKILLS_RELEVANCE', title: 'Skills & Keyword Relevance', weight: 20, rawScore: 85, weightedScore: 17, status: 'EXCELLENT' },
-    { category: 'EXPERIENCE_ACHIEVEMENTS', title: 'Work Experience & Achievements', weight: 20, rawScore: 75, weightedScore: 15, status: 'GOOD' },
-    { category: 'EDUCATION_CERTIFICATIONS', title: 'Education & Certifications', weight: 10, rawScore: 80, weightedScore: 8, status: 'GOOD' },
-    { category: 'FORMATTING_COMPATIBILITY', title: 'Formatting & ATS Parsing Compatibility', weight: 15, rawScore: 75, weightedScore: 11, status: 'GOOD' },
-    { category: 'CONTACT_COMPLETENESS', title: 'Contact Details & Completeness', weight: 10, rawScore: 80, weightedScore: 8, status: 'GOOD' },
+    { category: 'STRUCTURE_READABILITY', title: 'Resume Structure & Readability', weight: 15, rawScore: 85, weightedScore: 13, status: 'GOOD' },
+    { category: 'PROFESSIONAL_SUMMARY', title: 'Professional Summary', weight: 10, rawScore: 75, weightedScore: 8, status: 'GOOD' },
+    { category: 'SKILLS_RELEVANCE', title: 'Skills & Keyword Relevance', weight: 20, rawScore: 88, weightedScore: 18, status: 'EXCELLENT' },
+    { category: 'EXPERIENCE_ACHIEVEMENTS', title: 'Work Experience & Achievements', weight: 20, rawScore: 82, weightedScore: 16, status: 'GOOD' },
+    { category: 'EDUCATION_CERTIFICATIONS', title: 'Education & Certifications', weight: 10, rawScore: 85, weightedScore: 9, status: 'GOOD' },
+    { category: 'FORMATTING_COMPATIBILITY', title: 'Formatting & ATS Parsing Compatibility', weight: 15, rawScore: 88, weightedScore: 13, status: 'GOOD' },
+    { category: 'CONTACT_COMPLETENESS', title: 'Contact Details & Completeness', weight: 10, rawScore: 90, weightedScore: 9, status: 'EXCELLENT' },
   ],
   strengthTitles: [
     'Substantial system modernization and engineering impact',
@@ -151,34 +93,67 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
     {
       id: 'imp_summary',
       category: 'PROFESSIONAL_SUMMARY',
-      title: 'Professional Summary & Executive Pitch',
-      teaserSubtitle: 'Unlock full analysis to discover:',
+      title: 'Professional Summary & Value Pitch',
+      teaserSubtitle: 'Your summary may not communicate your strongest professional value clearly.',
       teaserBullets: [
         'What core value proposition is missing from your opening narrative',
-        'How to align your summary with your target career trajectory',
-        'Tailored 3-sentence elevator pitch rewrite blueprint',
+        'Which details should be highlighted for senior roles',
+        'How to improve your professional positioning',
+        'An example of a professionally rewritten summary',
       ],
       recommendedServiceCode: 'RESUME_WRITING',
       recommendedServiceName: 'Professional Resume Writing',
       pricingLabel: 'Quote Based on Requirements',
       ctaText: 'Request a Custom Quote',
-      reason: 'Craft an authentic, high-impact elevator pitch tailored to hiring decision-makers.',
+      reason: 'Craft an authentic, high-impact opening summary tailored to hiring decision-makers.',
+    },
+    {
+      id: 'imp_achievements',
+      category: 'EXPERIENCE_ACHIEVEMENTS',
+      title: 'Achievement Statements & Impact Phrasing',
+      teaserSubtitle: 'Experience statements read as job tasks rather than measurable outcomes.',
+      teaserBullets: [
+        'Which bullet points lack quantified impact or business outcomes',
+        'How to frame achievements using the Context-Action-Result method',
+        'Professional rewrite templates tailored to your discipline',
+      ],
+      recommendedServiceCode: 'RESUME_WRITING',
+      recommendedServiceName: 'Professional Resume Writing',
+      pricingLabel: 'Quote Based on Requirements',
+      ctaText: 'Improve My Resume',
+      reason: 'Transform day-to-day duties into compelling evidence of capability and leadership.',
     },
     {
       id: 'imp_formatting',
       category: 'FORMATTING_COMPATIBILITY',
       title: 'ATS Formatting & Parser Stability',
-      teaserSubtitle: 'Unlock full analysis to discover:',
+      teaserSubtitle: 'Certain layout elements may create reading friction in applicant tracking systems.',
       teaserBullets: [
-        'Hidden layout elements that trigger text scrambling in Workday and Taleo',
-        'Single-column vs two-column compatibility diagnosis for your document',
-        'Parse-certified layout guidelines tailored for enterprise ATS portals',
+        'Hidden layout elements that may scramble text extraction in enterprise portals',
+        'Single-column vs multi-column compatibility diagnosis for your file',
+        'Standard layout formatting guidelines tailored for modern ATS systems',
       ],
       recommendedServiceCode: 'ATS_OPTIMISATION',
       recommendedServiceName: 'ATS Resume Optimisation',
       pricingLabel: 'Quote Based on Requirements',
-      ctaText: 'Get a Custom Quote',
-      reason: 'Ensure seamless 100% parse-compliance across enterprise hiring systems.',
+      ctaText: 'Get My Resume Reviewed',
+      reason: 'Ensure seamless readability across automated applicant tracking systems.',
+    },
+    {
+      id: 'imp_keywords',
+      category: 'SKILLS_RELEVANCE',
+      title: 'Role-Specific Keywords & Competencies',
+      teaserSubtitle: 'Important domain keywords and technical competencies are missing.',
+      teaserBullets: [
+        'High-frequency domain keywords missing from your current profile',
+        'How to group skills into functional categories for recruiters and ATS',
+        'Transferable skill articulation to maximize interview invitations',
+      ],
+      recommendedServiceCode: 'ATS_OPTIMISATION',
+      recommendedServiceName: 'ATS Resume Optimisation',
+      pricingLabel: 'Quote Based on Requirements',
+      ctaText: 'Request a Custom Quote',
+      reason: 'Incorporate relevant industry terminology to pass applicant screening filters.',
     },
   ],
   recommendedServices: [
@@ -186,21 +161,21 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
       code: 'RESUME_WRITING',
       name: 'Professional Resume Writing',
       pricingLabel: 'Custom Pricing',
-      tagline: 'Tailored executive narrative, achievement framing, and strategic career storytelling.',
+      tagline: 'Tailored career narrative, achievement framing, and strategic positioning.',
       quoteMessage:
         'Every professional journey is different. We review your experience, career goals and resume requirements before preparing a customised quotation.',
       ctaText: 'Request a Custom Quote',
-      addressedAreas: ['Narrative Positioning', 'Achievement Phrasing', 'Executive Elevator Pitch'],
+      addressedAreas: ['Professional Value Positioning', 'Achievement Framing', 'Career Narrative Rewrite'],
       isPrimary: true,
     },
     {
       code: 'ATS_OPTIMISATION',
       name: 'ATS Resume Optimisation',
       pricingLabel: 'Custom Pricing',
-      tagline: 'Algorithmic structure refinement, parse validation, and keyword alignment across enterprise ATS platforms.',
+      tagline: 'Structure refinement, parser verification, and keyword alignment across applicant tracking systems.',
       quoteMessage:
         'Get your resume reviewed and improved based on its structure, content, target role and optimisation requirements.',
-      ctaText: 'Get a Custom Quote',
+      ctaText: 'Get My Resume Reviewed',
       addressedAreas: ['ATS Layout Refinement', 'Domain Keyword Alignment', 'Parser Verification'],
       isPrimary: false,
     },
@@ -215,45 +190,45 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         id: 'sample_role_1',
         title: 'Senior Cloud Solutions Architect',
         category: 'DIRECT_FIT',
-        categoryLabel: 'Direct Fit (Same Line)',
+        categoryLabel: 'Direct Match',
         compatibilityScore: 92,
         matchClassification: 'Strong',
-        matchReason: 'Direct alignment with cloud infrastructure design, multi-tenant architectures, and technical leadership.',
+        matchReason: 'Direct match based on your enterprise cloud design, microservices, and technical leadership track record.',
         keyStrengths: ['Enterprise cloud migration experience', 'Microservices design authority', 'Multi-cloud optimization'],
-        isLocked: true,
+        isLocked: false,
       },
       {
         id: 'sample_role_2',
-        title: 'Principal Enterprise Infrastructure Architect',
+        title: 'Principal Infrastructure Architect',
         category: 'PROGRESSION',
-        categoryLabel: 'Progression (Next Level)',
-        compatibilityScore: 84,
-        matchClassification: 'Good',
-        matchReason: 'Natural next-step leadership advancement taking over org-wide technical governance.',
-        keyStrengths: ['Scalable systems design', 'Executive technical roadmapping', 'Cost governance'],
-        isLocked: true,
+        categoryLabel: 'Next Level',
+        compatibilityScore: 86,
+        matchClassification: 'Strong',
+        matchReason: 'Natural next-step leadership role expanding into organization-wide technical governance.',
+        keyStrengths: ['Scalable systems design', 'Technical roadmapping', 'Cost governance'],
+        isLocked: false,
       },
       {
         id: 'sample_role_3',
-        title: 'Cloud DevOps & Platform Engineering Lead',
+        title: 'Platform Engineering Lead',
         category: 'ADJACENT',
-        categoryLabel: 'Adjacent (Transferable)',
-        compatibilityScore: 86,
-        matchClassification: 'Strong',
-        matchReason: 'High transferability of CI/CD orchestration, containerization, and developer productivity tooling.',
-        keyStrengths: ['Kubernetes cluster management', 'Automation framework mastery', 'Site reliability engineering'],
-        isLocked: true,
+        categoryLabel: 'Transferable Role',
+        compatibilityScore: 84,
+        matchClassification: 'Good',
+        matchReason: 'High transferability of containerization, CI/CD orchestration, and developer tooling skills.',
+        keyStrengths: ['Kubernetes cluster management', 'Automation mastery', 'Site reliability engineering'],
+        isLocked: false,
       },
       {
         id: 'sample_role_4',
-        title: 'Digital Transformation & Cloud Strategy Consultant',
+        title: 'Cloud Strategy & Transformation Consultant',
         category: 'TRANSITION',
         categoryLabel: 'Career Transition',
         compatibilityScore: 78,
         matchClassification: 'Good',
-        matchReason: 'Advisory readiness to guide enterprise clients on modern cloud adoption strategies.',
-        keyStrengths: ['Technical stakeholder communication', 'Vendor evaluation', 'Modernization roadmapping'],
-        isLocked: true,
+        matchReason: 'Strong advisory capability to guide enterprise clients on modern cloud adoption strategies.',
+        keyStrengths: ['Technical communication', 'Vendor evaluation', 'Modernization roadmapping'],
+        isLocked: false,
       },
     ],
     industries: [
@@ -261,10 +236,10 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         id: 'sample_ind_1',
         industryName: 'Enterprise SaaS & Cloud Infrastructure',
         category: 'CURRENT',
-        categoryLabel: 'Current Core Industry',
+        categoryLabel: 'Core Industry',
         compatibilityScore: 94,
-        domainKnowledgeMatch: 'Established subject-matter mastery across enterprise cloud ecosystems.',
-        transferableResponsibilities: ['Architecture review boards', 'High-availability deployments', 'Zero-downtime releases'],
+        domainKnowledgeMatch: 'Direct alignment based on your recent enterprise technology track record.',
+        transferableResponsibilities: ['Architecture reviews', 'High-availability deployments', 'Zero-downtime releases'],
       },
       {
         id: 'sample_ind_2',
@@ -272,7 +247,7 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         category: 'COMPATIBLE',
         categoryLabel: 'Compatible Industry',
         compatibilityScore: 88,
-        domainKnowledgeMatch: 'Strict compliance, data security, and high-frequency transaction resilience overlap.',
+        domainKnowledgeMatch: 'Strong overlap in data security, compliance standards, and resilient transaction processing.',
         transferableResponsibilities: ['Financial regulatory compliance', 'Encryption standards', 'Resilient microservices'],
       },
       {
@@ -281,17 +256,8 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         category: 'TRANSFERABLE',
         categoryLabel: 'Transferable Industry',
         compatibilityScore: 82,
-        domainKnowledgeMatch: 'HIPAA-grade compliance frameworks and secure distributed data pipelines.',
+        domainKnowledgeMatch: 'High demand for secure distributed data pipelines and HIPAA-compliant infrastructures.',
         transferableResponsibilities: ['Secure infrastructure design', 'Disaster recovery', 'Auditing standards'],
-      },
-      {
-        id: 'sample_ind_4',
-        industryName: 'Management & Technology Advisory',
-        category: 'TRANSITION',
-        categoryLabel: 'Transition Opportunity',
-        compatibilityScore: 76,
-        domainKnowledgeMatch: 'Translating complex engineering architectures into strategic business investments.',
-        transferableResponsibilities: ['Executive briefings', 'TCO optimization studies', 'Vendor assessments'],
       },
     ],
     countries: [
@@ -301,27 +267,13 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         flagEmoji: '🇦🇪',
         region: 'Middle East / GCC',
         alignmentScore: 88,
-        suitableRoles: ['Senior Cloud Solutions Architect', 'Cloud Platform Lead'],
-        relevantIndustries: ['Enterprise Tech', 'Fintech', 'Aviation Tech'],
+        suitableRoles: ['Cloud Architect', 'DevOps Lead', 'Enterprise Solutions Lead'],
+        relevantIndustries: ['Corporate Management', 'Fintech', 'Aviation'],
         workAuthStatus: 'Requires Verification',
-        marketDataFreshness: 'Q1 2026 Labour Benchmark',
-        briefExplanation: 'Booming tech modernization demand in Dubai and Abu Dhabi with attractive skilled visas.',
+        marketDataFreshness: '2026 Guidelines',
+        briefExplanation: 'High demand for senior enterprise technology talent across regional headquarters in Dubai and Abu Dhabi.',
         isVerifiedLiveDemand: true,
-        isLocked: true,
-      },
-      {
-        countryCode: 'GB',
-        countryName: 'United Kingdom',
-        flagEmoji: '🇬🇧',
-        region: 'Western Europe',
-        alignmentScore: 85,
-        suitableRoles: ['Lead Cloud Solutions Architect', 'DevOps Director'],
-        relevantIndustries: ['Banking & Fintech', 'Public Sector Cloud', 'Consulting'],
-        workAuthStatus: 'Requires Verification',
-        marketDataFreshness: 'Q1 2026 Labour Benchmark',
-        briefExplanation: 'High demand on UK Shortage Occupation list for senior cloud and DevOps specialists.',
-        isVerifiedLiveDemand: true,
-        isLocked: true,
+        isLocked: false,
       },
       {
         countryCode: 'IN',
@@ -329,148 +281,143 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         flagEmoji: '🇮🇳',
         region: 'South Asia / Domestic',
         alignmentScore: 92,
-        suitableRoles: ['Senior Cloud Solutions Architect', 'Principal Engineer'],
-        relevantIndustries: ['GCC / GBS Tech Hubs', 'Product Unicorns', 'Enterprise IT'],
+        suitableRoles: ['Principal Architect', 'Cloud Practice Head', 'Staff Engineer'],
+        relevantIndustries: ['Technology', 'Financial Services', 'Enterprise SaaS'],
         workAuthStatus: 'Known',
-        marketDataFreshness: 'Q1 2026 Labour Benchmark',
-        briefExplanation: 'Rapid expansion of Global Capability Centers (GCCs) in Bengaluru, Hyderabad, and Pune.',
+        marketDataFreshness: '2026 Market Report',
+        briefExplanation: 'Rapid expansion in global capability centers (GCCs) and domestic enterprise tech platforms.',
         isVerifiedLiveDemand: true,
-        isLocked: true,
+        isLocked: false,
       },
       {
-        countryCode: 'DE',
-        countryName: 'Germany',
-        flagEmoji: '🇩🇪',
-        region: 'European Union',
-        alignmentScore: 81,
-        suitableRoles: ['Cloud Systems Architect', 'Site Reliability Lead'],
-        relevantIndustries: ['Automotive Tech', 'Industrial IoT', 'Fintech'],
+        countryCode: 'GB',
+        countryName: 'United Kingdom',
+        flagEmoji: '🇬🇧',
+        region: 'Western Europe',
+        alignmentScore: 82,
+        suitableRoles: ['Cloud Infrastructure Specialist', 'Platform Lead'],
+        relevantIndustries: ['Fintech', 'Professional Services', 'E-commerce'],
         workAuthStatus: 'Requires Verification',
-        marketDataFreshness: 'Q1 2026 Labour Benchmark',
-        briefExplanation: 'Opportunity Card (Chancenkarte) and EU Blue Card opportunities for technical specialists.',
+        marketDataFreshness: '2026 Shortage Occupations',
+        briefExplanation: 'Eligible engineering competencies align with Skilled Worker shortage occupation criteria.',
         isVerifiedLiveDemand: true,
-        isLocked: true,
-      },
-      {
-        countryCode: 'CA',
-        countryName: 'Canada',
-        flagEmoji: '🇨🇦',
-        region: 'North America',
-        alignmentScore: 83,
-        suitableRoles: ['Senior Cloud Architect', 'Enterprise Solutions Lead'],
-        relevantIndustries: ['Software SaaS', 'Financial Services', 'E-commerce'],
-        workAuthStatus: 'Requires Verification',
-        marketDataFreshness: 'Q1 2026 Labour Benchmark',
-        briefExplanation: 'Category-based Express Entry draws prioritizing STEM occupations.',
-        isVerifiedLiveDemand: true,
-        isLocked: true,
+        isLocked: false,
       },
       {
         countryCode: 'SG',
         countryName: 'Singapore',
         flagEmoji: '🇸🇬',
         region: 'Southeast Asia',
-        alignmentScore: 84,
-        suitableRoles: ['Regional Cloud Architect', 'Platform Engineering Lead'],
-        relevantIndustries: ['Global Headquarters', 'Fintech', 'Digital Commerce'],
+        alignmentScore: 85,
+        suitableRoles: ['Regional Cloud Architect', 'Enterprise Solutions Consultant'],
+        relevantIndustries: ['Banking & Finance', 'Regional Technology HQs'],
         workAuthStatus: 'Requires Verification',
-        marketDataFreshness: 'Q1 2026 Labour Benchmark',
-        briefExplanation: 'APAC regional headquarters demand under the COMPASS points-based employment pass framework.',
+        marketDataFreshness: '2026 Compass Framework',
+        briefExplanation: 'Strong regional hub demand; points-based Compass framework values evidenced technology leadership.',
         isVerifiedLiveDemand: true,
-        isLocked: true,
+        isLocked: false,
+      },
+      {
+        countryCode: 'DE',
+        countryName: 'Germany',
+        flagEmoji: '🇩🇪',
+        region: 'European Union',
+        alignmentScore: 78,
+        suitableRoles: ['Cloud Systems Engineer', 'Senior DevOps Consultant'],
+        relevantIndustries: ['Industrial Automation', 'Enterprise Software', 'Automotive'],
+        workAuthStatus: 'Requires Verification',
+        marketDataFreshness: '2026 EU Blue Card',
+        briefExplanation: 'Strong tech demand under EU Blue Card regulations; English widely accepted in Berlin/Munich hubs.',
+        isVerifiedLiveDemand: true,
+        isLocked: false,
       },
     ],
     competitiveness: {
       profileCompetitiveness: {
-        score: 87,
-        level: 'High',
-        summary: 'Substantial hands-on architecture experience and quantified cloud transformation outcomes place candidate in the top tier.',
+        score: 84,
+        level: 'Competitive',
+        summary: 'Your profile demonstrates strong domain competency and verifiable career momentum compared to candidate benchmarks.',
       },
       applicationReadiness: {
-        score: 85,
-        level: 'Ready to Apply',
-        summary: 'Document format is clean and readable. Fine-tuning leadership metrics will enhance conversion for executive roles.',
+        score: 88,
+        level: 'Minor Polish Needed',
+        summary: 'Your resume layout is clean and parse-friendly, with core contact details and employment dates clearly positioned.',
       },
       selectionOutlook: {
-        status: 'Strong profile alignment',
-        explanation: 'Evaluated against verified 2026 international benchmarks. Profile demonstrates strong candidate suitability for top-quartile cloud engineering compensation brackets.',
-        disclaimer: 'Selection outlook is a qualitative assessment of document strength and market alignment. It does not constitute a legal or contractual guarantee of employment, interviews, or visa approval.',
+        status: 'Competitive with improvements',
+        explanation:
+          'Your resume communicates solid qualifications that position you well for relevant opportunities. Targeted improvements in executive summary framing and achievement metrics will further strengthen recruiter engagement.',
+        disclaimer:
+          'Presentation assessment only. Actual interview invitations and hiring decisions depend on employer requirements, applicant competition, and legal work eligibility.',
       },
     },
     recommendations: {
-      topRoles: ['Senior Cloud Solutions Architect', 'Cloud Platform Lead', 'Enterprise Infrastructure Architect'],
-      topIndustries: ['Enterprise SaaS', 'Fintech', 'Global Capability Centers'],
-      topCountries: ['United Arab Emirates', 'United Kingdom', 'India'],
-      suggestedTransitionPathways: ['Advance from technical specialist to VP of Infrastructure via strategic budget and team ownership.'],
+      topRoles: ['Senior Cloud Solutions Architect', 'Principal Infrastructure Architect'],
+      topIndustries: ['Enterprise SaaS & Cloud Infrastructure', 'Fintech & Core Banking Systems'],
+      topCountries: ['India', 'United Arab Emirates', 'Singapore'],
+      suggestedTransitionPathways: ['Cloud Strategy & Transformation Consultant'],
     },
   },
   isLocked: true,
 };
 
 export default function AtsResumeCheckerPage() {
-  // Input states
   const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState('');
-  const [fileSize, setFileSize] = useState(0);
-  const [resumeText, setResumeText] = useState('');
-  const [targetRole, setTargetRole] = useState('');
-  const [targetIndustry, setTargetIndustry] = useState('');
-  const [careerSeniority, setCareerSeniority] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [showJdInput, setShowJdInput] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [privacyConsent, setPrivacyConsent] = useState(true);
+  const [fileName, setFileName] = useState<string>('');
+  const [fileSize, setFileSize] = useState<number>(0);
+  const [resumeText, setResumeText] = useState<string>('');
+  const [showJdInput, setShowJdInput] = useState<boolean>(false);
+  const [jobDescription, setJobDescription] = useState<string>('');
+  const [privacyConsent, setPrivacyConsent] = useState<boolean>(true);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  // Workflow states
+  // View state: 'idle' | 'processing' | 'results' | 'sample'
   const [viewState, setViewState] = useState<'idle' | 'processing' | 'results' | 'sample'>('idle');
-  const [processingStage, setProcessingStage] = useState(0);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [processingStage, setProcessingStage] = useState<number>(1);
   const [auditResult, setAuditResult] = useState<PublicAtsAuditResult | null>(null);
-  const [showTextEditor, setShowTextEditor] = useState(false);
 
-  // Career Intelligence Module Filter States
-  const [roleCategoryFilter, setRoleCategoryFilter] = useState<RoleMatchCategory | 'ALL'>('ALL');
-  const [countryRegionFilter, setCountryRegionFilter] = useState<string>('ALL');
+  // Friendly High Demand / Busy Error State
+  const [highDemandError, setHighDemandError] = useState<{
+    heading: string;
+    message: string;
+    secondaryText: string;
+  } | null>(null);
+  const [genericErrorMessage, setGenericErrorMessage] = useState<string | null>(null);
 
-  // Modal / Conversion states (Custom Quotation Workflow)
+  // Conversion Modal / CRM Intake
+  const [conversionModalOpen, setConversionModalOpen] = useState<boolean>(false);
   const [selectedModalCard, setSelectedModalCard] = useState<LockedImprovementCard | null>(null);
   const [selectedService, setSelectedService] = useState<RecommendedServiceItem | null>(null);
-  const [conversionModalOpen, setConversionModalOpen] = useState(false);
+  const [leadName, setLeadName] = useState<string>('');
+  const [leadEmail, setLeadEmail] = useState<string>('');
+  const [leadPhone, setLeadPhone] = useState<string>('');
+  const [leadContactMethod, setLeadContactMethod] = useState<'WhatsApp' | 'Phone' | 'Email'>('WhatsApp');
+  const [leadRequirements, setLeadRequirements] = useState<string>('');
+  const [enquirySubmitting, setEnquirySubmitting] = useState<boolean>(false);
   const [enquirySuccessRef, setEnquirySuccessRef] = useState<string | null>(null);
-  const [enquirySubmitting, setEnquirySubmitting] = useState(false);
-
-  // Conversion lead form states
-  const [leadName, setLeadName] = useState('');
-  const [leadEmail, setLeadEmail] = useState('');
-  const [leadPhone, setLeadPhone] = useState('');
-  const [leadCareerGoals, setLeadCareerGoals] = useState('');
-  const [leadRequirements, setLeadRequirements] = useState('');
-  const [leadContactMethod, setLeadContactMethod] = useState<'WhatsApp' | 'Email' | 'Phone Call'>('WhatsApp');
 
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
-  // Analytics event tracking helper
-  const trackEvent = async (eventName: string, metadata: Record<string, any> = {}) => {
+  // Analytics event tracker
+  const trackEvent = (eventName: string, metadata: Record<string, any> = {}) => {
     try {
-      await fetch('/api/career/ai/track-event', {
+      fetch('/api/career/ai/track-event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventName,
-          assessmentId: auditResult?.assessmentId,
-          ...metadata,
+          timestamp: new Date().toISOString(),
+          metadata,
         }),
-      });
-    } catch {
-      // Non-blocking telemetry
-    }
+      }).catch(() => {});
+    } catch {}
   };
 
   useEffect(() => {
-    trackEvent('ats_landing_viewed');
+    trackEvent('page_view_simplified_ats', { path: '/ats-resume-checker' });
   }, []);
 
-  // Clean text extraction from PDF / DOCX / TXT buffer
+  // Text extraction from PDF / DOCX / TXT buffer
   const extractCleanTextFromBuffer = (buffer: ArrayBuffer, name: string): string => {
     const decoder = new TextDecoder('latin1');
     const raw = decoder.decode(buffer);
@@ -514,14 +461,15 @@ export default function AtsResumeCheckerPage() {
     if (!selectedFile) return;
 
     if (selectedFile.size > 10 * 1024 * 1024) {
-      setErrorMessage('File size exceeds 10MB limit. Please upload a smaller file.');
+      setGenericErrorMessage('File size exceeds 10MB limit. Please upload a smaller file.');
       return;
     }
 
     setFile(selectedFile);
     setFileName(selectedFile.name);
     setFileSize(selectedFile.size);
-    setErrorMessage(null);
+    setHighDemandError(null);
+    setGenericErrorMessage(null);
 
     const reader = new FileReader();
 
@@ -538,19 +486,15 @@ export default function AtsResumeCheckerPage() {
         if (clean.length >= 60) {
           setResumeText(clean);
         } else {
-          setShowTextEditor(true);
-          setResumeText(
-            `[Scanned or Image-Based PDF Detected]\nPlease paste your resume text here to ensure high-accuracy AI auditing across all categories.`
-          );
+          setResumeText('Candidate Resume Content Processed.');
         }
       };
       reader.readAsArrayBuffer(selectedFile);
     }
 
-    trackEvent('resume_uploaded', { fileName: selectedFile.name, fileSize: selectedFile.size });
+    trackEvent('resume_file_selected', { fileName: selectedFile.name, fileSize: selectedFile.size });
   };
 
-  // Drag & drop handlers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -569,31 +513,29 @@ export default function AtsResumeCheckerPage() {
     }
   };
 
-  // Run audit submission with universal intelligence (zero artificial role penalties)
-  const handleStartAudit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Run audit submission with friendly high-demand retry handling
+  const handleStartAudit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
     if (!resumeText.trim() || resumeText.length < 50) {
-      setErrorMessage('Please upload a resume file with readable text (at least 50 characters).');
+      setGenericErrorMessage('Please upload a resume file with readable text (at least 50 characters).');
       return;
     }
 
     if (!privacyConsent) {
-      setErrorMessage('Please accept the privacy disclosure to proceed with free AI processing.');
+      setGenericErrorMessage('Please agree to confidential processing to continue.');
       return;
     }
 
     setViewState('processing');
     setProcessingStage(1);
-    setErrorMessage(null);
-    trackEvent('ats_audit_started', {
-      targetRole: targetRole || 'auto-infer',
-      hasJobDescription: Boolean(jobDescription),
-    });
+    setHighDemandError(null);
+    setGenericErrorMessage(null);
+    trackEvent('resume_assessment_started');
 
-    const stageTimer1 = setTimeout(() => setProcessingStage(2), 700);
-    const stageTimer2 = setTimeout(() => setProcessingStage(3), 1400);
-    const stageTimer3 = setTimeout(() => setProcessingStage(4), 2100);
+    const stageTimer1 = setTimeout(() => setProcessingStage(2), 600);
+    const stageTimer2 = setTimeout(() => setProcessingStage(3), 1200);
+    const stageTimer3 = setTimeout(() => setProcessingStage(4), 1800);
 
     try {
       const response = await fetch('/api/career/ai/ats-evaluate', {
@@ -601,9 +543,6 @@ export default function AtsResumeCheckerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resumeText: resumeText.trim().substring(0, 7000),
-          targetRole: targetRole.trim(),
-          targetIndustry: targetIndustry.trim(),
-          careerSeniority: careerSeniority.trim(),
           jobDescription: showJdInput && jobDescription.trim().length >= 30 ? jobDescription.trim().substring(0, 2000) : undefined,
           fileName: fileName || 'Candidate_Resume.pdf',
           isPublic: true,
@@ -618,28 +557,40 @@ export default function AtsResumeCheckerPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete resume audit. Please retry in a few moments.');
+        // Classify as friendly high demand
+        setHighDemandError({
+          heading: data.heading || "We're experiencing high demand.",
+          message:
+            data.message ||
+            'Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.',
+          secondaryText: data.secondaryText || 'Thank you for your patience.',
+        });
+        setViewState('idle');
+        return;
       }
 
       setAuditResult(data.assessment);
       setViewState('results');
-      trackEvent('ats_audit_completed', {
+      trackEvent('resume_assessment_completed', {
         assessmentId: data.assessment.assessmentId,
         overallScore: data.assessment.overallScore,
-        generalQualityScore: data.assessment.generalQualityScore,
-        atsCompatibilityScore: data.assessment.atsCompatibilityScore,
       });
-
-      if (data.assessment.targetRole) {
-        setLeadCareerGoals(data.assessment.targetRole);
-      }
-    } catch (err: any) {
+    } catch {
+      clearTimeout(stageTimer1);
+      clearTimeout(stageTimer2);
+      clearTimeout(stageTimer3);
+      // Clean fallback error message without technical details
+      setHighDemandError({
+        heading: "We're experiencing high demand.",
+        message:
+          'Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.',
+        secondaryText: 'Thank you for your patience.',
+      });
       setViewState('idle');
-      setErrorMessage(err.message || 'An error occurred during evaluation. Please retry.');
     }
   };
 
-  // Open locked insight modal for custom quotation request
+  // Open locked insight modal
   const handleOpenLockedCard = (card: LockedImprovementCard) => {
     setSelectedModalCard(card);
     const mappedService: RecommendedServiceItem = {
@@ -655,18 +606,18 @@ export default function AtsResumeCheckerPage() {
     };
     setSelectedService(mappedService);
     setConversionModalOpen(true);
-    trackEvent('locked_insight_opened', { category: card.category, service: card.recommendedServiceCode });
+    trackEvent('locked_card_opened', { category: card.category, title: card.title });
   };
 
-  // Open service recommendation for custom quotation
+  // Open service recommendation for custom quote
   const handleSelectService = (service: RecommendedServiceItem) => {
     setSelectedService(service);
     setSelectedModalCard(null);
     setConversionModalOpen(true);
-    trackEvent('service_recommendation_clicked', { serviceCode: service.code });
+    trackEvent('service_selected', { serviceCode: service.code });
   };
 
-  // Submit Career Enquiry from Modal (Creates CRM lead with custom quotation preference)
+  // Submit Career Enquiry from Modal
   const handleSubmitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -685,14 +636,15 @@ export default function AtsResumeCheckerPage() {
         preferredContactMethod: leadContactMethod,
         serviceRequired: selectedService?.name || 'Professional Resume Writing',
         selectedServices: [selectedService?.name || 'Professional Resume Writing'],
-        targetRole: leadCareerGoals || targetRole || auditResult?.targetRole || 'Professional Role',
-        careerStage: auditResult?.careerStage || 'Experienced professional',
+        targetRole: activeResult?.targetRole || activeResult?.inferredRole || 'Professional Role',
+        careerStage: activeResult?.careerStage || 'Experienced professional',
         pricingPreference: 'CUSTOM_QUOTATION',
-        requirements: `Origin: Universal ATS Resume Audit (${auditResult?.assessmentId || 'direct'}).
-Overall Score: ${auditResult?.overallScore || 'N/A'}/100 (Quality: ${auditResult?.generalQualityScore || 'N/A'}, ATS: ${auditResult?.atsCompatibilityScore || 'N/A'}).
+        requirements: `Origin: AI Resume Assessment (${activeResult?.assessmentId || 'direct'}).
+Overall Career Readiness Score: ${activeResult?.overallScore || 'N/A'}/100.
+Resume Quality: ${activeResult?.generalQualityScore || 'N/A'}% | ATS Compatibility: ${activeResult?.atsCompatibilityScore || 'N/A'}% | Recruiter Visibility: ${activeResult?.recruiterVisibilityLabel || 'Good'}.
 Selected Service: ${selectedService?.name}.
-Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based on audit.'}`,
-        assessmentId: auditResult?.assessmentId,
+Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested.'}`,
+        assessmentId: activeResult?.assessmentId,
         resumeFileName: fileName || 'Candidate_Resume.pdf',
         consent: true,
       };
@@ -722,103 +674,141 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
 
   const handlePrintPdf = () => {
     window.print();
-    trackEvent('audit_summary_downloaded');
+    trackEvent('assessment_printed_pdf');
   };
 
   const activeResult = viewState === 'sample' ? SAMPLE_PREVIEW : auditResult;
 
+  // Simple band color and badge helper
+  const getBandInfo = (score: number) => {
+    if (score >= 90) {
+      return {
+        label: 'Excellent profile presentation',
+        badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        ringColor: '#10B981',
+      };
+    }
+    if (score >= 75) {
+      return {
+        label: 'Good potential',
+        badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+        ringColor: '#635BDB',
+      };
+    }
+    if (score >= 60) {
+      return {
+        label: 'Needs improvement',
+        badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
+        ringColor: '#F59E0B',
+      };
+    }
+    return {
+      label: 'Significant improvements recommended',
+      badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
+      ringColor: '#F43F5E',
+    };
+  };
+
   return (
-    <div className="bg-[#F7F8FC] text-[#111B35] min-h-screen flex flex-col font-sans selection:bg-[#635BDB]/20 selection:text-[#635BDB]">
-      {/* 1. STICKY BRAND HEADER */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#E2E8F0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2.5 group">
-            <span className="font-extrabold text-xl tracking-tight text-[#111B35]">HOPEPITOME</span>
-            <span className="text-[11px] font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-[#635BDB] text-white uppercase">
-              ATS Studio
+    <div className="bg-[#F8FAFC] text-[#0F172A] min-h-screen flex flex-col font-sans selection:bg-[#635BDB]/20 selection:text-[#635BDB]">
+      {/* 1. BRAND HEADER */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center space-x-2.5">
+            <span className="font-extrabold text-xl tracking-tight text-[#0F172A]">HOPEPITOME</span>
+            <span className="text-[11px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#635BDB] text-white uppercase">
+              Resume AI
             </span>
           </Link>
 
           <div className="flex items-center space-x-3 sm:space-x-4">
             <Link
               href="/career-services"
-              className="text-xs sm:text-sm font-semibold text-[#111B35]/70 hover:text-[#635BDB] transition-colors"
+              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#635BDB] transition-colors"
             >
               Career Services
             </Link>
             <button
               onClick={() => {
+                setViewState('idle');
                 uploadSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-[#635BDB] hover:bg-[#5249CE] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-[#635BDB] hover:bg-[#5249CE] text-white text-xs sm:text-sm font-semibold shadow-xs transition-all"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>Audit My Resume</span>
+              <span>Check My Resume</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* 2. MAIN VIEWPORT */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* --- VIEW 1: LANDING & UPLOAD VIEW --- */}
+      {/* 2. MAIN CONTENT AREA */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* ========================================================================= */}
+        {/* VIEW 1: LANDING & UPLOAD VIEW */}
+        {/* ========================================================================= */}
         {viewState === 'idle' && (
-          <div className="space-y-12">
-            {/* Hero Heading */}
-            <div className="text-center max-w-3xl mx-auto space-y-4">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] text-[#635BDB] text-xs font-bold uppercase tracking-wider">
+          <div className="space-y-10">
+            {/* Hero Heading (Plain English Positioning) */}
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-[#635BDB] text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Universal Multi-Industry ATS Intelligence</span>
-              </div>
-              <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111B35] tracking-tight leading-tight">
-                How does your resume rate with <span className="text-[#635BDB]">recruiters & ATS</span>?
+                <span>Free Career Assessment</span>
+              </span>
+              <h1 className="text-3xl sm:text-5xl font-extrabold text-[#0F172A] tracking-tight leading-tight">
+                Your Resume. Your Career Opportunities.
               </h1>
-              <p className="text-base sm:text-lg text-[#111B35]/70 leading-relaxed max-w-2xl mx-auto">
-                Get an objective, inclusive AI resume audit calibrated across all professions, experience levels, and
-                career stages — from healthcare and engineering to supply chain, finance, and IT.
+              <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto">
+                Upload your resume to discover how strong your profile is, which jobs match your experience and where you could build your career.
               </p>
-
-              {/* 3-Step Mini Visual */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-left max-w-2xl mx-auto">
-                <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center space-x-3">
-                  <span className="w-7 h-7 rounded-lg bg-[#EEF2FF] text-[#635BDB] font-extrabold text-sm flex items-center justify-center shrink-0">
-                    1
-                  </span>
-                  <span className="text-xs font-semibold text-[#111B35]">Upload resume (PDF/DOCX/TXT)</span>
-                </div>
-                <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center space-x-3">
-                  <span className="w-7 h-7 rounded-lg bg-[#F0FDFA] text-[#14B8A6] font-extrabold text-sm flex items-center justify-center shrink-0">
-                    2
-                  </span>
-                  <span className="text-xs font-semibold text-[#111B35]">View 3-dimension fair score</span>
-                </div>
-                <div className="p-3 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center space-x-3">
-                  <span className="w-7 h-7 rounded-lg bg-[#F5F3FF] text-[#8B5CF6] font-extrabold text-sm flex items-center justify-center shrink-0">
-                    3
-                  </span>
-                  <span className="text-xs font-semibold text-[#111B35]">Get a bespoke custom quote</span>
-                </div>
-              </div>
             </div>
 
-            {/* Error Alert */}
-            {errorMessage && (
-              <div className="max-w-2xl mx-auto p-4 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] flex items-start space-x-3 text-sm">
-                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold">Unable to process resume</p>
-                  <p className="text-xs text-[#DC2626]/90 mt-0.5">{errorMessage}</p>
+            {/* HIGH DEMAND ERROR CARD (Friendly, Plain Language, Preserves Uploaded Resume) */}
+            {highDemandError && (
+              <div className="max-w-xl mx-auto p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 space-y-3 shadow-xs animate-in fade-in">
+                <div className="flex items-start space-x-3">
+                  <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <h3 className="font-extrabold text-base text-amber-900">{highDemandError.heading}</h3>
+                    <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">{highDemandError.message}</p>
+                    <p className="text-xs text-amber-700 font-medium">{highDemandError.secondaryText}</p>
+                  </div>
                 </div>
-                <button onClick={() => setErrorMessage(null)} className="text-[#DC2626] hover:opacity-70">
+
+                <div className="pt-2 flex items-center justify-between border-t border-amber-200/60">
+                  <span className="text-xs text-amber-700 font-medium">
+                    {file ? `Resume ready: ${fileName}` : 'Your text has been preserved.'}
+                  </span>
+                  <button
+                    onClick={() => handleStartAudit()}
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs shadow-xs transition-all"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Try Again</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* GENERIC ERROR ALERT */}
+            {genericErrorMessage && (
+              <div className="max-w-xl mx-auto p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{genericErrorMessage}</span>
+                </div>
+                <button onClick={() => setGenericErrorMessage(null)} className="text-rose-600 hover:opacity-70">
                   <X className="w-4 h-4" />
                 </button>
               </div>
             )}
 
-            {/* Upload Form Card */}
+            {/* Upload Card */}
             <div
               ref={uploadSectionRef}
-              className="max-w-2xl mx-auto bg-white rounded-2xl border border-[#E2E8F0] shadow-lg overflow-hidden"
+              className="max-w-xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden"
             >
               <div className="p-6 sm:p-8 space-y-6">
                 {/* Drag & Drop Area */}
@@ -826,12 +816,12 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
                     isDragging
-                      ? 'border-[#635BDB] bg-[#EEF2FF]'
+                      ? 'border-[#635BDB] bg-indigo-50/50'
                       : file
-                      ? 'border-[#10B981] bg-[#ECFDF5]'
-                      : 'border-[#CBD5E1] hover:border-[#635BDB] bg-[#F8FAFC]'
+                      ? 'border-emerald-500 bg-emerald-50/40'
+                      : 'border-slate-300 hover:border-[#635BDB] bg-slate-50/60'
                   }`}
                   onClick={() => document.getElementById('resume-file-input')?.click()}
                 >
@@ -848,180 +838,78 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
 
                   {file ? (
                     <div className="space-y-2">
-                      <div className="w-12 h-12 rounded-full bg-[#10B981]/10 text-[#10B981] flex items-center justify-center mx-auto">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
                         <FileCheck className="w-6 h-6" />
                       </div>
-                      <p className="font-bold text-sm text-[#111B35]">{fileName}</p>
-                      <p className="text-xs text-[#111B35]/60">
+                      <p className="font-bold text-sm text-[#0F172A]">{fileName}</p>
+                      <p className="text-xs text-slate-500">
                         {(fileSize / 1024).toFixed(1)} KB • Click to choose a different file
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <div className="w-12 h-12 rounded-full bg-[#EEF2FF] text-[#635BDB] flex items-center justify-center mx-auto">
+                      <div className="w-12 h-12 rounded-full bg-indigo-50 text-[#635BDB] flex items-center justify-center mx-auto">
                         <UploadCloud className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-[#111B35]">
+                        <p className="font-bold text-sm text-[#0F172A]">
                           Drag & drop your resume here, or <span className="text-[#635BDB] underline">browse</span>
                         </p>
-                        <p className="text-xs text-[#111B35]/50 mt-1">
-                          Supports PDF, DOCX, and TXT (Max file size 10MB)
-                        </p>
+                        <p className="text-xs text-slate-400 mt-1">Supports PDF, DOCX, and TXT (Max 10MB)</p>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Optional Candidate Context Inputs (Universal - Never Required) */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#111B35]/70 mb-1">
-                        Target Job Title <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Registered Nurse, Lead Architect"
-                        value={targetRole}
-                        onChange={(e) => setTargetRole(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                {/* Optional Target Job Description */}
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowJdInput(!showJdInput)}
+                    className="text-xs font-semibold text-[#635BDB] hover:text-[#5249CE] flex items-center space-x-1"
+                  >
+                    {showJdInput ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span>{showJdInput ? 'Remove target job description' : 'Have a target job description? (Optional)'}</span>
+                  </button>
+
+                  {showJdInput && (
+                    <div className="space-y-1 pt-1 animate-in fade-in duration-200">
+                      <textarea
+                        rows={4}
+                        placeholder="Paste a target job description if you would like to see how well your resume matches a specific role..."
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
                       />
-                      <p className="text-[10px] text-gray-400 mt-1">Leave empty to auto-detect from resume</p>
+                      <p className="text-[11px] text-slate-500">
+                        Evaluated as an independent match score. Does not lower your general resume score.
+                      </p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[#111B35]/70 mb-1">
-                        Industry / Domain <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                      </label>
-                      <select
-                        value={targetIndustry}
-                        onChange={(e) => setTargetIndustry(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB] bg-white"
-                      >
-                        <option value="">Auto-Detect from Resume (Default)</option>
-                        <option value="Healthcare & Nursing">Healthcare & Life Sciences</option>
-                        <option value="IT, Software & Cloud">IT, Software & Cloud</option>
-                        <option value="Engineering & Manufacturing">Engineering & Manufacturing</option>
-                        <option value="Supply Chain, Logistics & Procurement">Supply Chain & Logistics</option>
-                        <option value="Finance, Banking & Accounting">Finance & Accounting</option>
-                        <option value="Sales, Marketing & PR">Sales & Marketing</option>
-                        <option value="Human Resources & Recruiting">Human Resources</option>
-                        <option value="Education, Academia & Research">Education & Research</option>
-                        <option value="Operations & Administration">Operations & Administration</option>
-                        <option value="Hospitality & Retail">Hospitality & Retail</option>
-                        <option value="Creative, Media & Design">Creative & Design</option>
-                        <option value="Consulting & Strategy">Consulting & Strategy</option>
-                      </select>
-                      <p className="text-[10px] text-gray-400 mt-1">Understands all industries inclusively</p>
-                    </div>
-                  </div>
-
-                  {/* Career Stage Selector */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#111B35]/70 mb-1">
-                      Career Stage <span className="text-gray-400 font-normal lowercase">(optional)</span>
-                    </label>
-                    <select
-                      value={careerSeniority}
-                      onChange={(e) => setCareerSeniority(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB] bg-white"
-                    >
-                      <option value="">Auto-Detect from Resume (Default)</option>
-                      <option value="Student / Graduate">Student / Recent Graduate</option>
-                      <option value="Entry-level">Entry-Level Professional (0-2 years)</option>
-                      <option value="Mid-career">Mid-Career Professional (3-7 years)</option>
-                      <option value="Experienced professional">Experienced Professional (8+ years)</option>
-                      <option value="Senior professional">Senior / Principal Specialist</option>
-                      <option value="Manager / Leadership">Team Manager / Leadership</option>
-                      <option value="Executive">Executive / Director / C-Suite</option>
-                      <option value="Career changer">Career Changer / Returning Professional</option>
-                    </select>
-                    <p className="text-[10px] text-gray-400 mt-1">Adapts evaluation criteria so graduates and career changers are never unfairly penalized</p>
-                  </div>
-
-                  {/* Optional Benchmark Job Description */}
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowJdInput(!showJdInput)}
-                      className="text-xs font-bold text-[#635BDB] hover:underline flex items-center space-x-1"
-                    >
-                      <span>{showJdInput ? '— Remove Benchmark Job Description' : '+ Add Benchmark Job Description (Optional for Job Match Score)'}</span>
-                    </button>
-                    {showJdInput && (
-                      <div className="mt-2 space-y-1">
-                        <textarea
-                          rows={4}
-                          placeholder="Paste a target job description to compute a separate semantic Job Match score comparing required vs transferable skills..."
-                          value={jobDescription}
-                          onChange={(e) => setJobDescription(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
-                        />
-                        <p className="text-[11px] text-[#111B35]/60">
-                          Job match is assessed as an independent score and does not diminish your general resume quality score.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Text Review Accordion */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="flex items-center justify-between text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setShowTextEditor(!showTextEditor)}
-                        className="font-bold text-[#635BDB] hover:underline flex items-center space-x-1"
-                      >
-                        <span>
-                          {showTextEditor ? '▲ Hide Extracted Resume Text' : '▼ Review / Paste Resume Text (Optional)'}
-                        </span>
-                      </button>
-                      {resumeText ? (
-                        <span className="text-[11px] text-gray-500 font-semibold">
-                          {resumeText.split(/\s+/).filter(Boolean).length} words ({resumeText.length} chars)
-                        </span>
-                      ) : null}
-                    </div>
-                    {showTextEditor && (
-                      <div className="mt-2 space-y-1">
-                        <textarea
-                          rows={6}
-                          value={resumeText}
-                          onChange={(e) => setResumeText(e.target.value.substring(0, 7000))}
-                          placeholder="Paste your resume content here or edit the extracted text directly..."
-                          className="w-full p-3 rounded-xl border border-[#CBD5E1] text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
-                        />
-                        <p className="text-[10px] text-gray-500">
-                          You can edit or paste your resume directly to ensure full capture of achievements and skills.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Privacy Disclosure */}
-                  <div className="flex items-start space-x-2 pt-2">
-                    <input
-                      id="privacy-consent"
-                      type="checkbox"
-                      checked={privacyConsent}
-                      onChange={(e) => setPrivacyConsent(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 text-[#635BDB] border-gray-300 rounded focus:ring-[#635BDB]"
-                    />
-                    <label htmlFor="privacy-consent" className="text-xs text-[#111B35]/70 cursor-pointer">
-                      <strong>Client-Side Privacy Redaction</strong>: Personal emails, direct phone numbers, and physical addresses
-                      are redacted client-side before transmission. Resumes are kept strictly confidential.
-                    </label>
-                  </div>
+                  )}
                 </div>
 
-                {/* Primary Action Button */}
+                {/* Privacy Consent */}
+                <div className="flex items-start space-x-2 pt-1">
+                  <input
+                    id="privacy-consent"
+                    type="checkbox"
+                    checked={privacyConsent}
+                    onChange={(e) => setPrivacyConsent(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-[#635BDB] border-slate-300 rounded focus:ring-[#635BDB]"
+                  />
+                  <label htmlFor="privacy-consent" className="text-xs text-slate-600 cursor-pointer leading-relaxed">
+                    I agree to have my resume reviewed confidentially. Personal contact numbers and emails are kept private.
+                  </label>
+                </div>
+
+                {/* Primary CTA Button */}
                 <button
                   onClick={handleStartAudit}
                   disabled={!file}
-                  className={`w-full py-3.5 rounded-xl text-white font-extrabold text-sm sm:text-base flex items-center justify-center space-x-2 shadow-md transition-all ${
+                  className={`w-full py-3.5 rounded-2xl text-white font-extrabold text-sm sm:text-base flex items-center justify-center space-x-2 shadow-sm transition-all ${
                     file
-                      ? 'bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] hover:opacity-95'
-                      : 'bg-gray-300 cursor-not-allowed opacity-70'
+                      ? 'bg-[#635BDB] hover:bg-[#5249CE] active:scale-[0.99]'
+                      : 'bg-slate-300 cursor-not-allowed opacity-75'
                   }`}
                 >
                   <Sparkles className="w-4 h-4" />
@@ -1031,61 +919,62 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
               </div>
 
               {/* Sample Preview Trigger */}
-              <div className="bg-[#F8FAFC] border-t border-[#E2E8F0] p-4 text-center">
+              <div className="bg-slate-50 border-t border-slate-200 p-3.5 text-center">
                 <button
                   type="button"
                   onClick={() => setViewState('sample')}
                   className="text-xs font-semibold text-[#635BDB] hover:underline"
                 >
-                  Want to see how it looks? Click here to view a Sample Multi-Score Audit
+                  Want to see how the report looks? View a Sample Report
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* --- VIEW 2: AI AUDIT PROCESSING EXPERIENCE --- */}
+        {/* ========================================================================= */}
+        {/* VIEW 2: AI REVIEW IN PROGRESS */}
+        {/* ========================================================================= */}
         {viewState === 'processing' && (
-          <div className="max-w-xl mx-auto py-16 text-center space-y-8">
-            <div className="relative w-20 h-20 mx-auto">
-              <div className="absolute inset-0 rounded-full border-4 border-[#EEF2FF] animate-pulse"></div>
+          <div className="max-w-md mx-auto py-16 text-center space-y-6">
+            <div className="relative w-16 h-16 mx-auto">
+              <div className="absolute inset-0 rounded-full border-4 border-indigo-100 animate-pulse"></div>
               <div className="absolute inset-0 rounded-full border-4 border-[#635BDB] border-t-transparent animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center text-[#635BDB]">
-                <Zap className="w-8 h-8 animate-bounce" />
+                <Zap className="w-6 h-6 animate-pulse" />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h2 className="text-2xl font-extrabold text-[#111B35]">Analyzing Your Resume Fairly...</h2>
-              <p className="text-xs sm:text-sm text-[#111B35]/60 max-w-sm mx-auto">
-                Auditing against universal recruiter clarity, enterprise ATS compatibility, and career-stage standards.
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A]">Reviewing Your Resume...</h2>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-xs mx-auto">
+                Assessing profile clarity, career opportunities, and recruiter presentation.
               </p>
             </div>
 
-            {/* 5 Progress Stages */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm text-left space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs text-left space-y-3">
               {[
-                { stage: 1, title: 'Reading resume text & classifying professional domain' },
-                { stage: 2, title: 'Calibrating assessment to candidate career stage & role context' },
-                { stage: 3, title: 'Evaluating General Resume Quality & communication impact' },
-                { stage: 4, title: 'Auditing ATS Parsing Compatibility & formatting risks' },
-                { stage: 5, title: 'Synthesizing 7-category scorecard & tailored recommendations' },
+                { stage: 1, title: 'Reading resume experience and achievements' },
+                { stage: 2, title: 'Evaluating profile presentation and clarity' },
+                { stage: 3, title: 'Checking applicant tracking system readability' },
+                { stage: 4, title: 'Identifying suitable job roles and industries' },
+                { stage: 5, title: 'Preparing your career readiness report' },
               ].map((item) => {
                 const isDone = processingStage > item.stage;
                 const isCurrent = processingStage === item.stage;
 
                 return (
-                  <div key={item.stage} className="flex items-center space-x-3 text-xs sm:text-sm">
+                  <div key={item.stage} className="flex items-center space-x-3 text-xs">
                     {isDone ? (
-                      <CheckCircle2 className="w-5 h-5 text-[#10B981] shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     ) : isCurrent ? (
-                      <div className="w-5 h-5 rounded-full border-2 border-[#635BDB] border-t-transparent animate-spin shrink-0"></div>
+                      <div className="w-4 h-4 rounded-full border-2 border-[#635BDB] border-t-transparent animate-spin shrink-0"></div>
                     ) : (
-                      <div className="w-5 h-5 rounded-full border border-gray-300 shrink-0"></div>
+                      <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0"></div>
                     )}
                     <span
                       className={`font-medium ${
-                        isDone ? 'text-[#10B981]' : isCurrent ? 'text-[#635BDB] font-bold' : 'text-gray-400'
+                        isDone ? 'text-emerald-700' : isCurrent ? 'text-[#635BDB] font-bold' : 'text-slate-400'
                       }`}
                     >
                       {item.title}
@@ -1097,69 +986,49 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
           </div>
         )}
 
-        {/* --- VIEW 3: RESULTS DASHBOARD (UNIVERSAL MULTI-SCORE AUDIT & BESPOKE QUOTING) --- */}
+        {/* ========================================================================= */}
+        {/* VIEW 3: SIMPLIFIED RESULTS DASHBOARD */}
+        {/* ========================================================================= */}
         {(viewState === 'results' || viewState === 'sample') && activeResult && (
           <div className="space-y-10">
             {/* Sample Banner */}
             {viewState === 'sample' && (
-              <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] flex items-center justify-between text-xs sm:text-sm">
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between text-xs">
                 <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>
-                    <strong>SAMPLE AUDIT PREVIEW</strong> — Demonstrating the 3 distinct score dimensions and custom pricing workflow.
+                    <strong>SAMPLE REPORT</strong> — Showing how your career readiness assessment will appear.
                   </span>
                 </div>
                 <button
                   onClick={() => setViewState('idle')}
-                  className="px-3 py-1 bg-[#F59E0B] text-white rounded-lg font-bold text-xs"
+                  className="px-3 py-1 bg-amber-800 text-white rounded-lg font-bold text-xs"
                 >
-                  Upload Your Own Resume
+                  Upload Your Resume
                 </button>
               </div>
             )}
 
-            {/* Inferred Context Banner (Confirms Universal Inclusion) */}
-            <div className="p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="font-bold text-[#635BDB] flex items-center space-x-1.5">
-                  <Compass className="w-4 h-4" />
-                  <span>Inferred Profile Context:</span>
-                </span>
-                <span className="px-2.5 py-1 rounded-lg bg-[#EEF2FF] text-[#635BDB] font-semibold">
-                  Domain: {activeResult.inferredDomain || 'Professional Services'}
-                </span>
-                <span className="px-2.5 py-1 rounded-lg bg-[#F5F3FF] text-[#8B5CF6] font-semibold">
-                  Stage: {activeResult.careerStage || 'Experienced Professional'}
-                </span>
-                <span className="px-2.5 py-1 rounded-lg bg-[#F0FDFA] text-[#0D9488] font-semibold">
-                  Primary Role: {activeResult.inferredRole || activeResult.targetRole}
-                </span>
-              </div>
-              <span className="text-gray-500 text-[11px] font-medium">
-                Fair & Inclusive Calibration • Zero Rigid Keyword Penalties
-              </span>
-            </div>
-
-            {/* Header / Meta Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-6">
+            {/* Header Action Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-5">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#635BDB]">Verified AI Assessment</span>
-                <h1 className="text-2xl sm:text-4xl font-extrabold text-[#111B35] tracking-tight">
-                  Your Resume Scorecard & Diagnosis
+                <span className="text-xs font-bold uppercase tracking-wider text-[#635BDB]">Assessment Report</span>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight mt-0.5">
+                  Your Career Readiness Report
                 </h1>
-                <p className="text-xs sm:text-sm text-[#111B35]/60 mt-1">
-                  Target Trajectory: <strong>{activeResult.targetRole || activeResult.inferredRole}</strong> • Evaluated on{' '}
+                <p className="text-xs text-slate-500 mt-1">
+                  Profile: <strong>{activeResult.inferredRole || activeResult.targetRole}</strong> • Assessed on{' '}
                   {new Date(activeResult.timestamp).toLocaleDateString()}
                 </p>
               </div>
 
-              <div className="flex items-center space-x-2.5">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={handlePrintPdf}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-[#CBD5E1] bg-white text-xs sm:text-sm font-semibold text-[#111B35] hover:bg-gray-50 shadow-sm"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-[#0F172A] hover:bg-slate-50 shadow-xs"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download Summary PDF</span>
+                  <span>Save PDF</span>
                 </button>
                 <button
                   onClick={() => {
@@ -1167,863 +1036,370 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
                     setFile(null);
                     setResumeText('');
                   }}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#635BDB] text-white text-xs sm:text-sm font-semibold hover:bg-[#5249CE] shadow-sm"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#635BDB] text-white text-xs font-semibold hover:bg-[#5249CE] shadow-xs"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Audit Another Resume</span>
+                  <span>Check Another</span>
                 </button>
               </div>
             </div>
 
-            {/* THREE SEPARATE SCORE DIMENSIONS (PART A SECTION 3 SPECIFICATION) */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Pillar 0: Overall Composite Score */}
-              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col items-center justify-center text-center">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#111B35]/60 mb-2">Overall Score</span>
-                <div className="relative w-28 h-28 flex items-center justify-center my-1">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="8" fill="transparent" />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke={
-                        activeResult.overallScore >= 85
-                          ? '#10B981'
-                          : activeResult.overallScore >= 70
-                          ? '#635BDB'
-                          : activeResult.overallScore >= 50
-                          ? '#F59E0B'
-                          : '#F97373'
-                      }
-                      strokeWidth="8"
-                      strokeDasharray={`${(activeResult.overallScore / 100) * 251.2} 251.2`}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-all duration-1000 ease-out"
-                    />
-                  </svg>
-                  <div className="absolute flex flex-col items-center">
-                    <span className="text-3xl font-extrabold text-[#111B35] tracking-tight">
-                      {activeResult.overallScore}
+            {/* 1. PROMINENT OVERALL CAREER READINESS SCORE */}
+            {(() => {
+              const band = getBandInfo(activeResult.overallScore);
+              return (
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8">
+                    {/* Main Circular Score Ring */}
+                    <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="42" stroke="#F1F5F9" strokeWidth="8" fill="transparent" />
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="42"
+                          stroke={band.ringColor}
+                          strokeWidth="8"
+                          strokeDasharray={`${(activeResult.overallScore / 100) * 263.8} 263.8`}
+                          strokeLinecap="round"
+                          fill="transparent"
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      </svg>
+                      <div className="absolute flex flex-col items-center">
+                        <span className="text-4xl font-extrabold text-[#0F172A] tracking-tight">
+                          {activeResult.overallScore}
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-400">out of 100</span>
+                      </div>
+                    </div>
+
+                    {/* Score Narrative & Bands */}
+                    <div className="space-y-3 text-center md:text-left flex-1">
+                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          Overall Career Readiness Score
+                        </span>
+                        <span className={`text-xs font-extrabold px-3 py-0.5 rounded-full border ${band.badgeBg}`}>
+                          {band.label}
+                        </span>
+                      </div>
+
+                      <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
+                        {activeResult.summary}
+                      </p>
+
+                      {/* Transparent Disclaimer */}
+                      <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+                        This score evaluates how effectively your current resume communicates your professional background and supports your job-search readiness. It does not predict or guarantee actual hiring or interview decisions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 2. THREE SUPPORTING RESUME INDICATORS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Indicator 1: Resume Quality */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Resume Quality</span>
+                    <span className="text-2xl font-extrabold text-[#635BDB]">{activeResult.generalQualityScore}%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[#635BDB] transition-all duration-700"
+                      style={{ width: `${activeResult.generalQualityScore}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                    How clearly and professionally your resume communicates your experience, achievements and skills.
+                  </p>
+                </div>
+              </div>
+
+              {/* Indicator 2: ATS Compatibility */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">ATS Compatibility</span>
+                    <span className="text-2xl font-extrabold text-emerald-600">{activeResult.atsCompatibilityScore}%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all duration-700"
+                      style={{ width: `${activeResult.atsCompatibilityScore}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                    How easily commonly used applicant tracking systems may extract, scan and understand your content and structure.
+                  </p>
+                </div>
+              </div>
+
+              {/* Indicator 3: Recruiter Visibility */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Recruiter Visibility</span>
+                    <span
+                      className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
+                        activeResult.recruiterVisibilityLabel === 'Strong'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : activeResult.recruiterVisibilityLabel === 'Good potential'
+                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}
+                    >
+                      {activeResult.recruiterVisibilityLabel || 'Good potential'}
                     </span>
-                    <span className="text-[10px] font-semibold text-[#111B35]/50">out of 100</span>
                   </div>
-                </div>
-                <span
-                  className={`mt-2 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${
-                    activeResult.overallScore >= 85
-                      ? 'bg-[#ECFDF5] text-[#10B981]'
-                      : activeResult.overallScore >= 70
-                      ? 'bg-[#EEF2FF] text-[#635BDB]'
-                      : activeResult.overallScore >= 50
-                      ? 'bg-[#FFFBEB] text-[#F59E0B]'
-                      : 'bg-[#FEF2F2] text-[#F97373]'
-                  }`}
-                >
-                  Grade {activeResult.grade} • {activeResult.interpretation}
-                </span>
-              </div>
-
-              {/* Pillar 1: General Resume Quality Score (Independent of Job) */}
-              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#EEF2FF] text-[#635BDB] flex items-center justify-center">
-                      <FileText className="w-4 h-4" />
-                    </div>
-                    <span className="text-2xl font-extrabold text-[#635BDB]">{activeResult.generalQualityScore}/100</span>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[#8B5CF6] transition-all duration-700"
+                      style={{ width: `${activeResult.recruiterVisibilityScore || 80}%` }}
+                    ></div>
                   </div>
-                  <h3 className="text-sm font-bold text-[#111B35]">General Resume Quality</h3>
-                  <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
-                    Evaluates completeness, career clarity, achievement communication, and presentation independent of any specific job.
+                  <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                    An indicative assessment of how clearly your key accomplishments and capabilities stand out during a recruiter review.
                   </p>
                 </div>
-                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
-                  Content & Communication Integrity
-                </div>
-              </div>
-
-              {/* Pillar 2: ATS Compatibility Score */}
-              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#F0FDFA] text-[#14B8A6] flex items-center justify-center">
-                      <FileCheck className="w-4 h-4" />
-                    </div>
-                    <span className="text-2xl font-extrabold text-[#14B8A6]">{activeResult.atsCompatibilityScore}/100</span>
-                  </div>
-                  <h3 className="text-sm font-bold text-[#111B35]">ATS Compatibility Score</h3>
-                  <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
-                    Evaluates parser readability, section recognize-ability, reading flow, and layout stability across hiring systems.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
-                  Workday, Taleo & Greenhouse Readability
-                </div>
-              </div>
-
-              {/* Pillar 3: Job Match Score (Optional) */}
-              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-[#F5F3FF] text-[#8B5CF6] flex items-center justify-center">
-                      <Target className="w-4 h-4" />
-                    </div>
-                    {activeResult.hasJobDescription && activeResult.jobMatchScore !== null ? (
-                      <span className="text-2xl font-extrabold text-[#8B5CF6]">{activeResult.jobMatchScore}%</span>
-                    ) : (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Optional</span>
-                    )}
-                  </div>
-                  <h3 className="text-sm font-bold text-[#111B35]">Job Description Match</h3>
-                  {activeResult.hasJobDescription && activeResult.jobMatchScore !== null ? (
-                    <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
-                      Semantic skill comparison: {activeResult.jobMatchKeywordSummary?.matchedCount || 0} core skills matched,{' '}
-                      {activeResult.jobMatchKeywordSummary?.transferableCount || 0} transferable competencies identified.
-                    </p>
-                  ) : (
-                    <p className="text-xs text-[#111B35]/60 mt-1 leading-relaxed">
-                      Calculated only when a benchmark Job Description is provided. Not penalized when omitted.
-                    </p>
-                  )}
-                </div>
-                <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
-                  {activeResult.hasJobDescription ? 'Semantic Competency Fit' : 'Independent of General Quality'}
-                </div>
               </div>
             </div>
 
-            {/* Executive Summary & Key Highlights */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm space-y-4">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#635BDB]">Executive Assessment</span>
-                <p className="text-sm sm:text-base text-[#111B35] leading-relaxed mt-1 font-medium">
-                  {activeResult.summary}
-                </p>
-              </div>
-
-              {/* Strengths (Short Titles Only) */}
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#10B981] block mb-2">
-                  Key Strengths Evidenced in Resume
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {activeResult.strengthTitles.map((title, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center space-x-2 text-xs font-semibold text-[#111B35] p-2.5 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0]"
-                    >
-                      <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
-                      <span className="truncate">{title}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Seven Standardized Audit Categories */}
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-lg sm:text-xl font-extrabold text-[#111B35]">
-                  Seven Standardized Category Dimensions
-                </h2>
-                <p className="text-xs text-[#111B35]/60">
-                  Each dimension is evaluated fairly based on your career stage without penalizing unconventional or non-linear paths.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeResult.categories.map((cat) => {
-                  const meta = CATEGORY_META[cat.category] || CATEGORY_META.STRUCTURE_READABILITY;
-                  const Icon = meta.icon;
-
-                  return (
-                    <div
-                      key={cat.category}
-                      className="bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-sm flex flex-col justify-between space-y-3"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2.5">
-                          <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                            style={{ backgroundColor: meta.bg, color: meta.color }}
-                          >
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h3 className="text-xs font-bold text-[#111B35] line-clamp-1">{cat.title}</h3>
-                            <span className="text-[10px] font-semibold text-[#111B35]/50">
-                              Weight: {cat.weight}%
-                            </span>
-                          </div>
-                        </div>
-
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            cat.status === 'EXCELLENT'
-                              ? 'bg-[#ECFDF5] text-[#10B981]'
-                              : cat.status === 'GOOD'
-                              ? 'bg-[#EEF2FF] text-[#635BDB]'
-                              : 'bg-[#FFFBEB] text-[#F59E0B]'
-                          }`}
-                        >
-                          {cat.status}
-                        </span>
-                      </div>
-
-                      {/* Progress Bar & Numeric Score */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs font-extrabold text-[#111B35]">
-                          <span>Score: {cat.rawScore}/100</span>
-                          <span className="text-[#635BDB] font-bold">+{cat.weightedScore} pts</span>
-                        </div>
-                        <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${cat.rawScore}%`,
-                              backgroundColor: meta.color,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ========================================================================= */}
-            {/* SECTION 2: AI CAREER COMPATIBILITY & 4-TIER JOB ROLE DISCOVERY */}
-            {/* ========================================================================= */}
-            {activeResult.careerIntelligence && (
-              <div className="space-y-4 pt-4">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+            {/* 3. SUITABLE JOB ROLES & INDUSTRIES (Top 3-5 Matches) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column: Suitable Job Roles */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] text-[#635BDB] text-[11px] font-bold uppercase tracking-wider mb-1">
-                      <Sparkles className="w-3 h-3" />
-                      <span>AI Career Trajectory Discovery</span>
-                    </div>
-                    <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
-                      Suitable & Transferable Job Roles
-                    </h2>
-                    <p className="text-xs sm:text-sm text-[#111B35]/60">
-                      Discovered across 4 categories: Direct-Fit (same line), Career Progression (next level), Adjacent (transferable skills), and Career Transition.
+                    <h3 className="font-extrabold text-base text-[#0F172A] flex items-center space-x-2">
+                      <Briefcase className="w-4 h-4 text-[#635BDB]" />
+                      <span>Matching Job Roles</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Jobs that align with your evidenced background and transferable skills.
                     </p>
                   </div>
-
-                  {/* Filter Pills */}
-                  <div className="flex flex-wrap items-center gap-1.5 bg-white p-1 rounded-xl border border-[#E2E8F0] shadow-xs">
-                    {(['ALL', 'DIRECT_FIT', 'PROGRESSION', 'ADJACENT', 'TRANSITION'] as const).map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => setRoleCategoryFilter(cat)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                          roleCategoryFilter === cat
-                            ? 'bg-[#635BDB] text-white shadow-xs'
-                            : 'text-gray-600 hover:text-[#111B35] hover:bg-gray-100'
-                        }`}
-                      >
-                        {cat === 'ALL'
-                          ? 'All Roles'
-                          : cat === 'DIRECT_FIT'
-                          ? 'Direct Fit'
-                          : cat === 'PROGRESSION'
-                          ? 'Progression'
-                          : cat === 'ADJACENT'
-                          ? 'Adjacent'
-                          : 'Transition'}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
-                {/* Role Recommendations Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {activeResult.careerIntelligence.roles
-                    .filter((r) => roleCategoryFilter === 'ALL' || r.category === roleCategoryFilter)
-                    .map((role) => {
-                      const isStrong = role.matchClassification === 'Strong';
-                      const isGood = role.matchClassification === 'Good';
-                      const isModerate = role.matchClassification === 'Moderate';
-
-                      const badgeBg = isStrong
-                        ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]'
-                        : isGood
-                        ? 'bg-[#EEF2FF] text-[#635BDB] border-[#C7D2FE]'
-                        : isModerate
-                        ? 'bg-[#FFFBEB] text-[#F59E0B] border-[#FDE68A]'
-                        : 'bg-[#F5F3FF] text-[#8B5CF6] border-[#DDD6FE]';
-
-                      return (
-                        <div
-                          key={role.id}
-                          className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm hover:border-[#635BDB]/50 transition-all flex flex-col justify-between space-y-4"
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 block mb-1">
-                                  {role.categoryLabel}
-                                </span>
-                                <h3 className="font-extrabold text-base text-[#111B35] leading-snug">
-                                  {role.title}
-                                </h3>
-                              </div>
-
-                              <div className="flex flex-col items-end shrink-0">
-                                <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full border ${badgeBg}`}>
-                                  {role.matchClassification} Match
-                                </span>
-                                <span className="text-xs font-bold text-[#635BDB] mt-1">
-                                  {role.compatibilityScore}% Compatibility
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Progress Indicator */}
-                            <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{
-                                  width: `${role.compatibilityScore}%`,
-                                  backgroundColor: isStrong ? '#10B981' : isGood ? '#635BDB' : isModerate ? '#F59E0B' : '#8B5CF6',
-                                }}
-                              ></div>
-                            </div>
-
-                            <p className="text-xs text-[#111B35]/70 leading-relaxed font-medium">
-                              {role.matchReason}
-                            </p>
-
-                            {/* Key Strengths */}
-                            <div className="space-y-1 pt-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-                                Core Demonstrated Strengths:
-                              </span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {role.keyStrengths.map((str, sIdx) => (
-                                  <span
-                                    key={sIdx}
-                                    className="inline-flex items-center space-x-1 text-[11px] font-medium px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-gray-700"
-                                  >
-                                    <Check className="w-3 h-3 text-[#10B981]" />
-                                    <span>{str}</span>
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Gated Action Blueprint Teaser */}
-                          <div className="pt-3 border-t border-[#F1F5F9] flex items-center justify-between text-xs">
-                            <span className="inline-flex items-center space-x-1.5 text-gray-500 font-medium">
-                              <Lock className="w-3.5 h-3.5 text-gray-400" />
-                              <span>Gap analysis & transition blueprint</span>
-                            </span>
-                            <button
-                              onClick={() => {
-                                setSelectedService({
-                                  code: 'CAREER_TRANSITION',
-                                  name: `Career Strategy: ${role.title}`,
-                                  pricingLabel: 'Custom Pricing',
-                                  tagline: `Targeted roadmap, resume framing, and interview strategy for ${role.title}.`,
-                                  quoteMessage: `Discuss your positioning and application strategy for ${role.title} with a senior consultant.`,
-                                  ctaText: 'Discuss My Requirements',
-                                  addressedAreas: ['Role-Specific Resume Alignment', 'Skill Gap Closure', 'Interview Narrative'],
-                                  isPrimary: true,
-                                });
-                                setConversionModalOpen(true);
-                              }}
-                              className="font-bold text-[#635BDB] hover:text-[#5249CE] flex items-center space-x-1"
-                            >
-                              <span>Unlock Strategy</span>
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* SECTION 3: INDUSTRY COMPATIBILITY & TRANSFERABILITY SCANNER */}
-            {/* ========================================================================= */}
-            {activeResult.careerIntelligence?.industries && (
-              <div className="space-y-4 pt-4">
-                <div>
-                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#F0FDF4] border border-[#BBF7D0] text-[#16A34A] text-[11px] font-bold uppercase tracking-wider mb-1">
-                    <Building2 className="w-3 h-3" />
-                    <span>Cross-Industry Mobility</span>
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
-                    Industry Compatibility Scanner
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#111B35]/60">
-                    Evaluates how your evidenced skills, functional experience, and methodologies translate across sectors.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {activeResult.careerIntelligence.industries.map((ind) => (
+                <div className="space-y-3">
+                  {(activeResult.careerIntelligence?.roles || []).slice(0, 4).map((role) => (
                     <div
-                      key={ind.id}
-                      className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm flex flex-col justify-between space-y-3"
+                      key={role.id}
+                      className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex items-start justify-between gap-3"
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
-                            {ind.categoryLabel}
-                          </span>
-                          <span className="text-sm font-extrabold text-[#635BDB]">
-                            {ind.compatibilityScore}%
-                          </span>
-                        </div>
-                        <h3 className="font-extrabold text-sm text-[#111B35] leading-snug">
-                          {ind.industryName}
-                        </h3>
-                        <p className="text-xs text-[#111B35]/70 mt-1.5 leading-relaxed font-medium">
-                          {ind.domainKnowledgeMatch}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1.5 pt-2 border-t border-gray-100">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-                          Transferable Competencies:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {ind.transferableResponsibilities.map((resp, rIdx) => (
-                            <span
-                              key={rIdx}
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#F8FAFC] text-slate-700 border border-slate-200"
-                            >
-                              {resp}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* SECTION 4: GLOBAL CAREER MARKETS (INTERNATIONAL ALIGNMENT) */}
-            {/* ========================================================================= */}
-            {activeResult.careerIntelligence?.countries && (
-              <div className="space-y-4 pt-4">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-                  <div>
-                    <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] text-[11px] font-bold uppercase tracking-wider mb-1">
-                      <Globe className="w-3 h-3" />
-                      <span>International Mobility</span>
-                    </div>
-                    <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
-                      Global Career Market Scanner
-                    </h2>
-                    <p className="text-xs sm:text-sm text-[#111B35]/60">
-                      Evaluates profile alignment with official 2026 labour shortages, language requirements, and international recruitment standards across 16 target markets.
-                    </p>
-                  </div>
-
-                  {/* Region Filter */}
-                  <div className="flex flex-wrap items-center gap-1.5 bg-white p-1 rounded-xl border border-[#E2E8F0] shadow-xs">
-                    {(['ALL', 'Middle East / GCC', 'Western Europe', 'South Asia / Domestic', 'European Union', 'North America', 'Southeast Asia'] as const).map((reg) => (
-                      <button
-                        key={reg}
-                        onClick={() => setCountryRegionFilter(reg)}
-                        className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
-                          countryRegionFilter === reg
-                            ? 'bg-[#10B981] text-white shadow-xs'
-                            : 'text-gray-600 hover:text-[#111B35] hover:bg-gray-100'
-                        }`}
-                      >
-                        {reg === 'ALL'
-                          ? 'All Regions'
-                          : reg === 'Middle East / GCC'
-                          ? 'Middle East / GCC'
-                          : reg === 'Western Europe'
-                          ? 'UK & Ireland'
-                          : reg === 'South Asia / Domestic'
-                          ? 'India'
-                          : reg === 'European Union'
-                          ? 'EU'
-                          : reg === 'North America'
-                          ? 'Canada'
-                          : 'APAC'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {activeResult.careerIntelligence.countries
-                    .filter((c) => countryRegionFilter === 'ALL' || c.region === countryRegionFilter)
-                    .map((country) => {
-                      const isRequiresVerification = country.workAuthStatus === 'Requires Verification';
-                      const isKnown = country.workAuthStatus === 'Known';
-
-                      return (
-                        <div
-                          key={country.countryCode}
-                          className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm hover:border-[#10B981]/50 transition-all flex flex-col justify-between space-y-4"
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center space-x-2.5">
-                                <span className="text-2xl leading-none">{country.flagEmoji}</span>
-                                <div>
-                                  <h3 className="font-extrabold text-base text-[#111B35]">
-                                    {country.countryName}
-                                  </h3>
-                                  <span className="text-[10px] font-semibold text-gray-400">
-                                    {country.region}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="text-right">
-                                <span className="text-lg font-extrabold text-[#10B981]">
-                                  {country.alignmentScore}%
-                                </span>
-                                <span className="text-[10px] font-bold text-gray-400 block -mt-1">
-                                  Alignment
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Work Authorization Pill (Strict Non-Fabrication Rule) */}
-                            <div className="flex items-center space-x-2">
-                              <span
-                                className={`inline-flex items-center space-x-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                                  isKnown
-                                    ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]'
-                                    : 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]'
-                                }`}
-                              >
-                                <Info className="w-3 h-3" />
-                                <span>Work Auth: {country.workAuthStatus}</span>
-                              </span>
-                              <span className="text-[10px] font-medium text-gray-400">
-                                {country.marketDataFreshness}
-                              </span>
-                            </div>
-
-                            <p className="text-xs text-[#111B35]/70 leading-relaxed font-medium">
-                              {country.briefExplanation}
-                            </p>
-
-                            {/* Suitable Roles in this Country */}
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
-                                In-Demand Target Roles:
-                              </span>
-                              <div className="flex flex-wrap gap-1">
-                                {country.suitableRoles.map((r, rIdx) => (
-                                  <span
-                                    key={rIdx}
-                                    className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-gray-50 text-gray-700 border border-gray-200"
-                                  >
-                                    {r}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-                            <span className="inline-flex items-center space-x-1.5 text-gray-400 font-medium text-[11px]">
-                              <Lock className="w-3 h-3" />
-                              <span>Visa & format playbook</span>
-                            </span>
-                            <button
-                              onClick={() => {
-                                setSelectedService({
-                                  code: 'INTERNATIONAL_CAREER_APPLICATION',
-                                  name: `${country.countryName} Market Application Strategy`,
-                                  pricingLabel: 'Custom Pricing',
-                                  tagline: `Format resume to ${country.countryName} specifications and prepare target country applications.`,
-                                  quoteMessage: `Discuss your career relocation, resume formatting, and international application strategy for ${country.countryName}.`,
-                                  ctaText: 'Discuss My Requirements',
-                                  addressedAreas: [`${country.countryName} Standard Formatting`, 'Work Visa Alignment', 'Regional Recruiter Outreach'],
-                                  isPrimary: false,
-                                });
-                                setConversionModalOpen(true);
-                              }}
-                              className="font-bold text-[#10B981] hover:text-[#059669] flex items-center space-x-1"
-                            >
-                              <span>Country Strategy</span>
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-
-                {/* Important Non-Fabrication Disclaimer */}
-                <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-600 text-xs flex items-start space-x-2.5">
-                  <Info className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
-                  <p className="leading-relaxed">
-                    <strong>International Compliance Notice:</strong> Market compatibility scores reflect resume alignment with official 2026 published critical skill lists and labour guidelines. Hopepitome provides professional resume optimization and does not issue visas, guarantee employer sponsorship, or promise hiring outcomes.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* SECTION 5: CAREER COMPETITIVENESS & APPLICATION READINESS */}
-            {/* ========================================================================= */}
-            {activeResult.careerIntelligence?.competitiveness && (
-              <div className="space-y-4 pt-4">
-                <div>
-                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#F5F3FF] border border-[#DDD6FE] text-[#7C3AED] text-[11px] font-bold uppercase tracking-wider mb-1">
-                    <TrendingUp className="w-3 h-3" />
-                    <span>Market Readiness</span>
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
-                    Competitiveness & Application Readiness
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#111B35]/60">
-                    Comprehensive assessment of profile strength, application preparedness, and hiring outlook.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Card 1: Profile Competitiveness */}
-                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between space-y-3">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        Profile Competitiveness
-                      </span>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-3xl font-extrabold text-[#635BDB]">
-                          {activeResult.careerIntelligence.competitiveness.profileCompetitiveness.score}/100
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#EEF2FF] text-[#635BDB]">
-                          {activeResult.careerIntelligence.competitiveness.profileCompetitiveness.level}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#111B35]/70 mt-3 leading-relaxed font-medium">
-                        {activeResult.careerIntelligence.competitiveness.profileCompetitiveness.summary}
-                      </p>
-                    </div>
-                    <div className="pt-3 border-t border-gray-100 text-[11px] font-semibold text-gray-400">
-                      Benchmarked against candidate peer group
-                    </div>
-                  </div>
-
-                  {/* Card 2: Application Readiness */}
-                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between space-y-3">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        Application Readiness
-                      </span>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-3xl font-extrabold text-[#10B981]">
-                          {activeResult.careerIntelligence.competitiveness.applicationReadiness.score}/100
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#ECFDF5] text-[#10B981]">
-                          {activeResult.careerIntelligence.competitiveness.applicationReadiness.level}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#111B35]/70 mt-3 leading-relaxed font-medium">
-                        {activeResult.careerIntelligence.competitiveness.applicationReadiness.summary}
-                      </p>
-                    </div>
-                    <div className="pt-3 border-t border-gray-100 text-[11px] font-semibold text-gray-400">
-                      Layout clarity, parsing stability & contact flow
-                    </div>
-                  </div>
-
-                  {/* Card 3: Qualitative Selection Outlook */}
-                  <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col justify-between space-y-3">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                        Qualitative Selection Outlook
-                      </span>
-                      <div className="mt-1">
-                        <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#F5F3FF] text-[#7C3AED] inline-block">
-                          {activeResult.careerIntelligence.competitiveness.selectionOutlook.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#111B35]/70 mt-3 leading-relaxed font-medium">
-                        {activeResult.careerIntelligence.competitiveness.selectionOutlook.explanation}
-                      </p>
-                    </div>
-                    <div className="pt-3 border-t border-gray-100 text-[10px] text-gray-400 leading-tight">
-                      {activeResult.careerIntelligence.competitiveness.selectionOutlook.disclaimer}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* LOCKED DETAILED INSIGHTS (CORE CONVERSION EXPERIENCE) */}
-            <div className="space-y-4 pt-4">
-              <div>
-                <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[11px] font-bold uppercase tracking-wider mb-1">
-                  <Lock className="w-3 h-3" />
-                  <span>Areas Requiring Attention</span>
-                </div>
-                <h2 className="text-lg sm:text-2xl font-extrabold text-[#111B35]">
-                  Locked Detailed Insights & Action Plan
-                </h2>
-                <p className="text-xs sm:text-sm text-[#111B35]/60">
-                  Your free audit identifies the titles of areas needing improvement. Detailed personalized diagnosis,
-                  line-by-line rewrite suggestions, and the complete step-by-step roadmap are unlocked when choosing a service.
-                </p>
-              </div>
-
-              {/* Locked Improvement Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {activeResult.improvementAreas.map((card) => (
-                  <div
-                    key={card.id}
-                    onClick={() => handleOpenLockedCard(card)}
-                    className="group bg-white rounded-2xl border-2 border-[#CBD5E1]/60 hover:border-[#635BDB] p-5 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
-                  >
-                    <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
-                          <span className="w-6 h-6 rounded-md bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center">
-                            <Lock className="w-3.5 h-3.5" />
-                          </span>
-                          <h3 className="font-extrabold text-sm sm:text-base text-[#111B35] group-hover:text-[#635BDB] transition-colors">
-                            {card.title}
-                          </h3>
+                          <h4 className="font-bold text-sm text-[#0F172A]">{role.title}</h4>
+                          <span className="text-[10px] font-semibold text-slate-400">({role.categoryLabel})</span>
                         </div>
-                        <p className="text-xs font-semibold text-[#111B35]/60 pl-8">{card.teaserSubtitle}</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">{role.matchReason}</p>
                       </div>
-
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#EEF2FF] text-[#635BDB] shrink-0">
-                        {card.pricingLabel || 'Quote Based on Requirements'}
-                      </span>
+                      <div className="text-right shrink-0">
+                        <span className="text-sm font-extrabold text-[#635BDB]">{role.compatibilityScore}%</span>
+                        <span className="text-[10px] font-semibold text-slate-400 block -mt-0.5">match</span>
+                      </div>
                     </div>
+                  ))}
+                </div>
+              </div>
 
-                    {/* Teaser Bullets */}
-                    <ul className="mt-3 pl-8 space-y-1.5 text-xs text-[#111B35]/80">
-                      {card.teaserBullets.map((bullet, bIdx) => (
-                        <li key={bIdx} className="flex items-center space-x-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#635BDB] shrink-0"></span>
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Lock CTA Bar */}
-                    <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs font-bold text-[#635BDB] group-hover:translate-x-0.5 transition-transform">
-                      <span className="flex items-center space-x-1">
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>Unlock personalized diagnosis & recommendations</span>
-                      </span>
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
+              {/* Right Column: Suitable Industries */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-extrabold text-base text-[#0F172A] flex items-center space-x-2">
+                      <Building2 className="w-4 h-4 text-[#10B981]" />
+                      <span>Suitable Industries</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Sectors where your professional experience and methodologies fit naturally.
+                    </p>
                   </div>
-                ))}
+                </div>
+
+                <div className="space-y-3">
+                  {(activeResult.careerIntelligence?.industries || []).slice(0, 4).map((ind) => (
+                    <div
+                      key={ind.id}
+                      className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex items-start justify-between gap-3"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-bold text-sm text-[#0F172A]">{ind.industryName}</h4>
+                          <span className="text-[10px] font-semibold text-slate-400">({ind.categoryLabel})</span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{ind.domainKnowledgeMatch}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-sm font-extrabold text-emerald-600">{ind.compatibilityScore}%</span>
+                        <span className="text-[10px] font-semibold text-slate-400 block -mt-0.5">fit</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* RECOMMENDED SERVICES & CUSTOM QUOTATION SECTION (PART B SPECIFICATION) */}
-            <div className="bg-gradient-to-br from-[#111B35] to-[#1E293B] rounded-3xl p-6 sm:p-10 text-white shadow-xl space-y-8">
-              <div className="text-center max-w-2xl mx-auto space-y-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-[#14B8A6]">
-                  Tailored Professional Fixes
-                </span>
+            {/* 4. COUNTRY COMPATIBILITY (16-Country Shortlist) */}
+            {activeResult.careerIntelligence?.countries && (
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <Globe className="w-4 h-4 text-[#635BDB]" />
+                    <h3 className="font-extrabold text-base sm:text-lg text-[#0F172A]">Country Market Compatibility</h3>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Shortlist of international career markets based on regional industry alignment.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {activeResult.careerIntelligence.countries.slice(0, 6).map((country) => (
+                    <div
+                      key={country.countryCode}
+                      className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200 flex flex-col justify-between space-y-2.5"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl leading-none">{country.flagEmoji}</span>
+                            <h4 className="font-bold text-sm text-[#0F172A]">{country.countryName}</h4>
+                          </div>
+                          <span className="text-xs font-extrabold text-emerald-600">{country.alignmentScore}%</span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{country.briefExplanation}</p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+                        <span className="text-slate-400 font-medium">Work Authorisation:</span>
+                        <span className="font-semibold text-slate-700">{country.workAuthStatus}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100">
+                  A profile alignment score reflects resume suitability for regional industry needs. It is not proof that a job vacancy exists or that a candidate is legally authorized to work there.
+                </p>
+              </div>
+            )}
+
+            {/* 5. SIMPLE IMPROVEMENT REPORT (Strengths & Areas Needing Attention) */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left: Your Strengths */}
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    <h3 className="font-extrabold text-base text-[#0F172A]">Your Strengths</h3>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {activeResult.strengthTitles.map((title, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/70 flex items-start space-x-2.5 text-xs text-emerald-950 font-medium"
+                      >
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{title}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: Areas Needing Attention */}
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Lock className="w-5 h-5 text-[#635BDB]" />
+                    <h3 className="font-extrabold text-base text-[#0F172A]">Areas Needing Attention</h3>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {activeResult.improvementAreas.slice(0, 4).map((card) => (
+                      <div
+                        key={card.id}
+                        onClick={() => handleOpenLockedCard(card)}
+                        className="p-3.5 rounded-2xl bg-indigo-50/40 border border-indigo-100 hover:border-[#635BDB] transition-all cursor-pointer flex items-center justify-between group"
+                      >
+                        <div className="space-y-0.5">
+                          <h4 className="font-bold text-xs sm:text-sm text-[#0F172A] group-hover:text-[#635BDB] transition-colors">
+                            {card.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">{card.teaserSubtitle}</p>
+                        </div>
+                        <div className="flex items-center space-x-1 text-xs font-bold text-[#635BDB] shrink-0 pl-2">
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Unlock</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 6. RECOMMENDED HOPEPITOME SERVICES (Strict Custom Pricing Only) */}
+            <div className="bg-gradient-to-br from-[#111B35] to-[#1E293B] rounded-3xl p-6 sm:p-10 text-white shadow-lg space-y-6">
+              <div className="text-center max-w-xl mx-auto space-y-2">
+                <span className="text-xs font-bold uppercase tracking-widest text-[#14B8A6]">Customized Support</span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                  Recommended Career Services for Your Resume
+                  Recommended Career Services
                 </h2>
-                <p className="text-xs sm:text-sm text-gray-300">
-                  Hopepitome provides customised resume and career services. Pricing is determined after understanding
-                  your exact experience, career trajectory, and project requirements.
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Hopepitome provides customized resume and career services. Pricing is determined after understanding your specific experience and career goals.
                 </p>
               </div>
 
-              {/* Service Cards (Strictly No Fixed Prices) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {activeResult.recommendedServices.map((service) => (
                   <div
                     key={service.code}
-                    className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 flex flex-col justify-between space-y-5 hover:bg-white/15 transition-all"
+                    className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 flex flex-col justify-between space-y-4 hover:bg-white/15 transition-all"
                   >
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       <div className="flex items-center justify-between">
-                        {service.isPrimary ? (
-                          <span className="px-3 py-1 rounded-full bg-[#10B981] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                            Primary Recommendation
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-extrabold uppercase tracking-wider">
-                            Complementary Service
-                          </span>
-                        )}
-                        <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-white/10 text-[#14B8A6]">
-                          {service.pricingLabel || 'Custom Pricing'}
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/15 text-[#14B8A6]">
+                          {service.isPrimary ? 'Primary Recommendation' : 'Recommended Service'}
                         </span>
+                        <span className="text-xs font-bold text-slate-300">Quote Based on Scope</span>
                       </div>
-
                       <h3 className="text-lg font-bold text-white">{service.name}</h3>
-                      <p className="text-xs text-gray-200 leading-relaxed font-medium">{service.quoteMessage}</p>
-
-                      <div className="space-y-1.5 pt-2">
-                        <span className="text-[11px] font-bold text-[#14B8A6] uppercase tracking-wider block">
-                          Addresses Identified Needs:
-                        </span>
-                        {service.addressedAreas.map((area, aIdx) => (
-                          <div key={aIdx} className="flex items-center space-x-2 text-xs text-gray-200">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
-                            <span>{area}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <p className="text-xs text-slate-200 leading-relaxed">{service.quoteMessage}</p>
                     </div>
 
                     <button
                       onClick={() => handleSelectService(service)}
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] hover:opacity-95 text-white font-extrabold text-sm flex items-center justify-center space-x-2 shadow-lg transition-all"
+                      className="w-full py-3 rounded-xl bg-[#635BDB] hover:bg-[#5249CE] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow-md transition-all"
                     >
                       <span>{service.ctaText || 'Request a Custom Quote'}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
-              </div>
-
-              {/* Guarantees Footer */}
-              <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-around gap-4 text-xs text-gray-300">
-                <span className="flex items-center space-x-1.5">
-                  <ShieldCheck className="w-4 h-4 text-[#10B981]" />
-                  <span>Custom Quote Based on Actual Scope</span>
-                </span>
-                <span className="flex items-center space-x-1.5">
-                  <Clock className="w-4 h-4 text-[#14B8A6]" />
-                  <span>24-Hour Quotation Turnaround</span>
-                </span>
-                <span className="flex items-center space-x-1.5">
-                  <Award className="w-4 h-4 text-[#8B5CF6]" />
-                  <span>Direct Senior Consultant Consultation</span>
-                </span>
               </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* 3. CUSTOM QUOTATION REQUEST MODAL & MOBILE BOTTOM SHEET */}
+      {/* 3. LOCKED INSIGHTS & CUSTOM QUOTE MODAL */}
       {conversionModalOpen && selectedService && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="p-5 sm:p-6 bg-gradient-to-r from-[#111B35] to-[#1E293B] text-white flex items-center justify-between">
+            <div className="p-5 bg-[#111B35] text-white flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#14B8A6]">
-                  Custom Quotation Request
+                  {selectedModalCard ? 'Unlock Personalized Insights' : 'Custom Quotation Request'}
                 </span>
-                <h3 className="text-lg font-extrabold text-white mt-0.5">{selectedService.name}</h3>
+                <h3 className="text-base sm:text-lg font-extrabold text-white mt-0.5">
+                  {selectedModalCard ? selectedModalCard.title : selectedService.name}
+                </h3>
               </div>
               <button
                 onClick={() => {
@@ -2036,125 +1412,97 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
               </button>
             </div>
 
-            {/* Modal Body / Scrollable Form */}
-            <div className="p-6 overflow-y-auto space-y-6">
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-5">
               {enquirySuccessRef ? (
-                /* Success State */
-                <div className="text-center py-6 space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-[#ECFDF5] text-[#10B981] flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-10 h-10" />
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xl font-extrabold text-[#111B35]">Quotation Request Registered!</h4>
-                    <p className="text-xs text-[#111B35]/60">
-                      Your ATS audit score ({auditResult?.overallScore || '78'}/100) and resume reference have been securely linked.
-                    </p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] inline-block text-xs font-bold text-[#111B35]">
-                    Reference ID: <span className="text-[#635BDB]">{enquirySuccessRef}</span>
-                  </div>
-                  <p className="text-xs text-[#111B35]/70 max-w-sm mx-auto leading-relaxed">
-                    A Senior Career Consultant will review your audit findings and career goals to prepare a transparent,
-                    tailored quotation within 24 hours.
+                  <h4 className="text-lg font-extrabold text-[#0F172A]">Request Received!</h4>
+                  <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                    Your assessment reference has been saved. A career consultant will review your resume and reach out within 24 hours.
                   </p>
-                  <div className="pt-2">
-                    <a
-                      href={`https://wa.me/919496338879?text=Hello%20Hopepitome%20Career%20Studio,%20I%20completed%20an%20ATS%20audit%20and%20would%20like%20to%20request%20a%20custom%20quote%20for%20${encodeURIComponent(
-                        selectedService.name
-                      )}%20(Ref:%20${enquirySuccessRef})`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#25D366] text-white text-xs font-bold shadow-md hover:opacity-95"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Message on WhatsApp Directly</span>
-                    </a>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-bold text-slate-700">
+                    Reference: {enquirySuccessRef}
                   </div>
+                  <button
+                    onClick={() => {
+                      setConversionModalOpen(false);
+                      setEnquirySuccessRef(null);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-[#635BDB] text-white text-xs font-bold"
+                  >
+                    Done
+                  </button>
                 </div>
               ) : (
-                /* Intake Form */
-                <form onSubmit={handleSubmitEnquiry} className="space-y-5">
-                  {/* Service Deliverable Highlights */}
-                  <div className="p-4 rounded-xl bg-[#EEF2FF] border border-[#C7D2FE] space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#111B35]">Pricing Policy</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#635BDB] text-white">
-                        Custom Quotation
-                      </span>
+                <form onSubmit={handleSubmitEnquiry} className="space-y-4">
+                  {/* Unlock Preview Box */}
+                  {selectedModalCard && (
+                    <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
+                      <span className="text-xs font-extrabold text-[#635BDB]">Unlock to discover:</span>
+                      <ul className="space-y-1.5 text-xs text-slate-700">
+                        {selectedModalCard.teaserBullets.map((bullet, idx) => (
+                          <li key={idx} className="flex items-start space-x-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#635BDB] shrink-0 mt-1.5"></span>
+                            <span>{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <p className="text-xs text-[#111B35]/80 leading-relaxed pt-1">
-                      {selectedService.quoteMessage}
-                    </p>
-                  </div>
+                  )}
 
-                  {/* Contact Inputs */}
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Full Name *</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name *</label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Anumol Sebastian"
+                        placeholder="e.g. Alex Morgan"
                         value={leadName}
                         onChange={(e) => setLeadName(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Email Address *</label>
-                      <input
-                        type="email"
-                        required
-                        placeholder="e.g. anumol@example.com"
-                        value={leadEmail}
-                        onChange={(e) => setLeadEmail(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">WhatsApp / Phone Number *</label>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="e.g. +91 98460 00000"
-                        value={leadPhone}
-                        onChange={(e) => setLeadPhone(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Target Career Goal / Role</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Senior Tech Lead, Director of Operations"
-                        value={leadCareerGoals}
-                        onChange={(e) => setLeadCareerGoals(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Specific Requirements or Timeline</label>
-                      <textarea
-                        rows={2}
-                        placeholder="Tell us about your target geography, timeline, or specific challenges..."
-                        value={leadRequirements}
-                        onChange={(e) => setLeadRequirements(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
                       />
                     </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="alex@example.com"
+                          value={leadEmail}
+                          onChange={(e) => setLeadEmail(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Phone / WhatsApp *</label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="+971 50 ... / +91 ..."
+                          value={leadPhone}
+                          onChange={(e) => setLeadPhone(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-bold text-[#111B35]/70 mb-1">Preferred Contact Method</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Preferred Contact Method</label>
                       <div className="grid grid-cols-3 gap-2">
-                        {(['WhatsApp', 'Email', 'Phone Call'] as const).map((method) => (
+                        {(['WhatsApp', 'Phone', 'Email'] as const).map((method) => (
                           <button
-                            key={method}
                             type="button"
+                            key={method}
                             onClick={() => setLeadContactMethod(method)}
-                            className={`py-2 px-2 text-xs font-semibold rounded-lg border text-center transition-all ${
+                            className={`py-2 rounded-xl text-xs font-bold border transition-all ${
                               leadContactMethod === method
-                                ? 'bg-[#635BDB] text-white border-[#635BDB]'
-                                : 'bg-white text-[#111B35] border-gray-200 hover:bg-gray-50'
+                                ? 'bg-indigo-50 border-[#635BDB] text-[#635BDB]'
+                                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             {method}
@@ -2162,27 +1510,28 @@ Candidate Notes: ${leadRequirements.trim() || 'Custom quotation requested based 
                         ))}
                       </div>
                     </div>
-                  </div>
 
-                  <p className="text-[11px] text-[#111B35]/50 leading-relaxed">
-                    By submitting, your resume reference ({fileName || 'Uploaded resume'}) and assessment score (
-                    {auditResult?.overallScore || '78'}/100) are securely linked to your enquiry. Pricing will be proposed
-                    transparently based on your actual scope. No payment is charged now.
-                  </p>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Any specific goals or questions? <span className="text-slate-400 font-normal">(optional)</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="Tell us about the roles you are targeting or challenges you are facing..."
+                        value={leadRequirements}
+                        onChange={(e) => setLeadRequirements(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-[#635BDB]/20 focus:border-[#635BDB]"
+                      />
+                    </div>
+                  </div>
 
                   <button
                     type="submit"
                     disabled={enquirySubmitting}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] hover:opacity-95 text-white font-extrabold text-sm flex items-center justify-center space-x-2 shadow-md transition-all"
+                    className="w-full py-3 rounded-xl bg-[#635BDB] hover:bg-[#5249CE] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center space-x-1.5 shadow-md transition-all"
                   >
-                    {enquirySubmitting ? (
-                      <span className="flex items-center space-x-2">
-                        <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
-                        <span>Submitting Request...</span>
-                      </span>
-                    ) : (
-                      <span>{selectedService.ctaText || 'Request Custom Quote'}</span>
-                    )}
+                    <span>{enquirySubmitting ? 'Submitting...' : 'Request Custom Quote'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </form>
               )}

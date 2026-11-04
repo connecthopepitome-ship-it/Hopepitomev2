@@ -999,16 +999,29 @@ export default {
             success: true,
             isPublic,
             assessment: isPublic ? publicAssessment : assessmentRecord,
-            message: `ATS evaluation completed successfully via ${assessment.providerAudit.selectedProvider} (${assessment.providerAudit.modelUsed}).`,
+            message: isPublic
+              ? 'Resume evaluated successfully.'
+              : `ATS evaluation completed successfully via ${assessment.providerAudit.selectedProvider} (${assessment.providerAudit.modelUsed}).`,
           }),
           { status: 200, headers: CORS_HEADERS }
         );
       } catch (err: any) {
-        console.error('[ATS Evaluation Failure]:', err);
+        // Secure internal diagnostic log (never logs API keys or raw resume content)
+        console.error('[ATS Evaluation Internal Diagnostic]:', {
+          timestamp: new Date().toISOString(),
+          error: err?.message || String(err),
+        });
+
         return new Response(
           JSON.stringify({
             success: false,
-            error: err?.message || 'ATS evaluation failed. Please retry in a few moments.',
+            errorType: 'HIGH_DEMAND',
+            heading: "We're experiencing high demand.",
+            message:
+              "Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.",
+            secondaryText: 'Thank you for your patience.',
+            error:
+              "Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.",
           }),
           { status: 503, headers: CORS_HEADERS }
         );
