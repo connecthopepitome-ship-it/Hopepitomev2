@@ -1,138 +1,85 @@
 /**
- * MULTI-PROVIDER AI FAILOVER & HEALTH ENGINE
- * Orchestrates seamless switching between Google Gemini, Groq, Cloudflare Workers AI, and OpenRouter.
- * Guarantees zero-paid fallback, respects rate limits, manages cooldown states, and ensures idempotency.
+ * HOPEPITOME OPENAI GPT-6 LUNA ASSESSMENT ENGINE
+ * Dedicated single-provider execution engine for OpenAI GPT-6 Luna.
+ * Replaces all legacy multi-provider failover, secondary models, and quota chains.
+ * Provides usage monitoring, token tracking, estimated cost calculation, and strict error handling.
  */
 
 import {
-  AiProviderName,
   AtsAssessmentResult,
   ProviderHealthState,
   SanitizedResumeInput,
+  OpenAiUsageStats,
 } from './types';
-import {
-  AiProviderAdapter,
-  GeminiAdapter,
-  GroqAdapter,
-  CloudflareWorkersAiAdapter,
-  OpenRouterAdapter,
-} from './adapters';
+import { OpenAiAdapter } from './adapters';
 import { anonymizeResumeText } from './privacy';
 import { calculateDeterministicAtsScore } from './scoring';
-import { getDefaultFreeModel } from './models';
+import { ACTIVE_AI_MODEL, calculateGpt6LunaCost } from './models';
 
-// Edge-persisted or memory health cache
-const edgeHealthStore: Record<AiProviderName, ProviderHealthState> = {
-  gemini: {
-    providerId: 'gemini',
-    modelId: getDefaultFreeModel('gemini'),
-    configured: false,
-    enabled: true,
-    freeTierVerified: true,
-    currentStatus: 'UNCONFIGURED',
-    dailyQuotaExhausted: false,
-    consecutiveFailures: 0,
-    totalSuccessCount: 0,
-    totalFailureCount: 0,
-    lastHealthCheck: new Date().toISOString(),
-  },
-  groq: {
-    providerId: 'groq',
-    modelId: getDefaultFreeModel('groq'),
-    configured: false,
-    enabled: true,
-    freeTierVerified: true,
-    currentStatus: 'UNCONFIGURED',
-    dailyQuotaExhausted: false,
-    consecutiveFailures: 0,
-    totalSuccessCount: 0,
-    totalFailureCount: 0,
-    lastHealthCheck: new Date().toISOString(),
-  },
-  cloudflare: {
-    providerId: 'cloudflare',
-    modelId: getDefaultFreeModel('cloudflare'),
-    configured: false,
-    enabled: true,
-    freeTierVerified: true,
-    currentStatus: 'UNCONFIGURED',
-    dailyQuotaExhausted: false,
-    consecutiveFailures: 0,
-    totalSuccessCount: 0,
-    totalFailureCount: 0,
-    lastHealthCheck: new Date().toISOString(),
-  },
-  openrouter: {
-    providerId: 'openrouter',
-    modelId: getDefaultFreeModel('openrouter'),
-    configured: false,
-    enabled: true,
-    freeTierVerified: true,
-    currentStatus: 'UNCONFIGURED',
-    dailyQuotaExhausted: false,
-    consecutiveFailures: 0,
-    totalSuccessCount: 0,
-    totalFailureCount: 0,
-    lastHealthCheck: new Date().toISOString(),
-  },
+// Edge-persisted memory usage store
+const memoryUsageStats: OpenAiUsageStats = {
+  totalAssessments: 0,
+  successfulAssessments: 0,
+  failedAssessments: 0,
+  inputTokens: 0,
+  outputTokens: 0,
+  totalTokens: 0,
+  estimatedCostUsd: 0,
+  averageLatencyMs: 0,
+  monthlyBudgetLimitUsd: 100.0,
+  budgetWarningTriggered: false,
 };
 
-export class AtsMultiProviderEngine {
-  private adapters: Map<AiProviderName, AiProviderAdapter> = new Map();
+let totalLatencyAccumulator = 0;
 
-  constructor() {
-    this.adapters.set('gemini', new GeminiAdapter());
-    this.adapters.set('groq', new GroqAdapter());
-    this.adapters.set('cloudflare', new CloudflareWorkersAiAdapter());
-    this.adapters.set('openrouter', new OpenRouterAdapter());
+export class AtsOpenAiEngine {
+  private adapter: OpenAiAdapter = new OpenAiAdapter();
+
+  /**
+   * Health and configuration check for OpenAI GPT-6 Luna
+   */
+  public getProviderHealth(env: any): ProviderHealthState {
+    const configured = this.adapter.isConfigured(env);
+    const hasFailures = memoryUsageStats.failedAssessments > 0;
+    const currentStatus = !configured ? 'NOT_CONFIGURED' : hasFailures && memoryUsageStats.successfulAssessments === 0 ? 'ERROR' : 'CONNECTED';
+
+    return {
+      providerId: 'openai',
+      modelId: ACTIVE_AI_MODEL.id,
+      configured,
+      currentStatus,
+      lastSuccessfulRequest: memoryUsageStats.lastSuccessfulRequest,
+      lastFailure: memoryUsageStats.lastError ? new Date().toISOString() : undefined,
+      lastErrorMessage: memoryUsageStats.lastError,
+      totalSuccessCount: memoryUsageStats.successfulAssessments,
+      totalFailureCount: memoryUsageStats.failedAssessments,
+      lastHealthCheck: new Date().toISOString(),
+      adminNotes: 'Single-model exclusive architecture: OpenAI Responses API via GPT-6 Luna.',
+    };
   }
 
   /**
-   * Sync provider configuration status from Cloudflare environment
+   * Returns current aggregate usage and cost statistics
    */
-  public syncProviderHealth(env: any): Record<AiProviderName, ProviderHealthState> {
-    const now = Date.now();
-    const providers: AiProviderName[] = ['gemini', 'groq', 'cloudflare', 'openrouter'];
-    for (const provider of providers) {
-      const adapter = this.adapters.get(provider);
-      if (!adapter) continue;
-      const state = edgeHealthStore[provider];
-      state.configured = adapter.isConfigured(env);
+  public getUsageStats(): OpenAiUsageStats {
+    return { ...memoryUsageStats };
+  }
 
-      // Check if cooldown has expired
-      if (state.cooldownUntil && state.cooldownUntil <= now) {
-        state.cooldownUntil = undefined;
-        if (state.currentStatus === 'COOLDOWN' || state.currentStatus === 'RATE_LIMITED') {
-          state.currentStatus = state.configured ? 'HEALTHY' : 'UNCONFIGURED';
-        }
-      }
-
-      // Check daily quota reset (24 hour expiration)
-      if (state.dailyQuotaResetAt && state.dailyQuotaResetAt <= now) {
-        state.dailyQuotaResetAt = undefined;
-        state.dailyQuotaExhausted = false;
-        if (state.currentStatus === 'QUOTA_EXHAUSTED') {
-          state.currentStatus = state.configured ? 'HEALTHY' : 'UNCONFIGURED';
-        }
-      }
-
-      if (!state.configured) {
-        state.currentStatus = 'UNCONFIGURED';
-      } else if (!state.enabled) {
-        state.currentStatus = 'DISABLED';
-      } else if (!state.cooldownUntil && !state.dailyQuotaExhausted) {
-        state.currentStatus = 'HEALTHY';
-      }
-
-      state.lastHealthCheck = new Date().toISOString();
+  /**
+   * Updates monthly spending budget limit
+   */
+  public setMonthlyBudgetLimit(limitUsd: number) {
+    if (typeof limitUsd === 'number' && limitUsd > 0) {
+      memoryUsageStats.monthlyBudgetLimitUsd = limitUsd;
+      memoryUsageStats.budgetWarningTriggered = memoryUsageStats.estimatedCostUsd >= limitUsd * 0.85;
     }
-    return edgeHealthStore;
   }
 
   /**
-   * Run full ATS evaluation with strict automatic failover
+   * Executes ATS evaluation strictly using OpenAI GPT-6 Luna.
+   * Throws a controlled, user-facing error if OpenAI is unavailable.
    */
-  public async analyzeResumeWithFailover(
+  public async analyzeResume(
     rawResumeText: string,
     options: {
       targetRole?: string;
@@ -143,7 +90,8 @@ export class AtsMultiProviderEngine {
     },
     env: any
   ): Promise<AtsAssessmentResult> {
-    this.syncProviderHealth(env);
+    const startTime = Date.now();
+    memoryUsageStats.totalAssessments += 1;
 
     // 1. Sanitize & Anonymize (PII Removal)
     const sanitizedInput: SanitizedResumeInput = anonymizeResumeText(
@@ -154,104 +102,92 @@ export class AtsMultiProviderEngine {
       options.fileName
     );
 
-    const assessmentId = options.assessmentId || `ATS-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const assessmentId =
+      options.assessmentId ||
+      `ATS-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-    // 2. Determine Provider Execution Priority Order
-    // Default: Gemini (P1) -> Groq (P2) -> Cloudflare (P3) -> OpenRouter (P4)
-    const priorityOrder: AiProviderName[] = ['gemini', 'groq', 'cloudflare', 'openrouter'];
-    const failoverTrail: AtsAssessmentResult['providerAudit']['failoverTrail'] = [];
+    // 2. Execute via OpenAI GPT-6 Luna Adapter
+    const result = await this.adapter.execute(sanitizedInput, env);
 
-    const startTime = Date.now();
-    let successfulResult: any = null;
-    let winningProvider: AiProviderName | null = null;
-    let winningAdapter: AiProviderAdapter | null = null;
-    let tokensAccumulated: any = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+    if (!result.success || !result.rawJson) {
+      memoryUsageStats.failedAssessments += 1;
+      memoryUsageStats.lastError = result.errorReason || 'OpenAI inference failed';
 
-    // 3. Iterate through eligible free providers
-    for (const provider of priorityOrder) {
-      const adapter = this.adapters.get(provider)!;
-      const health = edgeHealthStore[provider];
-
-      // Eligibility Check
-      if (!health.configured || !health.enabled || health.dailyQuotaExhausted) {
-        continue;
-      }
-      if (health.cooldownUntil && health.cooldownUntil > Date.now()) {
-        continue;
-      }
-
-      // Execute request through adapter
-      const execResult = await adapter.execute(sanitizedInput, env);
-
-      failoverTrail.push({
-        provider,
-        model: adapter.modelName,
-        success: execResult.success,
-        durationMs: execResult.durationMs,
-        errorCode: execResult.errorCode,
-        errorReason: execResult.errorReason,
+      // Internal diagnostic logged on server side
+      console.error('[OpenAI GPT-6 Luna Execution Error]:', {
+        timestamp: new Date().toISOString(),
+        assessmentId,
+        errorCode: result.errorCode,
+        reason: result.errorReason,
       });
 
-      if (execResult.success && execResult.rawJson) {
-        // Success: update provider metrics
-        health.currentStatus = 'HEALTHY';
-        health.lastSuccessfulRequest = new Date().toISOString();
-        health.consecutiveFailures = 0;
-        health.totalSuccessCount += 1;
-
-        successfulResult = execResult.rawJson;
-        winningProvider = provider;
-        winningAdapter = adapter;
-        if (execResult.tokensUsed) {
-          tokensAccumulated = execResult.tokensUsed;
-        }
-        break; // Stop immediately upon first validated response
-      }
-
-      // Handle Provider Failure & Classify
-      health.totalFailureCount += 1;
-      health.consecutiveFailures += 1;
-      health.lastFailure = new Date().toISOString();
-      health.lastErrorCode = execResult.errorCode;
-      health.lastErrorMessage = execResult.errorReason;
-
-      if (execResult.isRateLimit) {
-        health.currentStatus = 'RATE_LIMITED';
-        health.cooldownUntil = Date.now() + 60 * 1000; // 60s cooldown
-      } else if (execResult.isDailyQuota) {
-        health.currentStatus = 'QUOTA_EXHAUSTED';
-        health.dailyQuotaExhausted = true;
-        health.dailyQuotaResetAt = Date.now() + 4 * 60 * 60 * 1000; // 4 hour backoff
-      } else if (execResult.errorCode === 401 || execResult.errorCode === 403) {
-        health.currentStatus = 'UNCONFIGURED';
-      } else {
-        health.currentStatus = 'COOLDOWN';
-        health.cooldownUntil = Date.now() + 30 * 1000; // 30s backoff for 5xx errors
-      }
-    }
-
-    // 4. Validate outcome
-    if (!successfulResult || !winningProvider || !winningAdapter) {
       throw new Error(
-        `All configured free AI providers are currently unavailable or rate-limited. Failures recorded: ${failoverTrail
-          .map((t) => `${t.provider} (${t.errorCode || 'failed'})`)
-          .join(', ')}. Please retry in a few moments.`
+        'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.'
       );
     }
 
-    // 5. Calculate Deterministic Score
-    const totalDurationMs = Date.now() - startTime;
-    return calculateDeterministicAtsScore(successfulResult, sanitizedInput, assessmentId, {
-      selectedProvider: winningProvider,
-      modelUsed: winningAdapter.modelName,
-      attemptsCount: failoverTrail.length,
-      failoverTrail,
-      totalDurationMs,
-      tokensUsed: tokensAccumulated,
+    // 3. Update usage statistics upon success
+    const promptTokens = result.tokensUsed?.promptTokens || 0;
+    const completionTokens = result.tokensUsed?.completionTokens || 0;
+    const totalTokens = result.tokensUsed?.totalTokens || promptTokens + completionTokens;
+    const estimatedCost = result.estimatedCostUsd || calculateGpt6LunaCost(promptTokens, completionTokens);
+
+    memoryUsageStats.successfulAssessments += 1;
+    memoryUsageStats.inputTokens += promptTokens;
+    memoryUsageStats.outputTokens += completionTokens;
+    memoryUsageStats.totalTokens += totalTokens;
+    memoryUsageStats.estimatedCostUsd = Number((memoryUsageStats.estimatedCostUsd + estimatedCost).toFixed(6));
+    memoryUsageStats.lastSuccessfulRequest = new Date().toISOString();
+    memoryUsageStats.lastError = undefined;
+
+    totalLatencyAccumulator += result.durationMs;
+    memoryUsageStats.averageLatencyMs = Math.round(
+      totalLatencyAccumulator / memoryUsageStats.successfulAssessments
+    );
+
+    if (memoryUsageStats.estimatedCostUsd >= memoryUsageStats.monthlyBudgetLimitUsd * 0.85) {
+      memoryUsageStats.budgetWarningTriggered = true;
+    }
+
+    // 4. Calculate Deterministic Score & Structured Career Intelligence
+    return calculateDeterministicAtsScore(result.rawJson, sanitizedInput, assessmentId, {
+      selectedProvider: 'openai',
+      modelUsed: ACTIVE_AI_MODEL.id,
+      attemptsCount: 1,
+      failoverTrail: [
+        {
+          provider: 'openai',
+          model: ACTIVE_AI_MODEL.id,
+          success: true,
+          durationMs: result.durationMs,
+        },
+      ],
+      totalDurationMs: result.durationMs,
+      tokensUsed: {
+        promptTokens,
+        completionTokens,
+        totalTokens,
+        reasoningTokens: result.tokensUsed?.reasoningTokens,
+      },
+      estimatedCostUsd: estimatedCost,
       deterministicValidated: true,
     });
   }
+
+  // Backwards compatibility alias for existing route handlers
+  public analyzeResumeWithFailover(
+    rawResumeText: string,
+    options: any,
+    env: any
+  ): Promise<AtsAssessmentResult> {
+    return this.analyzeResume(rawResumeText, options, env);
+  }
+
+  public syncProviderHealth(env: any): Record<string, ProviderHealthState> {
+    return {
+      openai: this.getProviderHealth(env),
+    };
+  }
 }
 
-export const globalAtsEngine = new AtsMultiProviderEngine();
-
+export const globalAtsEngine = new AtsOpenAiEngine();

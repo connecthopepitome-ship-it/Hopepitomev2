@@ -1,49 +1,55 @@
 /**
- * HOPEPITOME ATS & MULTI-PROVIDER AI CONTRACTS
- * Pure typescript types for free-only AI provider adapters, failover engine,
- * deterministic scoring, and provider health management.
+ * HOPEPITOME ATS & OPENAI GPT-6 LUNA CONTRACTS
+ * Pure typescript types for single-provider OpenAI GPT-6 Luna engine,
+ * deterministic scoring, structured assessment outputs, and usage analytics.
  */
 
 export * from './career-types';
 import type { CareerIntelligenceResult, PublicCareerIntelligence } from './career-types';
 
-export type AiProviderName = 'gemini' | 'groq' | 'cloudflare' | 'openrouter';
+export type AiProviderName = 'openai';
 
-export type ProviderHealthStatus = 'HEALTHY' | 'COOLDOWN' | 'RATE_LIMITED' | 'QUOTA_EXHAUSTED' | 'DISABLED' | 'UNCONFIGURED';
+export type ProviderHealthStatus = 'CONNECTED' | 'NOT_CONFIGURED' | 'ERROR';
 
-export interface FreeModelDefinition {
-  id: string;
+export interface OpenAiModelDefinition {
+  id: 'gpt-6-luna';
   name: string;
-  provider: AiProviderName;
-  verifiedFree: boolean;
-  freeTierTerms: string;
-  maxContextTokens: number;
-  rateLimitRpm: number;
-  rateLimitRpd: number;
-  supportsJsonSchema: boolean;
-  notes?: string;
+  provider: 'openai';
+  apiEndpoint: string;
+  contextWindowTokens: number;
+  maxOutputTokens: number;
+  inputPricingPer1M: number;
+  outputPricingPer1M: number;
 }
 
 export interface ProviderHealthState {
-  providerId: AiProviderName;
-  modelId: string;
+  providerId: 'openai';
+  modelId: 'gpt-6-luna';
   configured: boolean;
-  enabled: boolean;
-  freeTierVerified: boolean;
   currentStatus: ProviderHealthStatus;
   lastSuccessfulRequest?: string;
   lastFailure?: string;
   lastErrorCode?: number;
   lastErrorMessage?: string;
-  cooldownUntil?: number; // epoch ms
-  rateLimitResetAt?: number; // epoch ms
-  dailyQuotaExhausted: boolean;
-  dailyQuotaResetAt?: number; // epoch ms
-  consecutiveFailures: number;
   totalSuccessCount: number;
   totalFailureCount: number;
   lastHealthCheck: string;
   adminNotes?: string;
+}
+
+export interface OpenAiUsageStats {
+  totalAssessments: number;
+  successfulAssessments: number;
+  failedAssessments: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  estimatedCostUsd: number;
+  averageLatencyMs: number;
+  lastSuccessfulRequest?: string;
+  lastError?: string;
+  monthlyBudgetLimitUsd: number;
+  budgetWarningTriggered: boolean;
 }
 
 export interface SanitizedResumeInput {
@@ -121,11 +127,11 @@ export interface AtsAssessmentResult {
   detectedWordCount: number;
   careerIntelligence?: CareerIntelligenceResult;
   providerAudit: {
-    selectedProvider: AiProviderName;
-    modelUsed: string;
+    selectedProvider: 'openai';
+    modelUsed: 'gpt-6-luna';
     attemptsCount: number;
     failoverTrail: {
-      provider: AiProviderName;
+      provider: 'openai';
       model: string;
       success: boolean;
       durationMs: number;
@@ -133,27 +139,15 @@ export interface AtsAssessmentResult {
       errorReason?: string;
     }[];
     totalDurationMs: number;
-    tokensUsed?: {
+    tokensUsed: {
       promptTokens: number;
       completionTokens: number;
       totalTokens: number;
+      reasoningTokens?: number;
     };
+    estimatedCostUsd: number;
     deterministicValidated: boolean;
   };
-}
-
-export interface AiProviderConfig {
-  mode: 'free_only';
-  primaryProvider: AiProviderName;
-  fallbackProviders: AiProviderName[];
-  maxAttempts: number;
-  allowPaidFallback: false; // Mandatory hardcoded false
-  failoverEnabled: boolean;
-  providers: Record<AiProviderName, {
-    enabled: boolean;
-    model: string;
-    priority: number;
-  }>;
 }
 
 export interface PublicAtsCategoryItem {
@@ -228,5 +222,3 @@ export interface PublicAtsAuditResult {
   careerIntelligence?: PublicCareerIntelligence;
   isLocked: boolean;
 }
-
-

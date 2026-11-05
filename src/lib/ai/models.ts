@@ -1,174 +1,31 @@
 /**
- * HOPEPITOME FREE MODEL REGISTRY & ALLOWLIST
- * Strictly curated models with verified perpetual or quota-free tier access.
- * Rejects any model that introduces billing or accidental pay-per-token charges.
+ * HOPEPITOME SINGLE AI MODEL REGISTRY
+ * Exclusively configured for OpenAI GPT-6 Luna ('gpt-6-luna').
+ * All other models, secondary chains, and fallback providers are strictly decommissioned.
  */
 
-import { AiProviderName, FreeModelDefinition } from './types';
+import { OpenAiModelDefinition } from './types';
 
-export const VERIFIED_FREE_MODELS: Record<AiProviderName, FreeModelDefinition[]> = {
-  gemini: [
-    {
-      id: 'gemini-flash-lite-latest',
-      name: 'Google Gemini Flash-Lite Latest (Free Tier)',
-      provider: 'gemini',
-      verifiedFree: true,
-      freeTierTerms: 'Google AI Studio Free Tier: 15 RPM, 1,500 RPD, 1M TPM. Free of charge.',
-      maxContextTokens: 1048576,
-      rateLimitRpm: 15,
-      rateLimitRpd: 1500,
-      supportsJsonSchema: true,
-      notes: 'Verified live active model with JSON schema support.',
-    },
-    {
-      id: 'gemini-3.1-flash-lite',
-      name: 'Google Gemini 3.1 Flash Lite',
-      provider: 'gemini',
-      verifiedFree: true,
-      freeTierTerms: 'Google AI Studio Free Tier: High throughput lightweight inference.',
-      maxContextTokens: 1048576,
-      rateLimitRpm: 15,
-      rateLimitRpd: 1500,
-      supportsJsonSchema: true,
-    },
-    {
-      id: 'gemini-flash-latest',
-      name: 'Google Gemini Flash Latest',
-      provider: 'gemini',
-      verifiedFree: true,
-      freeTierTerms: 'Google AI Studio Latest Generation Free Tier.',
-      maxContextTokens: 1048576,
-      rateLimitRpm: 15,
-      rateLimitRpd: 1500,
-      supportsJsonSchema: true,
-    },
-    {
-      id: 'gemini-3.8-flash',
-      name: 'Google Gemini 3.8 Flash',
-      provider: 'gemini',
-      verifiedFree: true,
-      freeTierTerms: 'Google AI Studio Latest Generation Free Tier.',
-      maxContextTokens: 1048576,
-      rateLimitRpm: 15,
-      rateLimitRpd: 1500,
-      supportsJsonSchema: true,
-    },
-  ],
-  groq: [
-    {
-      id: 'openai/gpt-oss-20b',
-      name: 'GPT OSS 20B (Groq Free Tier)',
-      provider: 'groq',
-      verifiedFree: true,
-      freeTierTerms: 'Groq Cloud Free Tier: Fast compact open weights reasoning.',
-      maxContextTokens: 128000,
-      rateLimitRpm: 30,
-      rateLimitRpd: 14400,
-      supportsJsonSchema: true,
-      notes: 'Verified high OTPM free model on Groq Cloud platform.',
-    },
-    {
-      id: 'openai/gpt-oss-120b',
-      name: 'GPT OSS 120B (Groq Free Tier)',
-      provider: 'groq',
-      verifiedFree: true,
-      freeTierTerms: 'Groq Cloud Free Tier: High capacity open weights reasoning.',
-      maxContextTokens: 128000,
-      rateLimitRpm: 30,
-      rateLimitRpd: 1000,
-      supportsJsonSchema: true,
-    },
-    {
-      id: 'qwen/qwen3.8-27b',
-      name: 'Qwen 3.8 27B (Groq Free LPU)',
-      provider: 'groq',
-      verifiedFree: true,
-      freeTierTerms: 'Groq Cloud Free Tier: 30 RPM, 14,400 RPD. Ultra-fast LPU inference.',
-      maxContextTokens: 128000,
-      rateLimitRpm: 30,
-      rateLimitRpd: 14400,
-      supportsJsonSchema: true,
-    },
-  ],
-  cloudflare: [
-    {
-      id: '@cf/meta/llama-3.1-8b-instruct',
-      name: 'Cloudflare Workers AI Llama 3.1 8B',
-      provider: 'cloudflare',
-      verifiedFree: true,
-      freeTierTerms: 'Cloudflare Workers AI Free Tier: 10,000 Neurons/day included across all Workers.',
-      maxContextTokens: 8192,
-      rateLimitRpm: 60,
-      rateLimitRpd: 10000,
-      supportsJsonSchema: false,
-      notes: 'Zero external API key required when bound natively to Worker environment (env.AI).',
-    },
-    {
-      id: '@cf/meta/llama-3-8b-instruct',
-      name: 'Cloudflare Workers AI Llama 3 8B',
-      provider: 'cloudflare',
-      verifiedFree: true,
-      freeTierTerms: 'Cloudflare Workers AI Free Tier: 10,000 Neurons/day.',
-      maxContextTokens: 8192,
-      rateLimitRpm: 60,
-      rateLimitRpd: 10000,
-      supportsJsonSchema: false,
-    },
-  ],
-  openrouter: [
-    {
-      id: 'liquid/lfm-2.5-2.6b:free',
-      name: 'Liquid LFM 2.5 2.6B (OpenRouter Free)',
-      provider: 'openrouter',
-      verifiedFree: true,
-      freeTierTerms: 'OpenRouter Free Model Catalog: Zero-cost inference.',
-      maxContextTokens: 32768,
-      rateLimitRpm: 30,
-      rateLimitRpd: 1000,
-      supportsJsonSchema: true,
-      notes: 'Verified live active free model on OpenRouter with rapid response.',
-    },
-    {
-      id: 'nvidia/nemotron-3.5-lightning:free',
-      name: 'NVIDIA Nemotron 3.5 Lightning (OpenRouter Free)',
-      provider: 'openrouter',
-      verifiedFree: true,
-      freeTierTerms: 'OpenRouter Free Model Catalog: Strict :free suffix model with $0 cost.',
-      maxContextTokens: 128000,
-      rateLimitRpm: 20,
-      rateLimitRpd: 1000,
-      supportsJsonSchema: true,
-      notes: 'Verified live active free model with 0-cost endpoint.',
-    },
-    {
-      id: 'cohere/north-mini-code:free',
-      name: 'Cohere North Mini Code (OpenRouter Free)',
-      provider: 'openrouter',
-      verifiedFree: true,
-      freeTierTerms: 'OpenRouter Free Model Catalog.',
-      maxContextTokens: 65536,
-      rateLimitRpm: 20,
-      rateLimitRpd: 500,
-      supportsJsonSchema: true,
-    },
-  ],
+export const ACTIVE_AI_MODEL: OpenAiModelDefinition = {
+  id: 'gpt-6-luna',
+  name: 'OpenAI GPT-6 Luna',
+  provider: 'openai',
+  apiEndpoint: 'https://api.openai.com/v1/responses',
+  contextWindowTokens: 128000,
+  maxOutputTokens: 4096,
+  inputPricingPer1M: 0.15, // $0.15 per 1,000,000 input tokens
+  outputPricingPer1M: 0.60, // $0.60 per 1,000,000 output tokens
 };
 
 /**
- * STRICT FREE-ONLY VERIFIER
- * Validates that an incoming model ID exists in the approved free-tier registry.
- * Rejects any unverified model to prevent paid fallback or accidental billing.
+ * Calculates estimated API expenditure in USD for GPT-6 Luna inference.
  */
-export function isApprovedFreeModel(provider: AiProviderName, modelId: string): boolean {
-  const models = VERIFIED_FREE_MODELS[provider] || [];
-  return models.some((m) => m.id === modelId && m.verifiedFree);
+export function calculateGpt6LunaCost(inputTokens: number, outputTokens: number): number {
+  const inCost = (inputTokens / 1_000_000) * ACTIVE_AI_MODEL.inputPricingPer1M;
+  const outCost = (outputTokens / 1_000_000) * ACTIVE_AI_MODEL.outputPricingPer1M;
+  return Number((inCost + outCost).toFixed(6));
 }
 
-export function getDefaultFreeModel(provider: AiProviderName): string {
-  const models = VERIFIED_FREE_MODELS[provider];
-  if (!models || models.length === 0) {
-    throw new Error(`No verified free model registered for provider: ${provider}`);
-  }
-  return models[0].id;
+export function isApprovedModel(modelId: string): boolean {
+  return modelId === ACTIVE_AI_MODEL.id;
 }
-

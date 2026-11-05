@@ -170,9 +170,9 @@ export default function AtsCheckerWorkspacePage() {
               <span className="text-[11px] text-slate-400">Audit-to-lead ratio</span>
             </div>
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#14B8A6] block">Active AI Engine</span>
-              <span className="text-base font-extrabold text-[#111B35] mt-1 block">Groq LPU (Qwen 3.8)</span>
-              <span className="text-[11px] text-[#10B981] font-semibold">100% Free-Tier Verified</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#10B981] block">Active AI Engine</span>
+              <span className="text-base font-extrabold text-[#111B35] mt-1 block">OpenAI (GPT-6 Luna)</span>
+              <span className="text-[11px] text-[#10B981] font-semibold">Production Active</span>
             </div>
           </div>
         )}

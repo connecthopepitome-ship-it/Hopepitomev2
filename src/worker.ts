@@ -6,7 +6,7 @@ import { EdgeAuthAdminClient, generateTemporaryPassword } from './lib/firebase/e
 import { DEFAULT_STAFF_ROLES, DEFAULT_DEPARTMENTS } from './lib/career/permissions';
 import { WorkOrderStatus, StaffUser } from './lib/career/types';
 import { globalAtsEngine } from './lib/ai/engine';
-import { VERIFIED_FREE_MODELS } from './lib/ai/models';
+import { ACTIVE_AI_MODEL } from './lib/ai/models';
 import { transformToPublicAtsAudit } from './lib/ai/scoring';
 
 interface Env {
@@ -36,13 +36,8 @@ interface Env {
   // Google Apps Script Web App
   GAS_WEB_APP_URL?: string;
   GAS_SHARED_SECRET?: string;
-  // Multi-Provider AI (Free-Tier Only)
-  GEMINI_API_KEY?: string;
-  GROQ_API_KEY?: string;
-  OPENROUTER_API_KEY?: string;
-  AI?: {
-    run: (model: string, input: any) => Promise<any>;
-  };
+  // OpenAI Secret (Single-Provider Exclusive Architecture: GPT-6 Luna)
+  OPENAI_API_KEY?: string;
 }
 
 // In-memory fallback stores for edge resiliency and testing before secrets are populated
@@ -905,18 +900,21 @@ export default {
     }
 
     // =========================================================================
-    // MULTI-PROVIDER AI: GET PROVIDER HEALTH & VERIFIED FREE MODELS
+    // OPENAI GPT-6 LUNA AI: GET PROVIDER HEALTH & USAGE METRICS
     // =========================================================================
     if (url.pathname === '/api/career/ai/providers/status') {
       try {
         const healthMap = globalAtsEngine.syncProviderHealth(env);
+        const usage = globalAtsEngine.getUsageStats();
         return new Response(
           JSON.stringify({
             success: true,
+            provider: 'openai',
+            model: ACTIVE_AI_MODEL.id,
+            modelDetails: ACTIVE_AI_MODEL,
             health: healthMap,
-            verifiedModels: VERIFIED_FREE_MODELS,
-            mode: 'free_only',
-            allowPaidFallback: false,
+            usage,
+            mode: 'exclusive_single_model',
           }),
           { status: 200, headers: CORS_HEADERS }
         );
@@ -924,6 +922,41 @@ export default {
         return new Response(
           JSON.stringify({ success: false, error: err?.message || 'Failed to check AI health.' }),
           { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // OPENAI GPT-6 LUNA: BUDGET CONFIGURATION
+    // =========================================================================
+    if (url.pathname === '/api/career/ai/settings/budget') {
+      if (request.method === 'POST') {
+        try {
+          const body = (await request.json().catch(() => ({}))) as any;
+          const limit = Number(body?.monthlyBudgetLimitUsd);
+          if (!isNaN(limit) && limit > 0) {
+            globalAtsEngine.setMonthlyBudgetLimit(limit);
+          }
+          return new Response(
+            JSON.stringify({
+              success: true,
+              usage: globalAtsEngine.getUsageStats(),
+            }),
+            { status: 200, headers: CORS_HEADERS }
+          );
+        } catch (err: any) {
+          return new Response(JSON.stringify({ success: false, error: err?.message }), {
+            status: 400,
+            headers: CORS_HEADERS,
+          });
+        }
+      } else {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            usage: globalAtsEngine.getUsageStats(),
+          }),
+          { status: 200, headers: CORS_HEADERS }
         );
       }
     }
@@ -960,8 +993,8 @@ export default {
           );
         }
 
-        // Run analysis through multi-provider engine with automatic failover
-        const assessment = await globalAtsEngine.analyzeResumeWithFailover(
+        // Run analysis strictly via OpenAI GPT-6 Luna engine
+        const assessment = await globalAtsEngine.analyzeResume(
           resumeText,
           {
             targetRole,
@@ -1007,7 +1040,7 @@ export default {
         );
       } catch (err: any) {
         // Secure internal diagnostic log (never logs API keys or raw resume content)
-        console.error('[ATS Evaluation Internal Diagnostic]:', {
+        console.error('[OpenAI ATS Evaluation Error]:', {
           timestamp: new Date().toISOString(),
           error: err?.message || String(err),
         });
@@ -1015,13 +1048,13 @@ export default {
         return new Response(
           JSON.stringify({
             success: false,
-            errorType: 'HIGH_DEMAND',
-            heading: "We're experiencing high demand.",
+            errorType: 'TEMPORARILY_UNAVAILABLE',
+            heading: 'Service Temporarily Unavailable',
             message:
-              "Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.",
-            secondaryText: 'Thank you for your patience.',
+              'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.',
+            secondaryText: 'Please try again in a few moments.',
             error:
-              "Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.",
+              'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.',
           }),
           { status: 503, headers: CORS_HEADERS }
         );
@@ -1081,9 +1114,9 @@ export default {
         const convertedAudits = assessmentsDocs.filter((a: any) => a.conversionStatus === 'ENQUIRED' || a.enquiryId).length;
         const conversionRate = totalAudits > 0 ? Math.round((convertedAudits / totalAudits) * 100) : 0;
 
-        const providerCounts: Record<string, number> = {};
+        const providerCounts: Record<string, number> = { openai: 0 };
         for (const a of assessmentsDocs as any[]) {
-          const prov = a.providerAudit?.selectedProvider || 'groq';
+          const prov = a.providerAudit?.selectedProvider || 'openai';
           providerCounts[prov] = (providerCounts[prov] || 0) + 1;
         }
 
@@ -1111,7 +1144,7 @@ export default {
                 conversionStatus: a.conversionStatus || 'AUDIT_COMPLETED',
                 enquiryId: a.enquiryId || null,
                 customerId: a.customerId || null,
-                selectedProvider: a.providerAudit?.selectedProvider || 'groq',
+                selectedProvider: a.providerAudit?.selectedProvider || 'openai',
               })),
             },
           }),
@@ -1125,7 +1158,7 @@ export default {
               totalAudits: 0,
               convertedAudits: 0,
               conversionRate: 0,
-              providerCounts: { groq: 0, gemini: 0, openrouter: 0 },
+              providerCounts: { openai: 0 },
               eventsCount: {},
               recentAudits: [],
             },

@@ -55,12 +55,12 @@ export function anonymizeResumeText(
     .filter((line) => line.length > 0 && !line.startsWith('obj') && !line.startsWith('endobj'))
     .join('\n');
 
-  // 6. Hard safety token guard: Cap text to max 5,500 characters (~1,300 tokens)
-  // This guarantees request entity size never exceeds Groq's 7,000 ITPM limit
-  if (text.length > 5500) {
-    const truncated = text.substring(0, 5500);
+  // 6. Token efficiency guard: Cap text to max 8,000 characters (~2,000 tokens)
+  // Ensures fast, cost-effective inference for OpenAI GPT-6 Luna
+  if (text.length > 8000) {
+    const truncated = text.substring(0, 8000);
     const lastBreak = truncated.lastIndexOf('\n');
-    text = (lastBreak > 4500 ? truncated.substring(0, lastBreak) : truncated) + '\n[...Resume summary & key experience analyzed...]';
+    text = (lastBreak > 7000 ? truncated.substring(0, lastBreak) : truncated) + '\n[...Resume summary & key experience analyzed...]';
   }
 
   const cleanJd = (jobDescription || '').trim();
