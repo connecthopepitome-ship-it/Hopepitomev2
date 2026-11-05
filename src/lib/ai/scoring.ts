@@ -230,7 +230,7 @@ REQUIRED JSON STRUCTURE:
   "missingKeywords": ["OptionalKeyword1", "OptionalKeyword2"],
   "careerIntelligence": {
     "primaryRole": "Primary Target Role",
-    "recommendedRoles": [
+    "roles": [
       {
         "title": "Exact Role Title",
         "category": "DIRECT_FIT",
@@ -239,20 +239,14 @@ REQUIRED JSON STRUCTURE:
         "keyStrengths": ["Strength 1", "Strength 2"]
       }
     ],
-    "suitableIndustries": [
+    "industries": [
       {
         "industryName": "Industry Name",
+        "category": "CURRENT",
+        "categoryLabel": "Current Core Industry",
         "compatibilityScore": 85,
-        "domainKnowledgeMatch": "How candidate experience transfers"
-      }
-    ],
-    "countryAlignment": [
-      {
-        "countryCode": "QA",
-        "countryName": "Qatar",
-        "alignmentScore": 85,
-        "workAuthStatus": "Requires Verification",
-        "briefExplanation": "Explanation of country market fit"
+        "domainKnowledgeMatch": "How candidate experience transfers",
+        "transferableResponsibilities": ["Responsibility 1", "Responsibility 2"]
       }
     ]
   },
@@ -458,14 +452,21 @@ function buildDeterministicCareerIntelligence(
   const rawProfile = rawCi.profile || {};
 
   // Sanitize inferredRole and inferredDomain against any leakage
-  const safeRole =
-    !inferredRole || INVALID_EXTRACTION_REGEX.test(inferredRole) || /experienced professional|corporate professional/i.test(inferredRole)
-      ? 'Experienced Specialist'
-      : inferredRole;
-  const safeDomain =
-    !inferredDomain || INVALID_EXTRACTION_REGEX.test(inferredDomain) || /corporate \/ technology/i.test(inferredDomain)
-      ? 'Professional Services'
-      : inferredDomain;
+  const cleanInferredRole = String(inferredRole || '').trim();
+  const cleanInferredDomain = String(inferredDomain || '').trim();
+
+  const isRoleClean =
+    cleanInferredRole.length >= 3 &&
+    !INVALID_EXTRACTION_REGEX.test(cleanInferredRole) &&
+    !/^(?:experienced professional|corporate professional|professional role|unspecified|not specified|n\/a)$/i.test(cleanInferredRole);
+
+  const isDomainClean =
+    cleanInferredDomain.length >= 3 &&
+    !INVALID_EXTRACTION_REGEX.test(cleanInferredDomain) &&
+    !/^(?:unspecified|not specified|corporate \/ technology|n\/a)$/i.test(cleanInferredDomain);
+
+  const safeRole = isRoleClean ? cleanInferredRole : 'Experienced Specialist';
+  const safeDomain = isDomainClean ? cleanInferredDomain : 'Professional Services';
 
   // 1. Profile Extraction
   const yearsExpMatch = input.anonymizedText.match(/(\d+)\+?\s*years?/i);
@@ -672,11 +673,18 @@ function buildDeterministicCareerIntelligence(
         },
       ];
 
-  const rawRolesList: any[] = Array.isArray(rawCi.roles) && rawCi.roles.length > 0
-    ? rawCi.roles
-    : Array.isArray(rawOutput?.roles) && rawOutput.roles.length > 0
-    ? rawOutput.roles
-    : defaultRolesTemplate;
+  const rawRolesList: any[] =
+    Array.isArray(rawCi.roles) && rawCi.roles.length > 0
+      ? rawCi.roles
+      : Array.isArray(rawCi.recommendedRoles) && rawCi.recommendedRoles.length > 0
+      ? rawCi.recommendedRoles
+      : Array.isArray(rawOutput?.topMatchingRoles) && rawOutput.topMatchingRoles.length > 0
+      ? rawOutput.topMatchingRoles
+      : Array.isArray(rawOutput?.roles) && rawOutput.roles.length > 0
+      ? rawOutput.roles
+      : Array.isArray(rawOutput?.recommendedRoles) && rawOutput.recommendedRoles.length > 0
+      ? rawOutput.recommendedRoles
+      : defaultRolesTemplate;
 
   // Domain guard: Reject IT-specific roles if candidate is in a non-tech domain, and filter out any invalid extraction noise
   const isNonTech = !safeDomain.toLowerCase().includes('technol') && !safeDomain.toLowerCase().includes('software');
@@ -876,16 +884,23 @@ function buildDeterministicCareerIntelligence(
         },
       ];
 
-  const rawIndList = Array.isArray(rawCi.industries)
-    ? rawCi.industries.filter((ind: any) => {
-        if (!ind?.industryName) return false;
-        const nameStr = String(ind.industryName);
-        if (INVALID_EXTRACTION_REGEX.test(nameStr)) return false;
-        // In procurement domain, never classify as software development or generic tech
-        if (isProcurement && /\b(software development|coding|programming)\b/i.test(nameStr)) return false;
-        return true;
-      })
-    : [];
+  const rawIndList = (
+    Array.isArray(rawCi.industries) && rawCi.industries.length > 0
+      ? rawCi.industries
+      : Array.isArray(rawCi.suitableIndustries) && rawCi.suitableIndustries.length > 0
+      ? rawCi.suitableIndustries
+      : Array.isArray(rawOutput?.suitableIndustries) && rawOutput.suitableIndustries.length > 0
+      ? rawOutput.suitableIndustries
+      : Array.isArray(rawOutput?.industries) && rawOutput.industries.length > 0
+      ? rawOutput.industries
+      : []
+  ).filter((ind: any) => {
+    const nameStr = String(ind?.industryName || ind?.name || ind?.industry || '');
+    if (!nameStr || INVALID_EXTRACTION_REGEX.test(nameStr)) return false;
+    // In procurement domain, never classify as software development or generic tech
+    if (isProcurement && /\b(software development|coding|programming)\b/i.test(nameStr)) return false;
+    return true;
+  });
 
   const industries: IndustryCompatibilityItem[] = isProcurement
     ? defaultIndustries
@@ -1697,6 +1712,9 @@ export function transformToPublicAtsAudit(
       name: assessment.candidateProfile.name,
       headline: assessment.candidateProfile.headline,
       actualProfession: assessment.candidateProfile.actualProfession,
+      currentDesignation: assessment.candidateProfile.currentDesignation,
+      actualProfessionalDomain: assessment.candidateProfile.actualProfessionalDomain,
+      professionalSummary: assessment.candidateProfile.professionalSummary || assessment.summary,
       totalYearsExperience: assessment.candidateProfile.totalYearsExperience,
       currentLocation: assessment.candidateProfile.currentLocation,
       explicitTargetCountries: assessment.candidateProfile.explicitTargetCountries,

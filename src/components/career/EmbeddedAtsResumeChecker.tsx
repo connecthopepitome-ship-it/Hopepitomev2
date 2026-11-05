@@ -977,41 +977,64 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
            ========================================================================= */}
         {(viewState === 'results' || viewState === 'sample') && activeResult && (
           <div className="space-y-8 animate-fadeIn">
-            {/* Top Bar: Assessment Badge & Reset Action */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#7357F5]/10 text-[#7357F5] flex items-center justify-center font-bold">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-[#17152F]">
-                      {activeResult.candidateProfile?.name ? `${activeResult.candidateProfile.name} • ` : ''}
-                      {activeResult.candidateProfile?.actualProfession || activeResult.inferredRole || activeResult.targetRole || 'Professional Profile'}
-                    </span>
+            {/* Personalized Candidate Introduction Card */}
+            <div className="bg-gradient-to-br from-white via-[#7357F5]/[0.02] to-[#7357F5]/[0.05] rounded-3xl border border-[#7357F5]/20 p-6 sm:p-8 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-[#17152F] tracking-tight">
+                      Hello, {activeResult.candidateProfile?.name || 'Professional'}
+                    </h2>
                     {viewState === 'sample' && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider">
                         Sample Preview
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-slate-500">
-                    Ref: {activeResult.assessmentId} • {activeResult.candidateProfile?.totalYearsExperience ? `${activeResult.candidateProfile.totalYearsExperience}+ yrs exp • ` : ''}{activeResult.careerStage || 'Experienced Candidate'}
-                    {activeResult.candidateProfile?.currentLocation ? ` • ${activeResult.candidateProfile.currentLocation}` : ''}
-                  </span>
+                  <p className="text-base sm:text-lg font-bold text-[#7357F5]">
+                    {activeResult.candidateProfile?.actualProfession || activeResult.inferredRole || activeResult.targetRole || 'Professional Profile'}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    {activeResult.candidateProfile?.totalYearsExperience ? (
+                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                        {activeResult.candidateProfile.totalYearsExperience}+ Years Experience
+                      </span>
+                    ) : null}
+                    {activeResult.candidateProfile?.currentLocation ? (
+                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                        {activeResult.candidateProfile.currentLocation}
+                      </span>
+                    ) : null}
+                    {activeResult.careerStage ? (
+                      <span className="px-3 py-1 rounded-full bg-[#7357F5]/10 text-[#7357F5] text-xs font-semibold">
+                        {activeResult.careerStage}
+                      </span>
+                    ) : null}
+                    <span className="px-3 py-1 rounded-full bg-slate-50 text-slate-400 text-xs font-medium">
+                      Ref: {activeResult.assessmentId}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start">
+                  <button
+                    type="button"
+                    onClick={handleStartNewAssessment}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-[#7357F5] bg-white hover:bg-slate-50 border border-slate-200 transition shadow-sm flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Start New Assessment</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleStartNewAssessment}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-[#7357F5] bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1.5"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Start New Assessment</span>
-                </button>
-              </div>
+              {(activeResult.candidateProfile?.professionalSummary || activeResult.summary) && (
+                <div className="mt-5 pt-4 border-t border-slate-100">
+                  <p className="text-sm text-slate-600 leading-relaxed font-normal">
+                    {activeResult.candidateProfile?.professionalSummary || activeResult.summary}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Overall Career Readiness & 3 Core Indicators */}

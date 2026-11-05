@@ -226,18 +226,17 @@ export class OpenAiAdapter {
       // Candidate Profile and Extraction evaluation
       const prof = String(parsed.candidateProfile?.actualProfession || parsed.inferredRole || '').trim();
       const domain = String(parsed.inferredDomain || parsed.candidateProfile?.inferredDomain || '').trim();
+      const hasCategories = Array.isArray(parsed.categories) && parsed.categories.length > 0;
       const hasExtractedData = Boolean(
         parsed.candidateProfile?.name ||
         (parsed.candidateProfile?.actualProfession && !INVALID_EXTRACTION_REGEX.test(parsed.candidateProfile.actualProfession)) ||
         (Array.isArray(parsed.candidateProfile?.skills) && parsed.candidateProfile.skills.length > 0) ||
-        (Array.isArray(parsed.candidateProfile?.employmentHistory) && parsed.candidateProfile.employmentHistory.length > 0)
+        (Array.isArray(parsed.candidateProfile?.employmentHistory) && parsed.candidateProfile.employmentHistory.length > 0) ||
+        hasCategories
       );
 
-      // ONLY reject if the document is genuinely unreadable AND no candidate profile facts were found
-      if (
-        (parsed.validation && parsed.validation.documentReadable === false && !hasExtractedData) ||
-        (!hasExtractedData && INVALID_EXTRACTION_REGEX.test(prof) && INVALID_EXTRACTION_REGEX.test(domain))
-      ) {
+      // ONLY reject if the document output is completely empty and unparseable
+      if (!hasExtractedData && parsed.validation && parsed.validation.documentReadable === false && !parsed.summary) {
         return {
           success: false,
           durationMs,

@@ -64,6 +64,8 @@ export interface CandidateStructuredProfile {
   name: string | null;
   headline: string | null;
   actualProfession: string;
+  currentDesignation?: string | null;
+  actualProfessionalDomain?: string | null;
   professionalSummary: string | null;
   totalYearsExperience: number;
   currentLocation: string | null;
