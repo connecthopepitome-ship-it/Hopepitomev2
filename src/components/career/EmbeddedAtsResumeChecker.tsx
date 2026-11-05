@@ -414,12 +414,15 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     setIsReadingFile(true);
 
     const mime =
-      selectedFile.type ||
-      (lowerName.endsWith('.pdf')
+      lowerName.endsWith('.pdf')
         ? 'application/pdf'
         : lowerName.endsWith('.docx')
         ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        : 'text/plain');
+        : lowerName.endsWith('.txt')
+        ? 'text/plain'
+        : selectedFile.type && selectedFile.type !== 'application/octet-stream'
+        ? selectedFile.type
+        : 'application/pdf';
     setFileMimeType(mime);
 
     // Read as Base64 for direct native document understanding in GPT-6 Luna

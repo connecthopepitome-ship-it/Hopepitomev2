@@ -135,15 +135,21 @@ export class AtsOpenAiEngine {
       const err = new Error(result.errorReason || 'Our resume review service is temporarily unavailable. Please try again shortly.');
       (err as any).statusCode = result.errorCode || 500;
       (err as any).errorType =
-        result.errorCode === 422
-          ? 'UNREADABLE_DOCUMENT'
+        result.errorType ||
+        (result.errorCode === 422
+          ? 'AI_OUTPUT_VALIDATION_FAILED'
           : result.errorCode === 429
-          ? 'RATE_LIMITED'
+          ? 'OPENAI_RATE_LIMITED'
           : result.errorCode === 413
-          ? 'FILE_TOO_LARGE'
+          ? 'FILE_VALIDATION_FAILED'
+          : result.errorCode === 401
+          ? 'OPENAI_AUTHENTICATION_FAILED'
           : result.errorCode === 504
-          ? 'TIMEOUT'
-          : 'SERVICE_UNAVAILABLE';
+          ? 'OPENAI_RESPONSE_FAILED'
+          : 'OPENAI_RESPONSE_FAILED');
+      (err as any).processingStage = result.processingStage || 'G_RESPONSES_API_REQUEST';
+      (err as any).openaiRequestId = result.openaiRequestId;
+      (err as any).durationMs = result.durationMs;
       throw err;
     }
 

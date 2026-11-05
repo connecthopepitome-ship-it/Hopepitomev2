@@ -269,7 +269,20 @@ export interface PublicAtsAuditResult {
   isLocked: boolean;
 }
 
+export type AtsFailureClassification =
+  | 'FILE_VALIDATION_FAILED'
+  | 'DOCUMENT_UPLOAD_FAILED'
+  | 'OPENAI_AUTHENTICATION_FAILED'
+  | 'OPENAI_QUOTA_OR_BILLING_ERROR'
+  | 'OPENAI_RATE_LIMITED'
+  | 'OPENAI_DOCUMENT_PROCESSING_FAILED'
+  | 'OPENAI_RESPONSE_FAILED'
+  | 'AI_OUTPUT_VALIDATION_FAILED'
+  | 'FIRESTORE_SAVE_FAILED'
+  | 'INTERNAL_SERVER_ERROR';
+
 export type AtsErrorClassification =
+  | AtsFailureClassification
   | 'UNREADABLE_DOCUMENT'
   | 'RATE_LIMITED'
   | 'FILE_TOO_LARGE'
@@ -278,6 +291,20 @@ export type AtsErrorClassification =
   | 'INVALID_INPUT'
   | 'INTERNAL_ERROR';
 
+export type ProcessingStage =
+  | 'A_FILE_SELECTION'
+  | 'B_FRONTEND_UPLOAD'
+  | 'C_WORKER_REQUEST'
+  | 'D_FILE_VALIDATION'
+  | 'E_PDF_OPENAI_SUBMISSION'
+  | 'F_OPENAI_FILE_PROCESSING'
+  | 'G_RESPONSES_API_REQUEST'
+  | 'H_GPT6_LUNA_RESPONSE'
+  | 'I_JSON_PARSING'
+  | 'J_PROFILE_VALIDATION'
+  | 'K_FIRESTORE_STORAGE'
+  | 'L_FRONTEND_RENDERING';
+
 export interface AtsServerDiagnostic {
   assessmentId: string;
   uploadId?: string;
@@ -285,10 +312,11 @@ export interface AtsServerDiagnostic {
   fileSize?: number;
   mimeType?: string;
   model: string;
-  processingStage: string;
+  processingStage: ProcessingStage | string;
   durationMs: number;
   statusCode: number;
   errorType: AtsErrorClassification;
+  openaiRequestId?: string;
   errorReason?: string;
   retryable: boolean;
 }

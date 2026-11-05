@@ -8,6 +8,7 @@ import { WorkOrderStatus, StaffUser } from './lib/career/types';
 import { globalAtsEngine } from './lib/ai/engine';
 import { ACTIVE_AI_MODEL } from './lib/ai/models';
 import { transformToPublicAtsAudit } from './lib/ai/scoring';
+import { AtsFailureClassification } from './lib/ai/types';
 
 interface Env {
   ASSETS: {
@@ -972,18 +973,24 @@ export default {
         });
       }
 
+      let uploadId = `UPL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      let requestedAssessmentId: string | undefined;
+      let fileName = 'candidate_resume.pdf';
+      let fileMimeType = '';
+      let fileSize = 0;
+
       try {
         const body = (await request.json().catch(() => null)) as any;
-        const uploadId = body?.uploadId || `UPL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-        const requestedAssessmentId = body?.assessmentId;
+        if (body?.uploadId) uploadId = body.uploadId;
+        requestedAssessmentId = body?.assessmentId;
         const fileBase64 = body?.fileBase64 || body?.fileData || '';
-        const fileMimeType = body?.fileMimeType || '';
-        const fileSize = body?.fileSize || 0;
+        fileMimeType = body?.fileMimeType || '';
+        fileSize = body?.fileSize || 0;
         const resumeText = body?.resumeText || '';
         const targetRole = body?.targetRole || '';
         const targetIndustry = body?.targetIndustry || '';
         const jobDescription = body?.jobDescription || '';
-        const fileName = body?.fileName || 'candidate_resume.pdf';
+        if (body?.fileName) fileName = body.fileName;
         const customerId = body?.customerId;
         const projectId = body?.projectId;
         const isPublic = body?.isPublic !== false; // Default to public gated audit
@@ -1062,50 +1069,66 @@ export default {
         );
       } catch (err: any) {
         const statusCode = Number(err?.statusCode) || (err?.message?.includes('unable to read') ? 422 : 503);
-        const errorType =
+        const errorType: AtsFailureClassification =
           err?.errorType ||
           (statusCode === 422
-            ? 'UNREADABLE_DOCUMENT'
+            ? 'AI_OUTPUT_VALIDATION_FAILED'
             : statusCode === 429
-            ? 'RATE_LIMITED'
+            ? 'OPENAI_RATE_LIMITED'
             : statusCode === 413
-            ? 'FILE_TOO_LARGE'
+            ? 'FILE_VALIDATION_FAILED'
+            : statusCode === 401
+            ? 'OPENAI_AUTHENTICATION_FAILED'
             : statusCode === 504
-            ? 'TIMEOUT'
-            : 'SERVICE_UNAVAILABLE');
+            ? 'OPENAI_RESPONSE_FAILED'
+            : 'INTERNAL_SERVER_ERROR');
 
         // Secure internal diagnostic log (never logs API keys or raw resume content)
-        console.error('[OpenAI ATS Evaluation Error]:', {
-          timestamp: new Date().toISOString(),
+        console.error('[OpenAI ATS Diagnostic Trace]:', {
+          assessmentId: requestedAssessmentId,
+          uploadId,
+          fileName,
+          fileMimeType,
+          fileSize,
+          processingStage: err?.processingStage || 'C_WORKER_REQUEST',
+          model: 'gpt-6-luna',
+          openaiRequestId: err?.openaiRequestId,
+          httpStatus: statusCode,
           errorType,
-          statusCode,
-          message: err?.message || String(err),
+          durationMs: err?.durationMs,
+          errorSummary: err?.message || String(err),
         });
 
         let heading = 'Service Temporarily Unavailable';
         let secondaryText = 'Please try again in a few moments.';
         let retryable = true;
 
-        if (errorType === 'UNREADABLE_DOCUMENT') {
+        if (errorType === 'AI_OUTPUT_VALIDATION_FAILED' || errorType === 'OPENAI_DOCUMENT_PROCESSING_FAILED') {
           heading = 'Unable to Read Document';
           secondaryText = 'Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.';
           retryable = false;
-        } else if (errorType === 'RATE_LIMITED') {
+        } else if (errorType === 'OPENAI_RATE_LIMITED') {
           heading = 'High Demand Experienced';
           secondaryText = 'Our review capacity is temporarily full. Please wait 30 seconds and retry.';
-        } else if (errorType === 'FILE_TOO_LARGE') {
+        } else if (errorType === 'FILE_VALIDATION_FAILED') {
           heading = 'File Size Exceeded';
           secondaryText = 'Please upload a smaller document under 8MB.';
           retryable = false;
-        } else if (errorType === 'TIMEOUT') {
+        } else if (errorType === 'OPENAI_RESPONSE_FAILED') {
           heading = 'Request Timed Out';
           secondaryText = 'Your document took longer than expected to analyze. Please retry.';
+        } else if (errorType === 'OPENAI_AUTHENTICATION_FAILED' || errorType === 'OPENAI_QUOTA_OR_BILLING_ERROR') {
+          heading = 'Review Service Temporarily Busy';
+          secondaryText = 'Our automated review engine is undergoing scheduled maintenance. Please retry shortly.';
         }
 
         return new Response(
           JSON.stringify({
             success: false,
+            uploadId,
             errorType,
+            processingStage: err?.processingStage || 'C_WORKER_REQUEST',
+            openaiRequestId: err?.openaiRequestId,
             heading,
             message: err.message || 'Our resume review service is temporarily unavailable. Please try again shortly.',
             secondaryText,

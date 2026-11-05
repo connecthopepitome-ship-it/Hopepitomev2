@@ -5,7 +5,7 @@
  * All secondary providers and fallback chains are completely removed.
  */
 
-import { SanitizedResumeInput } from './types';
+import { SanitizedResumeInput, AtsFailureClassification, ProcessingStage } from './types';
 import { ACTIVE_AI_MODEL, calculateGpt6LunaCost } from './models';
 import { buildAtsPrompt, INVALID_EXTRACTION_REGEX } from './scoring';
 
@@ -22,6 +22,9 @@ export interface ProviderExecutionResult {
   estimatedCostUsd?: number;
   errorCode?: number;
   errorReason?: string;
+  errorType?: AtsFailureClassification;
+  processingStage?: ProcessingStage;
+  openaiRequestId?: string;
   isRateLimit?: boolean;
 }
 
@@ -71,6 +74,8 @@ export class OpenAiAdapter {
         success: false,
         durationMs: 0,
         errorCode: 401,
+        errorType: 'OPENAI_AUTHENTICATION_FAILED',
+        processingStage: 'E_PDF_OPENAI_SUBMISSION',
         errorReason: 'OPENAI_API_KEY environment secret is not configured on this server.',
       };
     }
@@ -85,14 +90,18 @@ export class OpenAiAdapter {
       const userContent: any[] = [];
       if (input.fileBase64) {
         const lowerName = (input.originalFileName || '').toLowerCase();
-        let mime = input.fileMimeType;
-        if (!mime) {
-          mime = lowerName.endsWith('.pdf')
-            ? 'application/pdf'
-            : lowerName.endsWith('.docx')
-            ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            : 'text/plain';
+        // Normalize MIME type strictly by file extension; never pass application/octet-stream to OpenAI
+        let mime = 'application/pdf';
+        if (lowerName.endsWith('.docx')) {
+          mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        } else if (lowerName.endsWith('.txt')) {
+          mime = 'text/plain';
+        } else if (lowerName.endsWith('.pdf')) {
+          mime = 'application/pdf';
+        } else if (input.fileMimeType && input.fileMimeType !== 'application/octet-stream') {
+          mime = input.fileMimeType;
         }
+
         const cleanBase64 = input.fileBase64.replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
         userContent.push({
           type: 'input_file',
@@ -128,28 +137,47 @@ export class OpenAiAdapter {
 
       clearTimeout(timeoutId);
       const durationMs = Date.now() - startTime;
+      const openaiRequestId = res.headers.get('x-request-id') || undefined;
 
       if (!res.ok) {
         const errText = await res.text();
         const isRateLimit = res.status === 429;
+        let errorType: AtsFailureClassification = 'OPENAI_RESPONSE_FAILED';
         let userReason = `OpenAI API returned HTTP ${res.status}.`;
-        if (res.status === 429) {
+
+        if (res.status === 401) {
+          errorType = 'OPENAI_AUTHENTICATION_FAILED';
+          userReason = 'Authentication error with OpenAI API. Please check server configuration.';
+        } else if (res.status === 429) {
+          errorType = 'OPENAI_RATE_LIMITED';
           userReason = 'Our resume review service is experiencing high demand right now. Please try again in a few moments.';
+        } else if (res.status === 402 || /quota|billing/i.test(errText)) {
+          errorType = 'OPENAI_QUOTA_OR_BILLING_ERROR';
+          userReason = 'AI review quota limit reached. Please contact support or try again later.';
+        } else if (res.status === 400) {
+          errorType = /file_data|input_file|unsupported mime/i.test(errText)
+            ? 'OPENAI_DOCUMENT_PROCESSING_FAILED'
+            : 'OPENAI_RESPONSE_FAILED';
+          userReason = 'Unable to process document with OpenAI. Please ensure a standard text-based PDF or Word document is provided.';
         } else if (res.status === 413) {
+          errorType = 'FILE_VALIDATION_FAILED';
           userReason = 'The uploaded file is too large for AI review. Please upload a document under 8MB.';
-        } else if (res.status === 401) {
-          userReason = 'Authentication error with AI provider. Please verify server configuration.';
         } else if (res.status >= 500) {
+          errorType = 'OPENAI_RESPONSE_FAILED';
           userReason = 'The AI service encountered a temporary error. Please try again shortly.';
         }
 
         console.error('[OpenAI API Error Diagnostic]:', {
-          status: res.status,
-          statusText: res.statusText,
-          errorSummary: errText.substring(0, 400),
-          model: this.modelName,
-          fileName: input.originalFileName,
           uploadId: input.uploadId,
+          fileName: input.originalFileName,
+          fileMimeType: input.fileMimeType,
+          fileSize: input.fileSize,
+          processingStage: 'G_RESPONSES_API_REQUEST' as ProcessingStage,
+          model: this.modelName,
+          openaiRequestId,
+          httpStatus: res.status,
+          errorType,
+          errorSummary: errText.substring(0, 400),
           durationMs,
         });
 
@@ -157,6 +185,9 @@ export class OpenAiAdapter {
           success: false,
           durationMs,
           errorCode: res.status,
+          errorType,
+          processingStage: 'G_RESPONSES_API_REQUEST',
+          openaiRequestId,
           errorReason: userReason,
           isRateLimit,
         };
@@ -185,37 +216,35 @@ export class OpenAiAdapter {
           success: false,
           durationMs,
           errorCode: 502,
+          errorType: 'AI_OUTPUT_VALIDATION_FAILED',
+          processingStage: 'I_JSON_PARSING',
+          openaiRequestId,
           errorReason: 'OpenAI GPT-6 Luna returned unparseable non-JSON content. Please try again.',
         };
       }
 
-      // Mandatory document validation check
-      if (parsed.validation && parsed.validation.documentReadable === false) {
-        return {
-          success: false,
-          durationMs,
-          errorCode: 422,
-          errorReason:
-            'We were unable to read clear resume content from this file. Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.',
-        };
-      }
-
-      // Detect corrupted extraction fragments or unreadable content
+      // Candidate Profile and Extraction evaluation
       const prof = String(parsed.candidateProfile?.actualProfession || parsed.inferredRole || '').trim();
       const domain = String(parsed.inferredDomain || parsed.candidateProfile?.inferredDomain || '').trim();
       const hasExtractedData = Boolean(
+        parsed.candidateProfile?.name ||
+        (parsed.candidateProfile?.actualProfession && !INVALID_EXTRACTION_REGEX.test(parsed.candidateProfile.actualProfession)) ||
         (Array.isArray(parsed.candidateProfile?.skills) && parsed.candidateProfile.skills.length > 0) ||
         (Array.isArray(parsed.candidateProfile?.employmentHistory) && parsed.candidateProfile.employmentHistory.length > 0)
       );
 
+      // ONLY reject if the document is genuinely unreadable AND no candidate profile facts were found
       if (
-        (!hasExtractedData && INVALID_EXTRACTION_REGEX.test(prof)) ||
-        (INVALID_EXTRACTION_REGEX.test(prof) && INVALID_EXTRACTION_REGEX.test(domain))
+        (parsed.validation && parsed.validation.documentReadable === false && !hasExtractedData) ||
+        (!hasExtractedData && INVALID_EXTRACTION_REGEX.test(prof) && INVALID_EXTRACTION_REGEX.test(domain))
       ) {
         return {
           success: false,
           durationMs,
           errorCode: 422,
+          errorType: 'AI_OUTPUT_VALIDATION_FAILED',
+          processingStage: 'J_PROFILE_VALIDATION',
+          openaiRequestId,
           errorReason:
             'We were unable to read clear resume content from this file. Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.',
         };
