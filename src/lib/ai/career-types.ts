@@ -93,6 +93,8 @@ export interface CountryCompatibilityItem {
   // Proprietary details (gated in public tier)
   visaPathwayDetails?: string;
   regionalApplicationStrategy?: string;
+  marketType?: 'CURRENT' | 'PRIOR' | 'TARGET';
+  evidenceNote?: string;
 }
 
 export interface CareerCompetitiveness {
@@ -122,6 +124,8 @@ export interface CareerIntelligenceResult {
   roles: JobRoleRecommendation[];
   industries: IndustryCompatibilityItem[];
   countries: CountryCompatibilityItem[];
+  targetCountriesSpecified: boolean;
+  evidencedEmploymentCountries: string[];
   competitiveness: CareerCompetitiveness;
   recommendations: {
     topRoles: string[];
@@ -159,6 +163,8 @@ export interface PublicCountryItem {
   briefExplanation: string;
   isVerifiedLiveDemand: boolean;
   isLocked: boolean;
+  marketType?: 'CURRENT' | 'PRIOR' | 'TARGET';
+  evidenceNote?: string;
 }
 
 export interface PublicCareerIntelligence {
@@ -169,6 +175,8 @@ export interface PublicCareerIntelligence {
   roles: PublicJobRoleItem[];
   industries: IndustryCompatibilityItem[];
   countries: PublicCountryItem[];
+  targetCountriesSpecified: boolean;
+  evidencedEmploymentCountries: string[];
   competitiveness: CareerCompetitiveness;
   recommendations: {
     topRoles: string[];

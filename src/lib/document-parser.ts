@@ -237,7 +237,10 @@ export async function extractCleanTextFromDocument(
         // Ensure minimum density of real alphabetic words (length >= 3)
         const words = combined.match(/[a-zA-Z]{3,}/g) || [];
 
-        if (!hasPdfNoise && words.length >= 15 && combined.length > 50) {
+        // Require at least two standard resume indicator anchors to guarantee valid human resume text
+        const hasResumeAnchors = (combined.match(/\b(experience|education|skills|work|employment|university|college|project|summary|curriculum|responsibilities|contact|profile|objective|achievements|qualifications|bachelor|master|diploma|certificat|engineer|manager|developer|analyst|specialist|officer|assistant|executive|lead|director|buyer|procurement|sourcing|accounting|accounts)\b/gi) || []).length >= 2;
+
+        if (!hasPdfNoise && hasResumeAnchors && words.length >= 20 && combined.length > 60) {
           if (combined.length > 8000) combined = combined.substring(0, 8000);
           return combined;
         }

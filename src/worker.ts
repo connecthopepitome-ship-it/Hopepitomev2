@@ -974,7 +974,7 @@ export default {
       }
 
       let uploadId = `UPL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-      let requestedAssessmentId: string | undefined;
+      let requestedAssessmentId: string | undefined = undefined;
       let fileName = 'candidate_resume.pdf';
       let fileMimeType = '';
       let fileSize = 0;
@@ -1074,14 +1074,14 @@ export default {
           (statusCode === 422
             ? 'AI_OUTPUT_VALIDATION_FAILED'
             : statusCode === 429
-            ? 'OPENAI_RATE_LIMITED'
-            : statusCode === 413
-            ? 'FILE_VALIDATION_FAILED'
-            : statusCode === 401
-            ? 'OPENAI_AUTHENTICATION_FAILED'
-            : statusCode === 504
-            ? 'OPENAI_RESPONSE_FAILED'
-            : 'INTERNAL_SERVER_ERROR');
+              ? 'OPENAI_RATE_LIMITED'
+              : statusCode === 413
+                ? 'FILE_VALIDATION_FAILED'
+                : statusCode === 401
+                  ? 'OPENAI_AUTHENTICATION_FAILED'
+                  : statusCode === 504
+                    ? 'OPENAI_RESPONSE_FAILED'
+                    : 'INTERNAL_SERVER_ERROR');
 
         // Secure internal diagnostic log (never logs API keys or raw resume content)
         console.error('[OpenAI ATS Diagnostic Trace]:', {

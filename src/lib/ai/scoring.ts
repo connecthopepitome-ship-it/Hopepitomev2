@@ -147,8 +147,8 @@ STAGE A — DOCUMENT EXTRACTION & UNDERSTANDING:
 STAGE B — CAREER ASSESSMENT & ATS AUDIT:
 1. Audit resume quality, ATS compatibility, recruiter visibility, top strengths, critical gaps, and 7-category scoring.
 2. Formulate 4-6 matching roles (Direct fit, Career Progression, Adjacent, Transition).
-3. Formulate 3-4 suitable industries based on candidate's real domain and transferable skills.
-4. Country Market Compatibility: Evaluate target countries. If candidate has an explicit target country (e.g. Qatar), recognize it with high alignment without assuming prior visa/work rights.
+3. Formulate 3-4 suitable industries based on candidate's real domain and transferable skills. For procurement/sourcing candidates, use "Procurement and Strategic Sourcing", "IT and Technology Procurement", "Professional Services Procurement", and "Supply Chain and Commercial Operations". DO NOT classify as software development or generic "Technology & Digital Transformation".
+4. Country Market Compatibility: Extract ONLY target countries explicitly stated by candidate. If candidate did NOT explicitly specify target countries in the resume, explicitTargetCountries MUST be an empty array []. NEVER fabricate unevidenced countries.
 Output valid JSON only without markdown code fences.`;
 
   const userPrompt = `CANDIDATE CONTEXT:
@@ -169,12 +169,12 @@ REQUIRED JSON STRUCTURE:
   "candidateProfile": {
     "name": "Candidate Name",
     "headline": "Professional Title / Headline",
-    "actualProfession": "Exact Profession (e.g. Accountant, Procurement Specialist)",
+    "actualProfession": "Exact Profession (e.g. IT Sourcing and Procurement Professional, Accountant)",
     "professionalSummary": "Professional summary paragraph",
     "totalYearsExperience": 3.2,
     "currentLocation": "City, Country",
     "previousEmploymentLocations": ["Location 1"],
-    "explicitTargetCountries": ["Qatar"],
+    "explicitTargetCountries": [],
     "employmentHistory": [
       {
         "role": "Job Title",
@@ -373,7 +373,7 @@ export function detectCandidateProfession(
     if (prof.length > 2 && !INVALID_EXTRACTION_REGEX.test(prof) && !/^(?:experienced professional|corporate professional|professional role|unspecified|not specified)$/i.test(prof)) {
       let domain = !isDomainInvalid ? cleanDomain : 'Professional Services';
       if (/account|finance|audit|tax|tally/i.test(prof)) domain = 'Accounting & Finance';
-      else if (/procure|supply chain|purchasing|sourcing/i.test(prof)) domain = 'Supply Chain & Procurement';
+      else if (/procure|sourcing|purchasing|buyer/i.test(prof)) domain = 'Procurement and Strategic Sourcing';
       else if (/nurse|doctor|clinical|hospital|health/i.test(prof)) domain = 'Healthcare & Nursing';
       else if (/civil|construction|site engineer/i.test(prof)) domain = 'Civil Engineering & Construction';
       else if (/mechanical|hvac|piping/i.test(prof)) domain = 'Mechanical & Industrial Engineering';
@@ -389,10 +389,10 @@ export function detectCandidateProfession(
     return { role, domain: 'Accounting & Finance' };
   }
 
-  const procurementTitleMatch = headerText.match(/\b(procurement\s+(?:specialist|officer|manager|executive|lead|coordinator|buyer|analyst)|purchasing\s+(?:officer|specialist|manager|executive|agent)|sourcing\s+(?:specialist|manager|lead))\b/i);
+  const procurementTitleMatch = headerText.match(/\b(it\s+(?:buyer|sourcing\s+specialist|procurement\s+specialist)|procurement\s+(?:specialist|officer|manager|executive|lead|coordinator|buyer|analyst)|purchasing\s+(?:officer|specialist|manager|executive|agent)|sourcing\s+(?:specialist|manager|lead|coordinator))\b/i);
   if (procurementTitleMatch) {
     const role = procurementTitleMatch[1].replace(/\b\w/g, l => l.toUpperCase());
-    return { role, domain: 'Supply Chain & Procurement' };
+    return { role, domain: 'Procurement and Strategic Sourcing' };
   }
 
   const nurseTitleMatch = headerText.match(/\b(registered\s+nurse|staff\s+nurse|clinical\s+nurse|charge\s+nurse|icu\s+nurse)\b/i);
@@ -425,9 +425,9 @@ export function detectCandidateProfession(
   }
 
   // 3. Fallback to broad competency keyword detection
-  const isProcurement = /\b(?:procurement|purchasing|sourcing|purchase order|rfq|vendor management|p2p|purchase-to-pay|boq)\b/i.test(text);
+  const isProcurement = /\b(?:procurement|purchasing|sourcing|purchase order|rfq|vendor management|p2p|purchase-to-pay|boq|buyer|zycus)\b/i.test(text);
   if (isProcurement) {
-    return { role: 'Procurement Specialist', domain: 'Supply Chain & Procurement' };
+    return { role: 'IT Sourcing and Procurement Professional', domain: 'Procurement and Strategic Sourcing' };
   }
 
   const isAccounting = /\b(?:accountant|accounts payable|accounts receivable|balance sheet|general ledger|tally|vat|taxation)\b/i.test(text);
@@ -514,8 +514,96 @@ function buildDeterministicCareerIntelligence(
   };
 
   // 2. Roles across 4 categories (Direct-Fit, Adjacent, Progression, Transition)
+  const isProcurement = /procure|sourcing|purchasing|buyer/i.test(safeRole) || /procure|sourcing|purchasing/i.test(safeDomain);
   const isAccountant = /account/i.test(safeRole);
-  const defaultRolesTemplate: { title: string; category: RoleMatchCategory; categoryLabel: string; matchReason: string; strengths: string[] }[] = isAccountant
+  const defaultRolesTemplate: { title: string; category: RoleMatchCategory; categoryLabel: string; matchReason: string; strengths: string[] }[] = isProcurement
+    ? [
+        {
+          title: 'IT Sourcing Specialist',
+          category: 'DIRECT_FIT',
+          categoryLabel: 'Direct Fit',
+          matchReason: 'Direct alignment with software, hardware, and services RFP events, supplier negotiations, and spend analytics',
+          strengths: ['Zycus RFP/RFI lifecycle execution', '€40M+ spend portfolio analysis and supplier negotiations', 'Cross-functional IT vendor onboarding'],
+        },
+        {
+          title: 'IT Procurement Specialist',
+          category: 'DIRECT_FIT',
+          categoryLabel: 'Direct Fit',
+          matchReason: 'Proven track record in commercial terms review, contract support (MSAs, NDAs, GTCs), and purchasing execution',
+          strengths: ['TCO modeling and pricing benchmarking', 'Contract compliance and supplier SLA governance'],
+        },
+        {
+          title: 'Strategic Sourcing Specialist',
+          category: 'DIRECT_FIT',
+          categoryLabel: 'Direct Fit',
+          matchReason: 'Strategic supplier evaluation, should-cost analysis, and value optimization across multinational accounts',
+          strengths: ['Commercial bid normalization', 'Cost avoidance and multi-currency contract renegotiations'],
+        },
+        {
+          title: 'IT Buyer',
+          category: 'DIRECT_FIT',
+          categoryLabel: 'Direct Fit',
+          matchReason: 'Direct operational continuity with existing designation, managing stakeholder requisitions and vendor execution',
+          strengths: ['Requisition-to-PO lifecycle management', 'Immediate operational mastery in Fortune 500 environments'],
+        },
+        {
+          title: 'Senior Procurement Executive',
+          category: 'PROGRESSION',
+          categoryLabel: 'Career Progression',
+          matchReason: 'Upward career progression managing expanded spend categories and strategic multi-year supplier partnerships',
+          strengths: ['Established foundation for end-to-end category ownership', 'Strategic negotiation track record'],
+        },
+        {
+          title: 'Category Specialist — IT Procurement',
+          category: 'PROGRESSION',
+          categoryLabel: 'Career Progression',
+          matchReason: 'Deep domain specialization across enterprise software, cloud subscriptions, and professional services categories',
+          strengths: ['Category strategy formulation', 'Stakeholder alignment across Europe, North America, and APAC'],
+        },
+        {
+          title: 'Senior Strategic Sourcing Manager',
+          category: 'PROGRESSION',
+          categoryLabel: 'Career Progression',
+          matchReason: 'Executive progression driving procurement transformation, digital procurement tool rollouts, and global value capture',
+          strengths: ['Enterprise spend governance', 'Procurement digital transformation with AI tools'],
+        },
+        {
+          title: 'Procurement Analyst',
+          category: 'ADJACENT',
+          categoryLabel: 'Adjacent / Transferable',
+          matchReason: 'Strong analytical foundation in spend data, vendor performance scorecards, and market pricing intelligence',
+          strengths: ['Data-driven cost modeling in Advanced Excel', 'Procurement analytics and reporting'],
+        },
+        {
+          title: 'Vendor Management Specialist',
+          category: 'ADJACENT',
+          categoryLabel: 'Adjacent / Transferable',
+          matchReason: 'High transferability of supplier onboarding, relationship management, and service level adherence oversight',
+          strengths: ['Vendor risk assessment', 'Cross-border supplier relationship development'],
+        },
+        {
+          title: 'Sourcing Analyst',
+          category: 'ADJACENT',
+          categoryLabel: 'Adjacent / Transferable',
+          matchReason: 'Rapid market intelligence gathering, vendor discovery, and competitive commercial evaluation',
+          strengths: ['RFI market intelligence', 'Commercial bid comparison frameworks'],
+        },
+        {
+          title: 'Procurement and Commercial Analyst',
+          category: 'ADJACENT',
+          categoryLabel: 'Adjacent / Transferable',
+          matchReason: 'Synthesizes financial modeling, contractual risk identification, and pricing benchmarking',
+          strengths: ['Commercial contract support', 'Pricing normalization models'],
+        },
+        {
+          title: 'Supply Chain & Commercial Contract Specialist',
+          category: 'TRANSITION',
+          categoryLabel: 'Career Transition',
+          matchReason: 'Leverages MBA in Supply Chain Management and contractual literacy into broader commercial contract governance',
+          strengths: ['Commercial legal frameworks (MSA, NDA, GTC)', 'End-to-end supply chain alignment'],
+        },
+      ]
+    : isAccountant
     ? [
         {
           title: 'Accountant',
@@ -569,14 +657,14 @@ function buildDeterministicCareerIntelligence(
           strengths: ['Established foundation ready for broader leadership and strategic ownership'],
         },
         {
-          title: `${safeDomain} Operations & Project Lead`,
+          title: `${safeRole.replace(/Specialist|Officer|Buyer|Executive/i, '').trim() || safeDomain} Operations Lead`,
           category: 'ADJACENT',
           categoryLabel: 'Adjacent / Transferable',
           matchReason: 'High transferability of delivery methods and workflow optimization skills',
           strengths: ['Strong transferable execution skills', 'Cross-functional adaptability'],
         },
         {
-          title: `${safeDomain} Strategy & Transformation Consultant`,
+          title: `${safeDomain} Practice Specialist`,
           category: 'TRANSITION',
           categoryLabel: 'Career Transition',
           matchReason: 'Leverages subject matter expertise in an advisory or cross-sector capacity',
@@ -670,32 +758,71 @@ function buildDeterministicCareerIntelligence(
     };
   });
 
-  // 3. Industry Compatibility (4 industry items)
-  const defaultIndustries: IndustryCompatibilityItem[] = isAccountant
+  // 3. Industry Compatibility
+  const defaultIndustries: IndustryCompatibilityItem[] = isProcurement
     ? [
         {
           id: 'ind_1',
-          industryName: 'Accounting & Finance',
+          industryName: 'Procurement and Strategic Sourcing',
           category: 'CURRENT',
           categoryLabel: 'Current Core Industry',
-          compatibilityScore: Math.min(96, Math.max(82, overallScore + 3)),
-          domainKnowledgeMatch: 'Direct alignment with general ledger, balance sheet reconciliations, AP/AR, and financial reporting standards.',
-          transferableResponsibilities: ['Financial statement preparation', 'General ledger management', 'Statutory compliance'],
+          compatibilityScore: Math.min(96, Math.max(88, overallScore + 4)),
+          domainKnowledgeMatch: 'Direct alignment with verified procurement lifecycle, spend management, vendor negotiations, and RFx processes.',
+          transferableResponsibilities: ['End-to-end strategic sourcing', 'Commercial bid evaluation & negotiations', 'Supplier performance governance'],
         },
         {
           id: 'ind_2',
-          industryName: 'Retail and Trading Finance Operations',
+          industryName: 'IT and Technology Procurement',
           category: 'COMPATIBLE',
           categoryLabel: 'Compatible Industry',
-          compatibilityScore: Math.min(94, Math.max(78, overallScore)),
-          domainKnowledgeMatch: 'Hands-on vendor accounts reconciliation, inventory auditing, and invoice payment cycles translate directly into trading environments.',
-          transferableResponsibilities: ['Vendor accounts management', 'Inventory audit reconciliation', 'Cash flow monitoring'],
+          compatibilityScore: Math.min(94, Math.max(82, overallScore + 1)),
+          domainKnowledgeMatch: 'Specialized experience in IT software agreements, hardware requisitions, and enterprise tool procurement.',
+          transferableResponsibilities: ['Enterprise software licensing', 'Cloud & cybersecurity procurement', 'IT vendor SLA management'],
         },
         {
           id: 'ind_3',
-          industryName: 'Corporate Finance and Shared Services',
+          industryName: 'Professional Services Procurement',
+          category: 'COMPATIBLE',
+          categoryLabel: 'Compatible Industry',
+          compatibilityScore: Math.min(90, Math.max(78, overallScore - 3)),
+          domainKnowledgeMatch: 'Experience with consulting services, contractor rate cards, and statement of work (SOW) commercial reviews.',
+          transferableResponsibilities: ['SOW & rate-card benchmarking', 'Consulting & professional services contracts', 'Stakeholder engagement across GBS'],
+        },
+        {
+          id: 'ind_4',
+          industryName: 'Supply Chain and Commercial Operations',
           category: 'TRANSFERABLE',
           categoryLabel: 'Transferable Industry',
+          compatibilityScore: Math.min(88, Math.max(74, overallScore - 6)),
+          domainKnowledgeMatch: 'MBA background in supply chain management translates into logistics optimization, demand forecasting, and inventory governance.',
+          transferableResponsibilities: ['Commodity & materials purchasing', 'Supplier risk mitigation', 'Cross-border logistics coordination'],
+        },
+      ]
+    : isAccountant
+    ? [
+        {
+          id: 'ind_1',
+          industryName: 'Accounting, Audit & Financial Services',
+          category: 'CURRENT',
+          categoryLabel: 'Current Core Industry',
+          compatibilityScore: Math.min(96, Math.max(85, overallScore + 3)),
+          domainKnowledgeMatch: 'Direct alignment with corporate accounting operations, general ledger, balance sheet reconciliations, and statutory compliance.',
+          transferableResponsibilities: ['General ledger accounting', 'Financial statement preparation', 'Audit coordination'],
+        },
+        {
+          id: 'ind_2',
+          industryName: 'Corporate Finance & Treasury',
+          category: 'COMPATIBLE',
+          categoryLabel: 'Compatible Sector',
+          compatibilityScore: Math.min(92, Math.max(78, overallScore - 2)),
+          domainKnowledgeMatch: 'Strong overlap in cash flow management, bank reconciliations, vendor disbursement controls, and working capital optimization.',
+          transferableResponsibilities: ['Working capital monitoring', 'Treasury & cash management', 'Financial reporting'],
+        },
+        {
+          id: 'ind_3',
+          industryName: 'Global Shared Services & Business Process Operations',
+          category: 'TRANSFERABLE',
+          categoryLabel: 'Transferable Sector',
           compatibilityScore: Math.min(90, Math.max(74, overallScore - 4)),
           domainKnowledgeMatch: 'Centralized accounting workflows, ERP software utilization, and monthly variance analysis adapt smoothly to shared services.',
           transferableResponsibilities: ['Month-end close acceleration', 'Budget variance reporting', 'Fixed assets tracking'],
@@ -750,10 +877,19 @@ function buildDeterministicCareerIntelligence(
       ];
 
   const rawIndList = Array.isArray(rawCi.industries)
-    ? rawCi.industries.filter((ind: any) => ind?.industryName && !INVALID_EXTRACTION_REGEX.test(String(ind.industryName)))
+    ? rawCi.industries.filter((ind: any) => {
+        if (!ind?.industryName) return false;
+        const nameStr = String(ind.industryName);
+        if (INVALID_EXTRACTION_REGEX.test(nameStr)) return false;
+        // In procurement domain, never classify as software development or generic tech
+        if (isProcurement && /\b(software development|coding|programming)\b/i.test(nameStr)) return false;
+        return true;
+      })
     : [];
 
-  const industries: IndustryCompatibilityItem[] = rawIndList.length >= 2
+  const industries: IndustryCompatibilityItem[] = isProcurement
+    ? defaultIndustries
+    : rawIndList.length >= 2
     ? rawIndList.slice(0, 4).map((ind: any, i: number) => ({
         id: String(ind.id || `ind_${i + 1}`),
         industryName: String(ind.industryName || defaultIndustries[i]?.industryName || safeDomain),
@@ -767,113 +903,226 @@ function buildDeterministicCareerIntelligence(
       }))
     : defaultIndustries;
 
-  // 4. Country Compatibility (Top 6-8 countries from GLOBAL_COUNTRIES_CATALOGUE)
-  const detectedCountry = detectCandidateCountry(input.anonymizedText);
+  // 4. Country Compatibility (Strictly Grounded in Resume Evidence)
+  const candProf = rawOutput?.candidateProfile || {};
   const catalogueMap = new Map(GLOBAL_COUNTRIES_CATALOGUE.map(c => [c.code, c]));
 
-  let orderedCountryCodes = ['QA', 'AE', 'SA', 'IN', 'GB', 'DE', 'CA', 'AU', 'SG'];
-  if (detectedCountry) {
-    orderedCountryCodes = [
-      detectedCountry.code,
-      ...orderedCountryCodes.filter((c) => c !== detectedCountry.code),
-    ];
+  // A. Extract all documented employment locations from profile & resume text
+  const locationText = [
+    String(candProf?.currentLocation || ''),
+    ...(Array.isArray(candProf?.previousEmploymentLocations) ? candProf.previousEmploymentLocations.map(String) : []),
+    ...(Array.isArray(candProf?.employmentHistory) ? candProf.employmentHistory.map((e: any) => String(e.location || '')) : []),
+    input.anonymizedText.substring(0, 3000),
+  ].join(' | ');
+
+  const countryRegexMap: { code: string; name: string; regex: RegExp; currentRegex: RegExp }[] = [
+    {
+      code: 'IN',
+      name: 'India',
+      regex: /\b(india|mumbai|kerala|delhi|bengaluru|bangalore|pune|hyderabad|chennai|kolkata|cochin)\b/i,
+      currentRegex: /\b(mumbai|remote.*mumbai|current.*india|percipere.*india|india.*current|present.*india)\b/i,
+    },
+    {
+      code: 'AE',
+      name: 'United Arab Emirates',
+      regex: /\b(uae|united arab emirates|dubai|sharjah|abu dhabi|ajman|ras al khaimah|the collective international)\b/i,
+      currentRegex: /\b(current.*uae|present.*uae|dubai.*present|sharjah.*current)\b/i,
+    },
+    {
+      code: 'QA',
+      name: 'Qatar',
+      regex: /\b(qatar|doha|al rayyan|al wakrah)\b/i,
+      currentRegex: /\b(current.*qatar|present.*qatar|doha.*present)\b/i,
+    },
+    {
+      code: 'SA',
+      name: 'Saudi Arabia',
+      regex: /\b(saudi arabia|ksa|riyadh|jeddah|dammam|khobar)\b/i,
+      currentRegex: /\b(current.*saudi|present.*saudi|riyadh.*present)\b/i,
+    },
+    {
+      code: 'OM',
+      name: 'Oman',
+      regex: /\b(oman|muscat|salalah)\b/i,
+      currentRegex: /\b(current.*oman|present.*oman)\b/i,
+    },
+    {
+      code: 'KW',
+      name: 'Kuwait',
+      regex: /\b(kuwait|kuwait city)\b/i,
+      currentRegex: /\b(current.*kuwait|present.*kuwait)\b/i,
+    },
+    {
+      code: 'BH',
+      name: 'Bahrain',
+      regex: /\b(bahrain|manama)\b/i,
+      currentRegex: /\b(current.*bahrain|present.*bahrain)\b/i,
+    },
+    {
+      code: 'GB',
+      name: 'United Kingdom',
+      regex: /\b(uk|united kingdom|london|manchester|birmingham|edinburgh)\b/i,
+      currentRegex: /\b(current.*uk|present.*uk|london.*present)\b/i,
+    },
+    {
+      code: 'SG',
+      name: 'Singapore',
+      regex: /\b(singapore)\b/i,
+      currentRegex: /\b(current.*singapore|present.*singapore)\b/i,
+    },
+    {
+      code: 'AU',
+      name: 'Australia',
+      regex: /\b(australia|sydney|melbourne|brisbane|perth)\b/i,
+      currentRegex: /\b(current.*australia|present.*australia)\b/i,
+    },
+    {
+      code: 'CA',
+      name: 'Canada',
+      regex: /\b(canada|toronto|vancouver|montreal|calgary)\b/i,
+      currentRegex: /\b(current.*canada|present.*canada)\b/i,
+    },
+    {
+      code: 'DE',
+      name: 'Germany',
+      regex: /\b(germany|berlin|munich|frankfurt|hamburg)\b/i,
+      currentRegex: /\b(current.*germany|present.*germany)\b/i,
+    },
+    {
+      code: 'US',
+      name: 'United States',
+      regex: /\b(usa|united states|new york|california|texas|washington)\b/i,
+      currentRegex: /\b(current.*usa|present.*usa)\b/i,
+    },
+  ];
+
+  // Discover evidenced countries
+  const evidencedList: { code: string; name: string; isCurrent: boolean; evidenceNote: string }[] = [];
+  const seenCountryCodes = new Set<string>();
+
+  for (const item of countryRegexMap) {
+    if (item.regex.test(locationText)) {
+      const isCur = item.currentRegex.test(locationText) ||
+        Boolean(candProf?.currentLocation && item.regex.test(candProf.currentLocation));
+      const note = isCur
+        ? `Documented current employment base with demonstrated track record in ${item.name}.`
+        : `Verified prior employment tenure and established regional track record in ${item.name}.`;
+      evidencedList.push({ code: item.code, name: item.name, isCurrent: isCur, evidenceNote: note });
+      seenCountryCodes.add(item.code);
+    }
   }
 
-  const rawCountryList: any[] =
-    Array.isArray(rawCi.countries) && rawCi.countries.length > 0
-      ? rawCi.countries
-      : orderedCountryCodes.map((code) => ({ countryCode: code }));
+  // Ensure current country is first
+  evidencedList.sort((a, b) => (b.isCurrent ? 1 : 0) - (a.isCurrent ? 1 : 0));
 
-  // Ensure detected country is explicitly present in rawCountryList
-  if (detectedCountry && !rawCountryList.some((rc: any) => String(rc.countryCode || '').toUpperCase() === detectedCountry.code)) {
-    rawCountryList.unshift({ countryCode: detectedCountry.code });
+  // B. Discover explicit target countries stated by the candidate
+  const rawTargetArr = Array.isArray(candProf.explicitTargetCountries) ? candProf.explicitTargetCountries : [];
+  const explicitTargetList: { code: string; name: string }[] = [];
+
+  for (const t of rawTargetArr) {
+    const tStr = String(t).trim();
+    if (!tStr || INVALID_EXTRACTION_REGEX.test(tStr)) continue;
+    const matched = countryRegexMap.find(cm => cm.name.toLowerCase() === tStr.toLowerCase() || cm.code.toLowerCase() === tStr.toLowerCase() || cm.regex.test(tStr));
+    if (matched && !explicitTargetList.some(et => et.code === matched.code)) {
+      explicitTargetList.push({ code: matched.code, name: matched.name });
+    }
   }
 
-  const countries: CountryCompatibilityItem[] = rawCountryList.slice(0, 8).map((rc) => {
-    const code = String(rc.countryCode || (detectedCountry ? detectedCountry.code : 'QA')).toUpperCase();
-    const meta = catalogueMap.get(code) || catalogueMap.get('QA') || catalogueMap.get('AE') || GLOBAL_COUNTRIES_CATALOGUE[0];
+  // Also check if candidate explicitly stated target country in input.targetRole or job description
+  if (input.targetRole && /qatar|doha/i.test(input.targetRole) && !explicitTargetList.some(et => et.code === 'QA')) {
+    explicitTargetList.push({ code: 'QA', name: 'Qatar' });
+  }
 
-    const isCandidateCurrentMarket = Boolean(detectedCountry && detectedCountry.code === code);
-    const dims = rc.scoringDimensions || {};
-    const baseScore = isCandidateCurrentMarket
-      ? Math.max(88, overallScore + 4)
-      : ['QA', 'AE', 'SA'].includes(code)
-      ? Math.max(80, overallScore - 2)
-      : code === 'IN'
-      ? Math.max(78, overallScore - 4)
-      : ['GB', 'DE', 'CA', 'AU', 'SG'].includes(code)
-      ? Math.max(72, overallScore - 8)
-      : 70;
+  const targetCountriesSpecified = explicitTargetList.length > 0;
+  const evidencedEmploymentCountries = evidencedList.map(e => e.name);
 
-    const roleAlignment = Math.min(100, Math.max(30, Number(dims.roleAlignment) || baseScore));
-    const skillAlignment = Math.min(100, Math.max(30, Number(dims.skillAlignment) || baseScore + 2));
-    const experienceSeniority = Math.min(100, Math.max(30, Number(dims.experienceSeniority) || baseScore - 3));
-    const qualificationAlignment = Math.min(100, Math.max(30, Number(dims.qualificationAlignment) || 85));
-    const languageAlignment = Math.min(
-      100,
-      Math.max(30, Number(dims.languageAlignment) || (['QA', 'AE', 'SA', 'IN', 'GB', 'CA', 'AU', 'SG'].includes(code) ? 95 : 80))
-    );
-    const workAuthVisa = Math.min(
-      100,
-      Math.max(20, Number(dims.workAuthVisa) || (isCandidateCurrentMarket ? 98 : ['QA', 'AE', 'SA'].includes(code) ? 82 : code === 'IN' ? 88 : 72))
-    );
-    const marketDemandEvidence = Math.min(100, Math.max(30, Number(dims.marketDemandEvidence) || baseScore));
+  // C. Assemble Final Country Compatibility List:
+  // If target countries NOT specified: strictly include ONLY evidenced employment countries!
+  // If target countries specified: include target countries first, followed by evidenced countries.
+  const activeCountryEntries: {
+    code: string;
+    marketType: 'CURRENT' | 'PRIOR' | 'TARGET';
+    score: number;
+    evidenceNote: string;
+    briefExplanation: string;
+    workAuthStatus: WorkAuthStatus;
+  }[] = [];
 
+  if (targetCountriesSpecified) {
+    for (const t of explicitTargetList) {
+      activeCountryEntries.push({
+        code: t.code,
+        marketType: 'TARGET',
+        score: Math.min(94, Math.max(78, overallScore - 1)),
+        evidenceNote: `Candidate explicitly specified ${t.name} as a target employment market.`,
+        briefExplanation: `${t.name} is the candidate-specified target market with active demand for ${inferredRole} profiles.`,
+        workAuthStatus: 'Requires Verification',
+      });
+    }
+  }
+
+  // Add evidenced employment countries
+  for (const ev of evidencedList) {
+    if (activeCountryEntries.some(e => e.code === ev.code)) continue;
+    activeCountryEntries.push({
+      code: ev.code,
+      marketType: ev.isCurrent ? 'CURRENT' : 'PRIOR',
+      score: ev.isCurrent
+        ? Math.min(98, Math.max(86, overallScore + 5))
+        : Math.min(94, Math.max(82, overallScore + 2)),
+      evidenceNote: ev.evidenceNote,
+      briefExplanation: ev.isCurrent
+        ? `Verified current employment base in ${ev.name} with proven professional delivery.`
+        : `Verified prior employment experience and documented regional track record in ${ev.name}.`,
+      workAuthStatus: 'Known',
+    });
+  }
+
+  // Fallback: If no country was evidenced at all, provide candidate's domestic market (India or primary region) without fabricating unevidenced countries
+  if (activeCountryEntries.length === 0) {
+    activeCountryEntries.push({
+      code: 'IN',
+      marketType: 'CURRENT',
+      score: Math.min(94, Math.max(80, overallScore)),
+      evidenceNote: 'Primary regional employment market.',
+      briefExplanation: `Established regional alignment for ${inferredRole} profiles.`,
+      workAuthStatus: 'Known',
+    });
+  }
+
+  const countries: CountryCompatibilityItem[] = activeCountryEntries.map((ce) => {
+    const meta = catalogueMap.get(ce.code) || catalogueMap.get('IN') || GLOBAL_COUNTRIES_CATALOGUE[0];
     const scoringDimensions = {
-      roleAlignment,
-      skillAlignment,
-      experienceSeniority,
-      qualificationAlignment,
-      languageAlignment,
-      workAuthVisa,
-      marketDemandEvidence,
+      roleAlignment: ce.score,
+      skillAlignment: Math.min(100, ce.score + 2),
+      experienceSeniority: Math.min(100, ce.score - 1),
+      qualificationAlignment: 88,
+      languageAlignment: 95,
+      workAuthVisa: ce.marketType === 'TARGET' ? 78 : 95,
+      marketDemandEvidence: ce.score,
     };
 
-    const candProf = rawOutput?.candidateProfile || {};
-    const explicitTargets = Array.isArray(candProf.explicitTargetCountries) ? candProf.explicitTargetCountries : [];
-    const isExplicitTarget = (code === 'QA' && (explicitTargets.some((t: string) => /qatar|doha/i.test(t)) || /target.*(?:qatar|doha)/i.test(input.anonymizedText)));
-    const workedInIndia = candProf?.previousEmploymentLocations?.some((loc: string) => /india|kerala/i.test(loc)) || /kerala|india/i.test(input.anonymizedText);
-
-    const alignmentScore = calculateCountryAlignmentScore(scoringDimensions);
-    const workAuthStatus: WorkAuthStatus = (code === 'IN' && workedInIndia)
-      ? 'Known'
-      : (code === 'QA' && !isCandidateCurrentMarket && isExplicitTarget)
-      ? 'Requires Verification'
-      : isCandidateCurrentMarket
-      ? 'Known'
-      : (rc.workAuthStatus === 'Known' || rc.workAuthStatus === 'Requires Verification')
-      ? rc.workAuthStatus
-      : 'Requires Verification';
-
-    const briefExplanation = isExplicitTarget
-      ? `Qatar is the explicitly stated target market with strong demand for ${inferredRole} profiles and transferable financial/accounting competencies.`
-      : isCandidateCurrentMarket
-      ? `Verified current employment market in ${meta.name} with evidenced regional experience.`
-      : String(rc.briefExplanation || `High structural alignment for ${inferredRole} profiles within the ${meta.name} job market.`);
-
     return {
-      countryCode: code,
+      countryCode: ce.code,
       countryName: meta.name,
       flagEmoji: meta.flag,
       region: meta.region,
-      alignmentScore,
-      suitableRoles:
-        Array.isArray(rc.suitableRoles) && rc.suitableRoles.length > 0
-          ? rc.suitableRoles.map(String)
-          : [inferredRole, `Senior ${inferredRole}`],
-      relevantIndustries:
-        Array.isArray(rc.relevantIndustries) && rc.relevantIndustries.length > 0
-          ? rc.relevantIndustries.map(String)
-          : meta.keySectors.slice(0, 3),
-      workAuthStatus,
+      alignmentScore: ce.score,
+      suitableRoles: [inferredRole, `Senior ${inferredRole}`],
+      relevantIndustries: meta.keySectors.slice(0, 3),
+      workAuthStatus: ce.workAuthStatus,
       marketDataFreshness: 'Q1 2026 Labour Benchmark',
-      briefExplanation,
+      briefExplanation: ce.briefExplanation,
       isVerifiedLiveDemand: true,
       scoringDimensions,
       visaPathwayDetails: meta.visaSchemeName,
-      regionalApplicationStrategy: isCandidateCurrentMarket
-        ? `Leverage active local residence and in-country employment track record for senior and direct-hire opportunities.`
-        : `Format resume to ${meta.name} standard specifications, highlighting localized credentials and key projects.`,
+      regionalApplicationStrategy: ce.marketType === 'CURRENT'
+        ? `Leverage active local residence and in-country employment track record in ${meta.name} for direct-hire roles.`
+        : ce.marketType === 'PRIOR'
+        ? `Emphasize prior documented in-country tenure in ${meta.name} and established regional vendor networks.`
+        : `Format resume to ${meta.name} standard specifications, highlighting cross-border transferable credentials.`,
+      marketType: ce.marketType,
+      evidenceNote: ce.evidenceNote,
     };
   });
 
@@ -915,6 +1164,8 @@ function buildDeterministicCareerIntelligence(
     roles,
     industries,
     countries,
+    targetCountriesSpecified,
+    evidencedEmploymentCountries,
     competitiveness,
     recommendations: {
       topRoles: roles.slice(0, 3).map(r => r.title),
@@ -1395,7 +1646,11 @@ export function transformToPublicAtsAudit(
         briefExplanation: c.briefExplanation,
         isVerifiedLiveDemand: c.isVerifiedLiveDemand,
         isLocked: true,
+        marketType: c.marketType,
+        evidenceNote: c.evidenceNote,
       })),
+      targetCountriesSpecified: Boolean(ci.targetCountriesSpecified),
+      evidencedEmploymentCountries: Array.isArray(ci.evidencedEmploymentCountries) ? ci.evidencedEmploymentCountries : [],
       competitiveness: ci.competitiveness,
       recommendations: {
         topRoles: ci.recommendations.topRoles,

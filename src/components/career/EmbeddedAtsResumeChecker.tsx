@@ -300,6 +300,8 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
         isLocked: false,
       },
     ],
+    targetCountriesSpecified: true,
+    evidencedEmploymentCountries: ['United Arab Emirates', 'India'],
     competitiveness: {
       profileCompetitiveness: {
         score: 84,
@@ -1219,8 +1221,24 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                         <Globe className="w-4 h-4 text-emerald-600" />
                         <h4 className="text-sm font-bold text-[#17152F]">Country Compatibility</h4>
                       </div>
-                      <span className="text-[10px] font-semibold text-slate-400">16 Markets Analyzed</span>
+                      <span className="text-[10px] font-semibold text-slate-400">
+                        {activeResult.careerIntelligence.targetCountriesSpecified
+                          ? `${activeResult.careerIntelligence.countries.length} Markets (Target & Documented)`
+                          : `${activeResult.careerIntelligence.countries.length} Documented ${activeResult.careerIntelligence.countries.length === 1 ? 'Market' : 'Markets'}`}
+                      </span>
                     </div>
+
+                    {!activeResult.careerIntelligence.targetCountriesSpecified && (
+                      <div className="p-2.5 rounded-2xl bg-amber-50/70 border border-amber-200/60 text-[11px] text-amber-900 flex items-start gap-2">
+                        <Info className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="leading-snug">
+                          <span className="font-bold">Target employment countries not specified.</span>
+                          <span className="block text-amber-700/90 text-[10px] mt-0.5">
+                            Results grounded strictly in evidenced employment history: {activeResult.careerIntelligence.evidencedEmploymentCountries?.join(', ') || 'Documented markets'}.
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       {activeResult.careerIntelligence.countries.slice(0, 4).map((c) => (
@@ -1236,10 +1254,15 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                           </div>
                           <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
                             <span>{c.region}</span>
-                            <span className="px-1.5 py-0.5 rounded bg-slate-200/60 font-medium">
-                              Visa: {c.workAuthStatus}
+                            <span className="px-1.5 py-0.5 rounded bg-slate-200/70 font-semibold text-slate-700">
+                              {c.marketType === 'TARGET' ? 'Target Market' : c.marketType === 'CURRENT' ? 'Current Employment Base' : 'Verified Regional Experience'}
                             </span>
                           </div>
+                          {c.evidenceNote && (
+                            <p className="mt-1.5 text-[10px] text-slate-500 leading-tight">
+                              {c.evidenceNote}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
