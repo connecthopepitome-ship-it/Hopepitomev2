@@ -338,6 +338,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [fileSize, setFileSize] = useState<number>(0);
+  const [fileBase64, setFileBase64] = useState<string | null>(null);
+  const [fileMimeType, setFileMimeType] = useState<string>('');
   const [resumeText, setResumeText] = useState<string>('');
   const [showJdInput, setShowJdInput] = useState<boolean>(false);
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -395,23 +397,39 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     setFileName(selectedFile.name);
     setFileSize(selectedFile.size);
 
-    try {
-      const buffer = await selectedFile.arrayBuffer();
-      const extracted = await extractCleanTextFromDocument(buffer, selectedFile.name);
-      if (!extracted || extracted.length < 50) {
-        setGenericErrorMessage('We could not read enough clear text from this file. Please ensure it is a text-based PDF or Word document rather than a flat image scan.');
-        return;
+    // Read as Base64 for direct native document understanding in GPT-6 Luna
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Url = reader.result as string;
+      setFileBase64(base64Url);
+      const mime =
+        selectedFile.type ||
+        (lowerName.endsWith('.pdf')
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      setFileMimeType(mime);
+
+      // Best effort local text extraction for immediate preview
+      try {
+        const buffer = await selectedFile.arrayBuffer();
+        const extracted = await extractCleanTextFromDocument(buffer, selectedFile.name);
+        if (extracted && extracted.length >= 30) {
+          setResumeText(extracted);
+        }
+      } catch {
+        // Safe to ignore because backend GPT-6 Luna parses the document directly
       }
-      setResumeText(extracted);
-    } catch (err: any) {
-      setGenericErrorMessage('Failed to read file content. Please try another file or plain text format.');
-    }
+    };
+    reader.onerror = () => {
+      setGenericErrorMessage('Failed to read file content. Please try another file.');
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   const handleStartReview = async (textToAssess?: string) => {
     const content = textToAssess || resumeText;
 
-    if (!content || content.trim().length < 50) {
+    if (!fileBase64 && (!content || content.trim().length < 30)) {
       setGenericErrorMessage('Please upload your resume (PDF or DOCX) to begin the assessment.');
       return;
     }
@@ -434,7 +452,9 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     try {
       const payload: Record<string, any> = {
-        resumeText: content,
+        resumeText: content || '',
+        fileBase64: fileBase64 || undefined,
+        fileMimeType: fileMimeType || undefined,
         fileName: fileName || 'candidate_resume.pdf',
         isPublic: true,
       };
@@ -459,7 +479,11 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       if (!res.ok || !data.success) {
         setViewState('idle');
         setHighDemandError({
-          heading: data?.heading || "We're experiencing high demand.",
+          heading:
+            data?.heading ||
+            (data?.errorType === 'UNREADABLE_DOCUMENT'
+              ? 'Unable to Read Document'
+              : "We're experiencing high demand."),
           message:
             data?.message ||
             'Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.',
@@ -496,6 +520,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     setFile(null);
     setFileName('');
     setFileSize(0);
+    setFileBase64(null);
+    setFileMimeType('');
     setResumeText('');
     setAuditResult(null);
     setHighDemandError(null);
@@ -898,7 +924,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-[#17152F]">
-                      {activeResult.inferredRole || activeResult.targetRole || 'Professional Profile'}
+                      {activeResult.candidateProfile?.name ? `${activeResult.candidateProfile.name} • ` : ''}
+                      {activeResult.candidateProfile?.actualProfession || activeResult.inferredRole || activeResult.targetRole || 'Professional Profile'}
                     </span>
                     {viewState === 'sample' && (
                       <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider">
@@ -907,7 +934,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                     )}
                   </div>
                   <span className="text-xs text-slate-500">
-                    Ref: {activeResult.assessmentId} • {activeResult.careerStage || 'Experienced Candidate'}
+                    Ref: {activeResult.assessmentId} • {activeResult.candidateProfile?.totalYearsExperience ? `${activeResult.candidateProfile.totalYearsExperience}+ yrs exp • ` : ''}{activeResult.careerStage || 'Experienced Candidate'}
+                    {activeResult.candidateProfile?.currentLocation ? ` • ${activeResult.candidateProfile.currentLocation}` : ''}
                   </span>
                 </div>
               </div>

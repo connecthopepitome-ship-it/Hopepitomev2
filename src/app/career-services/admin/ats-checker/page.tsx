@@ -31,31 +31,35 @@ export default function AtsCheckerWorkspacePage() {
   const [targetIndustry, setTargetIndustry] = useState('Technology & Cloud Infrastructure');
   const [jobDescription, setJobDescription] = useState('');
   const [fileName, setFileName] = useState('Candidate_Resume.pdf');
+  const [fileBase64, setFileBase64] = useState<string | null>(null);
+  const [fileMimeType, setFileMimeType] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [assessment, setAssessment] = useState<AtsAssessmentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  // File Upload Helper (Extracts plain text from txt/markdown or base64)
+  // File Upload Helper (Reads Base64 for OpenAI GPT-6 Luna native document analysis)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileName(file.name);
+    const mime =
+      file.type ||
+      (file.name.endsWith('.pdf')
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    setFileMimeType(mime);
+
+    const base64Reader = new FileReader();
+    base64Reader.onload = () => {
+      setFileBase64(String(base64Reader.result || ''));
+    };
+    base64Reader.readAsDataURL(file);
 
     if (file.type.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
       const reader = new FileReader();
       reader.onload = () => {
         setResumeText(String(reader.result || ''));
-      };
-      reader.readAsText(file);
-    } else {
-      // For PDF/DOCX, in modern browser read raw text or prompt user
-      const reader = new FileReader();
-      reader.onload = () => {
-        const str = String(reader.result || '');
-        // Extract basic ASCII printable characters if raw
-        const clean = str.replace(/[^\x20-\x7E\t\n\r]/g, ' ');
-        setResumeText(clean.length > 100 ? clean : `[Extracted Content from ${file.name}]\nExperience in software engineering, cloud systems, and team leadership.`);
       };
       reader.readAsText(file);
     }
@@ -76,8 +80,8 @@ export default function AtsCheckerWorkspacePage() {
 
   const handleRunEvaluation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!resumeText.trim() || resumeText.length < 50) {
-      setError('Please provide at least 50 characters of resume content to audit.');
+    if (!fileBase64 && (!resumeText.trim() || resumeText.length < 30)) {
+      setError('Please provide resume content or upload a resume file (PDF/DOCX) to audit.');
       return;
     }
 
@@ -91,6 +95,8 @@ export default function AtsCheckerWorkspacePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resumeText: resumeText.trim().substring(0, 7000),
+          fileBase64: fileBase64 || undefined,
+          fileMimeType: fileMimeType || undefined,
           targetRole,
           targetIndustry,
           jobDescription: jobDescription ? jobDescription.trim().substring(0, 2000) : undefined,

@@ -12,20 +12,24 @@ export function anonymizeResumeText(
   targetRole?: string,
   targetIndustry?: string,
   jobDescription?: string,
-  fileName?: string
+  fileName?: string,
+  fileBase64?: string,
+  fileMimeType?: string
 ): SanitizedResumeInput {
-  if (!rawText) {
+  if (!rawText && !fileBase64) {
     return {
       anonymizedText: '',
       targetRole: targetRole || '',
       targetIndustry: targetIndustry || '',
       jobDescription: jobDescription || '',
       originalFileName: fileName || 'resume.pdf',
+      fileBase64,
+      fileMimeType,
       characterCount: 0,
     };
   }
 
-  let text = rawText;
+  let text = rawText || '';
 
   // 0. Filter out raw PDF/DOCX binary stream markers and corrupt non-text blocks
   text = text.replace(/%PDF-[\d.]+/g, '');
@@ -72,6 +76,8 @@ export function anonymizeResumeText(
     targetIndustry: (targetIndustry || '').trim(),
     jobDescription: cappedJd,
     originalFileName: fileName || 'Candidate_Resume.pdf',
+    fileBase64,
+    fileMimeType,
     characterCount: text.length,
   };
 }

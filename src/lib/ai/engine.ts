@@ -82,6 +82,8 @@ export class AtsOpenAiEngine {
   public async analyzeResume(
     rawResumeText: string,
     options: {
+      fileBase64?: string;
+      fileMimeType?: string;
       targetRole?: string;
       targetIndustry?: string;
       jobDescription?: string;
@@ -93,13 +95,15 @@ export class AtsOpenAiEngine {
     const startTime = Date.now();
     memoryUsageStats.totalAssessments += 1;
 
-    // 1. Sanitize & Anonymize (PII Removal)
+    // 1. Sanitize & Anonymize (PII Removal, preserves fileBase64 / fileMimeType)
     const sanitizedInput: SanitizedResumeInput = anonymizeResumeText(
       rawResumeText,
       options.targetRole,
       options.targetIndustry,
       options.jobDescription,
-      options.fileName
+      options.fileName,
+      options.fileBase64,
+      options.fileMimeType
     );
 
     const assessmentId =
@@ -120,6 +124,16 @@ export class AtsOpenAiEngine {
         errorCode: result.errorCode,
         reason: result.errorReason,
       });
+
+      if (
+        result.errorCode === 422 ||
+        (result.errorReason &&
+          (result.errorReason.includes('unable to read') ||
+            result.errorReason.includes('uncorrupted') ||
+            result.errorReason.includes('standard text-based')))
+      ) {
+        throw new Error(result.errorReason);
+      }
 
       throw new Error(
         'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.'

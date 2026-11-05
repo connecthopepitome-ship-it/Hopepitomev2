@@ -82,11 +82,34 @@ export class OpenAiAdapter {
     const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s hard timeout
 
     try {
+      const userContent: any[] = [];
+      if (input.fileBase64) {
+        const lowerName = (input.originalFileName || '').toLowerCase();
+        let mime = input.fileMimeType;
+        if (!mime) {
+          mime = lowerName.endsWith('.pdf')
+            ? 'application/pdf'
+            : lowerName.endsWith('.docx')
+            ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            : 'text/plain';
+        }
+        const cleanBase64 = input.fileBase64.replace(/^data:[^;]+;base64,/, '').trim();
+        userContent.push({
+          type: 'input_file',
+          filename: input.originalFileName || (lowerName.endsWith('.docx') ? 'resume.docx' : 'resume.pdf'),
+          file_data: `data:${mime};base64,${cleanBase64}`,
+        });
+      }
+      userContent.push({
+        type: 'input_text',
+        text: userPrompt,
+      });
+
       const payload = {
         model: this.modelName,
         input: [
           { role: 'system', content: `${systemPrompt}\nOutput valid JSON only.` },
-          { role: 'user', content: userPrompt },
+          { role: 'user', content: userContent },
         ],
         text: {
           format: { type: 'json_object' },
@@ -142,6 +165,29 @@ export class OpenAiAdapter {
           durationMs,
           errorCode: 502,
           errorReason: 'OpenAI GPT-6 Luna returned unparseable non-JSON content.',
+        };
+      }
+
+      // Mandatory document validation check
+      if (parsed.validation && parsed.validation.documentReadable === false) {
+        return {
+          success: false,
+          durationMs,
+          errorCode: 422,
+          errorReason:
+            'We were unable to read clear resume content from this file. Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.',
+        };
+      }
+
+      // Detect corrupted extraction fragments or unreadable content
+      const prof = String(parsed.candidateProfile?.actualProfession || parsed.inferredRole || '').trim();
+      if (/\b(?:unable to identify|undetermined|pdf metadata|encoding fragments)\b/i.test(prof)) {
+        return {
+          success: false,
+          durationMs,
+          errorCode: 422,
+          errorReason:
+            'We were unable to read clear resume content from this file. Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.',
         };
       }
 

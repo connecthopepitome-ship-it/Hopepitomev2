@@ -52,6 +52,43 @@ export interface OpenAiUsageStats {
   budgetWarningTriggered: boolean;
 }
 
+export interface DocumentValidationState {
+  documentReadable: boolean;
+  unreadableReason?: string | null;
+  detectedFormat?: 'pdf' | 'docx' | 'text' | 'unknown';
+  isContradictory?: boolean;
+  validationNotes?: string;
+}
+
+export interface CandidateStructuredProfile {
+  name: string | null;
+  headline: string | null;
+  actualProfession: string;
+  professionalSummary: string | null;
+  totalYearsExperience: number;
+  currentLocation: string | null;
+  previousEmploymentLocations: string[];
+  explicitTargetCountries: string[];
+  employmentHistory: Array<{
+    role: string;
+    company: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    responsibilities: string[];
+    achievements: string[];
+  }>;
+  skills: string[];
+  toolsAndSoftware: string[];
+  education: Array<{
+    degree: string;
+    institution?: string;
+    year?: string;
+  }>;
+  certifications: string[];
+  languages: string[];
+}
+
 export interface SanitizedResumeInput {
   anonymizedText: string;
   targetRole?: string;
@@ -59,6 +96,7 @@ export interface SanitizedResumeInput {
   jobDescription?: string;
   originalFileName?: string;
   fileMimeType?: string;
+  fileBase64?: string;
   characterCount: number;
 }
 
@@ -125,6 +163,8 @@ export interface AtsAssessmentResult {
   matchedKeywords: string[];
   missingKeywords: string[];
   detectedWordCount: number;
+  candidateProfile?: CandidateStructuredProfile;
+  documentValidation?: DocumentValidationState;
   careerIntelligence?: CareerIntelligenceResult;
   providerAudit: {
     selectedProvider: 'openai';
@@ -219,6 +259,8 @@ export interface PublicAtsAuditResult {
   strengthTitles: string[];
   improvementAreas: LockedImprovementCard[];
   recommendedServices: RecommendedServiceItem[];
+  candidateProfile?: Partial<CandidateStructuredProfile>;
+  documentValidation?: DocumentValidationState;
   careerIntelligence?: PublicCareerIntelligence;
   isLocked: boolean;
 }

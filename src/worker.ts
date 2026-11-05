@@ -974,6 +974,8 @@ export default {
 
       try {
         const body = (await request.json().catch(() => null)) as any;
+        const fileBase64 = body?.fileBase64 || body?.fileData || '';
+        const fileMimeType = body?.fileMimeType || '';
         const resumeText = body?.resumeText || '';
         const targetRole = body?.targetRole || '';
         const targetIndustry = body?.targetIndustry || '';
@@ -983,11 +985,14 @@ export default {
         const projectId = body?.projectId;
         const isPublic = body?.isPublic !== false; // Default to public gated audit
 
-        if (!resumeText || resumeText.trim().length < 50) {
+        const hasFile = Boolean(fileBase64 && fileBase64.length > 50);
+        const hasText = Boolean(resumeText && resumeText.trim().length >= 30);
+
+        if (!hasFile && !hasText) {
           return new Response(
             JSON.stringify({
               success: false,
-              error: 'Resume text must contain at least 50 characters of professional content.',
+              error: 'Please upload a readable resume file (PDF or DOCX) or provide resume text.',
             }),
             { status: 400, headers: CORS_HEADERS }
           );
@@ -997,6 +1002,8 @@ export default {
         const assessment = await globalAtsEngine.analyzeResume(
           resumeText,
           {
+            fileBase64,
+            fileMimeType,
             targetRole,
             targetIndustry,
             jobDescription,
@@ -1044,6 +1051,28 @@ export default {
           timestamp: new Date().toISOString(),
           error: err?.message || String(err),
         });
+
+        const isUnreadable =
+          err?.message &&
+          (err.message.includes('unable to read') ||
+            err.message.includes('uncorrupted') ||
+            err.message.includes('standard text-based') ||
+            err.message.includes('malformed') ||
+            err.message.includes('no readable resume'));
+
+        if (isUnreadable) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              errorType: 'UNREADABLE_DOCUMENT',
+              heading: 'Unable to Read Document',
+              message: err.message,
+              secondaryText: 'Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.',
+              error: err.message,
+            }),
+            { status: 422, headers: CORS_HEADERS }
+          );
+        }
 
         return new Response(
           JSON.stringify({

@@ -119,16 +119,29 @@ export async function extractCleanTextFromDocument(
           }
 
           if (xmlString) {
+            // Preserve paragraph structure, tables, and bullet points
+            const formattedXml = xmlString
+              .replace(/<\/w:p>/gi, '\n')
+              .replace(/<\/w:tr>/gi, '\n')
+              .replace(/<\/w:tc>/gi, ' | ')
+              .replace(/<w:tab\/>/gi, '\t');
+
             const textNodes: string[] = [];
-            const tRegex = /<w:t[^>]*>([\s\S]*?)<\/w:t>/g;
+            const tRegex = /(?:<w:t[^>]*>([\s\S]*?)<\/w:t>|(\n))/gi;
             let m;
-            while ((m = tRegex.exec(xmlString)) !== null) {
-              const val = m[1].trim();
-              if (val) textNodes.push(val);
+            let currentLine = '';
+            while ((m = tRegex.exec(formattedXml)) !== null) {
+              if (m[2] === '\n') {
+                if (currentLine.trim()) textNodes.push(currentLine.trim());
+                currentLine = '';
+              } else if (m[1]) {
+                currentLine += m[1];
+              }
             }
+            if (currentLine.trim()) textNodes.push(currentLine.trim());
             if (textNodes.length > 0) {
-              let joined = textNodes.join(' ').replace(/\s{2,}/g, ' ').trim();
-              if (joined.length > 7000) joined = joined.substring(0, 7000);
+              let joined = textNodes.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+              if (joined.length > 8000) joined = joined.substring(0, 8000);
               return joined;
             }
           }
@@ -216,31 +229,19 @@ export async function extractCleanTextFromDocument(
 
       if (textPieces.length >= 10) {
         let combined = textPieces.join(' ').replace(/\s{2,}/g, ' ').trim();
-        if (combined.length > 7000) combined = combined.substring(0, 7000);
-        return combined;
+        // Discard if output looks like binary metadata fragments
+        if (!combined.includes('obj') && !combined.includes('endobj') && combined.length > 50) {
+          if (combined.length > 8000) combined = combined.substring(0, 8000);
+          return combined;
+        }
       }
     } catch (err) {
       console.warn('[PDF Stream Extraction Error]:', err);
     }
-  }
-
-  // 4. Fallback: Filter printable ASCII characters, rejecting raw stream data
-  const rawStr = new TextDecoder('latin1').decode(bytes);
-  let text = rawStr
-    .replace(/%PDF-[\d.]+/g, '')
-    .replace(/<<[\s\S]*?>>/g, ' ')
-    .replace(/stream[\s\S]*?endstream/g, ' ')
-    .replace(/\b(obj|endobj|xref|trailer|startxref|\/Filter|\/FlateDecode|\/Length\d*)\b/gi, ' ')
-    .replace(/[^\x20-\x7E\t\n\r]/g, ' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-
-  // Safety filter: ensure result is predominantly alphanumeric English text
-  const alphaCount = (text.match(/[a-zA-Z0-9]/g) || []).length;
-  if (alphaCount < 50 || alphaCount / Math.max(1, text.length) < 0.45) {
+    // For PDFs where local stream decoding is incomplete or specialized,
+    // return empty string so the pipeline feeds the original PDF binary directly to GPT-6 Luna.
     return '';
   }
 
-  if (text.length > 7000) text = text.substring(0, 7000);
-  return text;
+  return '';
 }
