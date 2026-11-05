@@ -82,8 +82,10 @@ export class AtsOpenAiEngine {
   public async analyzeResume(
     rawResumeText: string,
     options: {
+      uploadId?: string;
       fileBase64?: string;
       fileMimeType?: string;
+      fileSize?: number;
       targetRole?: string;
       targetIndustry?: string;
       jobDescription?: string;
@@ -95,7 +97,7 @@ export class AtsOpenAiEngine {
     const startTime = Date.now();
     memoryUsageStats.totalAssessments += 1;
 
-    // 1. Sanitize & Anonymize (PII Removal, preserves fileBase64 / fileMimeType)
+    // 1. Sanitize & Anonymize (PII Removal, preserves fileBase64 / fileMimeType / uploadId)
     const sanitizedInput: SanitizedResumeInput = anonymizeResumeText(
       rawResumeText,
       options.targetRole,
@@ -103,7 +105,9 @@ export class AtsOpenAiEngine {
       options.jobDescription,
       options.fileName,
       options.fileBase64,
-      options.fileMimeType
+      options.fileMimeType,
+      options.uploadId,
+      options.fileSize
     );
 
     const assessmentId =
@@ -121,23 +125,26 @@ export class AtsOpenAiEngine {
       console.error('[OpenAI GPT-6 Luna Execution Error]:', {
         timestamp: new Date().toISOString(),
         assessmentId,
+        uploadId: options.uploadId,
+        fileName: options.fileName,
+        fileSize: options.fileSize,
         errorCode: result.errorCode,
         reason: result.errorReason,
       });
 
-      if (
-        result.errorCode === 422 ||
-        (result.errorReason &&
-          (result.errorReason.includes('unable to read') ||
-            result.errorReason.includes('uncorrupted') ||
-            result.errorReason.includes('standard text-based')))
-      ) {
-        throw new Error(result.errorReason);
-      }
-
-      throw new Error(
-        'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.'
-      );
+      const err = new Error(result.errorReason || 'Our resume review service is temporarily unavailable. Please try again shortly.');
+      (err as any).statusCode = result.errorCode || 500;
+      (err as any).errorType =
+        result.errorCode === 422
+          ? 'UNREADABLE_DOCUMENT'
+          : result.errorCode === 429
+          ? 'RATE_LIMITED'
+          : result.errorCode === 413
+          ? 'FILE_TOO_LARGE'
+          : result.errorCode === 504
+          ? 'TIMEOUT'
+          : 'SERVICE_UNAVAILABLE';
+      throw err;
     }
 
     // 3. Update usage statistics upon success

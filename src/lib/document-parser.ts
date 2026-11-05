@@ -229,8 +229,15 @@ export async function extractCleanTextFromDocument(
 
       if (textPieces.length >= 10) {
         let combined = textPieces.join(' ').replace(/\s{2,}/g, ' ').trim();
-        // Discard if output looks like binary metadata fragments
-        if (!combined.includes('obj') && !combined.includes('endobj') && combined.length > 50) {
+        // Guard against PDF internal tokens, metadata streams, or font encoding noise
+        const hasPdfNoise =
+          /\b(obj|endobj|xref|trailer|startxref|FlateDecode|ASCII85Decode|MediaBox|FontDescriptor|ProcSet|BaseFont|FontName)\b/i.test(combined) ||
+          (combined.match(/\/[A-Z][a-zA-Z0-9]*/g) || []).length > 3;
+
+        // Ensure minimum density of real alphabetic words (length >= 3)
+        const words = combined.match(/[a-zA-Z]{3,}/g) || [];
+
+        if (!hasPdfNoise && words.length >= 15 && combined.length > 50) {
           if (combined.length > 8000) combined = combined.substring(0, 8000);
           return combined;
         }

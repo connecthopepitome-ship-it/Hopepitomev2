@@ -14,10 +14,13 @@ export function anonymizeResumeText(
   jobDescription?: string,
   fileName?: string,
   fileBase64?: string,
-  fileMimeType?: string
+  fileMimeType?: string,
+  uploadId?: string,
+  fileSize?: number
 ): SanitizedResumeInput {
   if (!rawText && !fileBase64) {
     return {
+      uploadId,
       anonymizedText: '',
       targetRole: targetRole || '',
       targetIndustry: targetIndustry || '',
@@ -25,6 +28,7 @@ export function anonymizeResumeText(
       originalFileName: fileName || 'resume.pdf',
       fileBase64,
       fileMimeType,
+      fileSize,
       characterCount: 0,
     };
   }
@@ -71,6 +75,7 @@ export function anonymizeResumeText(
   const cappedJd = cleanJd.length > 2500 ? cleanJd.substring(0, 2500) + '...' : cleanJd;
 
   return {
+    uploadId,
     anonymizedText: text,
     targetRole: (targetRole || '').trim(),
     targetIndustry: (targetIndustry || '').trim(),
@@ -78,6 +83,7 @@ export function anonymizeResumeText(
     originalFileName: fileName || 'Candidate_Resume.pdf',
     fileBase64,
     fileMimeType,
+    fileSize,
     characterCount: text.length,
   };
 }

@@ -121,7 +121,13 @@ export function buildAtsPrompt(input: SanitizedResumeInput): { systemPrompt: str
 You execute two logical stages in a single unified structured output:
 
 STAGE A — DOCUMENT EXTRACTION & UNDERSTANDING:
-1. Validate document readability. If the document is unreadable, empty, corrupted binary, an unreadable scan with no text, or non-resume content, set validation.documentReadable = false and explain why in validation.unreadableReason.
+1. DOCUMENT READABILITY & MULTIMODAL EXTRACTION:
+   - Carefully inspect the document text, visual formatting, tables, and page layout.
+   - You MUST extract information from resumes created via standard word processors, PDFs, graphic editors (e.g. Canva), and visual/scanned documents containing photos or styling.
+   - As long as candidate professional information (such as name, job titles, companies, skills, or education) is visually or textually identifiable in the document, set validation.documentReadable = true and proceed with full extraction.
+   - If a candidate photo, avatar, or profile image is present, ignore the photo and focus on extracting the candidate's professional text, experience, and accomplishments.
+   - ONLY set validation.documentReadable = false if the document is entirely blank, genuinely unreadable corrupted binary data, or completely non-resume material (e.g. random code, invoice, blank page, or unreadable blur).
+   - CRITICAL OUTPUT INTEGRITY: actualProfession, inferredRole, and inferredDomain must ALWAYS contain valid human professional titles and domains (e.g. "Procurement Specialist", "Supply Chain & Procurement", "Accountant", "Finance"). NEVER output meta-commentary, parsing complaints, or error phrases (such as "Unable to identify...", "Undetermined...", or "PDF metadata..."). If ambiguous, synthesize the best-fitting title from candidate context (e.g. "Operations Specialist", "Professional Services").
 2. Read the full document visually and semantically. Extract candidate facts into candidateProfile:
    - name: Candidate's full name (or null if not found)
    - headline: Professional headline / title
@@ -150,7 +156,7 @@ Output valid JSON only without markdown code fences.`;
 - Provided Target Industry: ${input.targetIndustry && input.targetIndustry !== 'Corporate / Technology' ? input.targetIndustry : 'Infer from resume'}
 ${hasJobDescription ? `- Benchmark Job Description:\n${input.jobDescription}\n` : '- Benchmark Job Description: None provided (Perform generic resume quality audit without job match penalty)'}
 
-${hasAttachedFile ? `[ORIGINAL RESUME DOCUMENT ATTACHED AS input_file: ${input.originalFileName || 'resume.pdf'}]\n` : ''}${input.anonymizedText ? `RESUME TEXT / EXTRACTED CONTENT:\n${input.anonymizedText}\n` : ''}
+${hasAttachedFile ? `[PRIMARY SOURCE: Attached resume document '${input.originalFileName || 'resume.pdf'}' as input_file. Extract all candidate facts, chronology, and skills directly from this attached file.]\n` : ''}${!hasAttachedFile && input.anonymizedText ? `RESUME TEXT / EXTRACTED CONTENT:\n${input.anonymizedText}\n` : ''}
 
 REQUIRED JSON STRUCTURE:
 {
@@ -337,20 +343,40 @@ export function detectCandidateCountry(text: string): { code: string; name: stri
   return null;
 }
 
+export const INVALID_EXTRACTION_REGEX =
+  /\b(?:unable to identify|undetermined|pdf metadata|encoding fragments|cannot determine|unknown|not specified|not identifiable|not applicable|unidentified|not available|unspecified role|unspecified domain|corrupt|unreadable|error|unrecognized|meta-commentary)\b/i;
+
 export function detectCandidateProfession(
   text: string,
   rawInferredRole?: string,
   rawInferredDomain?: string,
   structuredProfile?: any
 ): { role: string; domain: string } {
+  const cleanRole = String(rawInferredRole || '').trim();
+  const cleanDomain = String(rawInferredDomain || '').trim();
+
+  const isRoleInvalid =
+    !cleanRole ||
+    cleanRole.length < 3 ||
+    INVALID_EXTRACTION_REGEX.test(cleanRole) ||
+    /^(?:experienced professional|corporate professional|professional role|unspecified|not specified|n\/a)$/i.test(cleanRole);
+
+  const isDomainInvalid =
+    !cleanDomain ||
+    cleanDomain.length < 3 ||
+    INVALID_EXTRACTION_REGEX.test(cleanDomain) ||
+    /^(?:unspecified|not specified|corporate \/ technology|n\/a)$/i.test(cleanDomain);
+
   // If structuredProfile has verified actualProfession and it is not a corrupted fragment:
   if (structuredProfile?.actualProfession) {
     const prof = String(structuredProfile.actualProfession).trim();
-    if (prof.length > 2 && !/\b(?:unable to identify|undetermined|pdf metadata|encoding fragments)\b/i.test(prof)) {
-      let domain = rawInferredDomain || 'Professional Services';
+    if (prof.length > 2 && !INVALID_EXTRACTION_REGEX.test(prof) && !/^(?:experienced professional|corporate professional|professional role|unspecified|not specified)$/i.test(prof)) {
+      let domain = !isDomainInvalid ? cleanDomain : 'Professional Services';
       if (/account|finance|audit|tax|tally/i.test(prof)) domain = 'Accounting & Finance';
       else if (/procure|supply chain|purchasing|sourcing/i.test(prof)) domain = 'Supply Chain & Procurement';
       else if (/nurse|doctor|clinical|hospital|health/i.test(prof)) domain = 'Healthcare & Nursing';
+      else if (/civil|construction|site engineer/i.test(prof)) domain = 'Civil Engineering & Construction';
+      else if (/mechanical|hvac|piping/i.test(prof)) domain = 'Mechanical & Industrial Engineering';
       return { role: prof, domain };
     }
   }
@@ -387,17 +413,14 @@ export function detectCandidateProfession(
     return { role, domain: 'Mechanical & Industrial Engineering' };
   }
 
-  // 2. Validate model inferred role: reject generic or hallucinated IT roles
-  const cleanRole = String(rawInferredRole || '').trim();
-  const cleanDomain = String(rawInferredDomain || '').trim();
-  const isGeneric = !cleanRole || /experienced professional|corporate professional|professional role|unspecified/i.test(cleanRole);
+  // 2. Validate model inferred role: reject generic, error, or hallucinated IT roles
   const isTechMismatched = /\b(software|cloud architect|devops|full stack|react|kubernetes|frontend|backend)\b/i.test(cleanRole) &&
     !/\b(software|developer|coding|javascript|python|java|c\+\+|aws|cloud)\b/i.test(text);
 
-  if (!isGeneric && !isTechMismatched) {
+  if (!isRoleInvalid && !isTechMismatched) {
     return {
       role: cleanRole,
-      domain: cleanDomain || 'Professional Services',
+      domain: !isDomainInvalid ? cleanDomain : 'Professional Services',
     };
   }
 
@@ -407,9 +430,14 @@ export function detectCandidateProfession(
     return { role: 'Procurement Specialist', domain: 'Supply Chain & Procurement' };
   }
 
+  const isAccounting = /\b(?:accountant|accounts payable|accounts receivable|balance sheet|general ledger|tally|vat|taxation)\b/i.test(text);
+  if (isAccounting) {
+    return { role: 'Accountant', domain: 'Accounting & Finance' };
+  }
+
   return {
-    role: cleanRole || 'Experienced Professional',
-    domain: cleanDomain || 'Professional Services',
+    role: !isRoleInvalid ? cleanRole : 'Experienced Specialist',
+    domain: !isDomainInvalid ? cleanDomain : 'Professional Services',
   };
 }
 
@@ -429,14 +457,28 @@ function buildDeterministicCareerIntelligence(
   const rawCi = rawOutput?.careerIntelligence || {};
   const rawProfile = rawCi.profile || {};
 
+  // Sanitize inferredRole and inferredDomain against any leakage
+  const safeRole =
+    !inferredRole || INVALID_EXTRACTION_REGEX.test(inferredRole) || /experienced professional|corporate professional/i.test(inferredRole)
+      ? 'Experienced Specialist'
+      : inferredRole;
+  const safeDomain =
+    !inferredDomain || INVALID_EXTRACTION_REGEX.test(inferredDomain) || /corporate \/ technology/i.test(inferredDomain)
+      ? 'Professional Services'
+      : inferredDomain;
+
   // 1. Profile Extraction
   const yearsExpMatch = input.anonymizedText.match(/(\d+)\+?\s*years?/i);
   const detectedYears = yearsExpMatch ? parseInt(yearsExpMatch[1], 10) : 5;
   const profile: StructuredResumeProfile = {
-    currentOrRecentTitle: String(rawProfile.currentOrRecentTitle || inferredRole),
+    currentOrRecentTitle: String(
+      rawProfile.currentOrRecentTitle && !INVALID_EXTRACTION_REGEX.test(rawProfile.currentOrRecentTitle)
+        ? rawProfile.currentOrRecentTitle
+        : safeRole
+    ),
     previousTitles: Array.isArray(rawProfile.previousTitles) && rawProfile.previousTitles.length > 0
-      ? rawProfile.previousTitles.map(String)
-      : [`Associate ${inferredRole}`, `Junior Specialist`],
+      ? rawProfile.previousTitles.filter((t: any) => !INVALID_EXTRACTION_REGEX.test(String(t))).map(String)
+      : [`Associate ${safeRole}`, `Junior Specialist`],
     totalYearsExperience: typeof rawProfile.totalYearsExperience === 'number' && !isNaN(rawProfile.totalYearsExperience)
       ? rawProfile.totalYearsExperience
       : detectedYears,
@@ -456,13 +498,13 @@ function buildDeterministicCareerIntelligence(
       : ['Workflow Automation', 'Quality Assurance', 'Data-driven Analysis'],
     domainKnowledge: Array.isArray(rawProfile.domainKnowledge) && rawProfile.domainKnowledge.length > 0
       ? rawProfile.domainKnowledge.map(String)
-      : [inferredDomain, 'Operational Standards', 'Industry Compliance'],
+      : [safeDomain, 'Operational Standards', 'Industry Compliance'],
     industryExperience: Array.isArray(rawProfile.industryExperience) && rawProfile.industryExperience.length > 0
       ? rawProfile.industryExperience.map(String)
-      : [inferredDomain],
+      : [safeDomain],
     education: Array.isArray(rawProfile.education) && rawProfile.education.length > 0
       ? rawProfile.education
-      : [{ degree: 'Professional Degree', field: inferredDomain }],
+      : [{ degree: 'Professional Degree', field: safeDomain }],
     certifications: Array.isArray(rawProfile.certifications) ? rawProfile.certifications.map(String) : [],
     leadershipExposure: rawProfile.leadershipExposure || { level: 'Individual Contributor / Lead', details: 'Project coordination & technical execution' },
     toolsAndSoftware: Array.isArray(rawProfile.toolsAndSoftware) ? rawProfile.toolsAndSoftware.map(String) : ['Industry Standard Platforms', 'Collaboration Suites'],
@@ -472,7 +514,7 @@ function buildDeterministicCareerIntelligence(
   };
 
   // 2. Roles across 4 categories (Direct-Fit, Adjacent, Progression, Transition)
-  const isAccountant = /account/i.test(inferredRole);
+  const isAccountant = /account/i.test(safeRole);
   const defaultRolesTemplate: { title: string; category: RoleMatchCategory; categoryLabel: string; matchReason: string; strengths: string[] }[] = isAccountant
     ? [
         {
@@ -513,28 +555,28 @@ function buildDeterministicCareerIntelligence(
       ]
     : [
         {
-          title: inferredRole,
+          title: safeRole,
           category: 'DIRECT_FIT',
           categoryLabel: 'Direct Fit',
           matchReason: 'Direct alignment with verified core responsibilities and primary competencies',
           strengths: ['Immediate operational productivity', 'Demonstrated functional mastery'],
         },
         {
-          title: `Senior ${inferredRole.replace(/^(Senior|Lead|Junior|Associate)\s+/i, '')}`,
+          title: `Senior ${safeRole.replace(/^(Senior|Lead|Junior|Associate)\s+/i, '')}`,
           category: 'PROGRESSION',
           categoryLabel: 'Career Progression',
           matchReason: 'Natural next-stage advancement leveraging accumulated domain track record',
           strengths: ['Established foundation ready for broader leadership and strategic ownership'],
         },
         {
-          title: `${inferredDomain} Operations & Project Lead`,
+          title: `${safeDomain} Operations & Project Lead`,
           category: 'ADJACENT',
           categoryLabel: 'Adjacent / Transferable',
           matchReason: 'High transferability of delivery methods and workflow optimization skills',
           strengths: ['Strong transferable execution skills', 'Cross-functional adaptability'],
         },
         {
-          title: `${inferredDomain} Strategy & Transformation Consultant`,
+          title: `${safeDomain} Strategy & Transformation Consultant`,
           category: 'TRANSITION',
           categoryLabel: 'Career Transition',
           matchReason: 'Leverages subject matter expertise in an advisory or cross-sector capacity',
@@ -548,11 +590,13 @@ function buildDeterministicCareerIntelligence(
     ? rawOutput.roles
     : defaultRolesTemplate;
 
-  // Domain guard: Reject IT-specific roles if candidate is in a non-tech domain
-  const isNonTech = !inferredDomain.toLowerCase().includes('technol') && !inferredDomain.toLowerCase().includes('software');
+  // Domain guard: Reject IT-specific roles if candidate is in a non-tech domain, and filter out any invalid extraction noise
+  const isNonTech = !safeDomain.toLowerCase().includes('technol') && !safeDomain.toLowerCase().includes('software');
   const candidateRoles = rawRolesList.filter((r: any) => {
     if (!r?.title) return false;
-    if (isNonTech && /\b(software|cloud architect|devops|full stack|react developer|kubernetes|frontend|backend engineer)\b/i.test(String(r.title))) {
+    const titleStr = String(r.title);
+    if (INVALID_EXTRACTION_REGEX.test(titleStr)) return false;
+    if (isNonTech && /\b(software|cloud architect|devops|full stack|react developer|kubernetes|frontend|backend engineer)\b/i.test(titleStr)) {
       return false;
     }
     return true;
@@ -669,16 +713,16 @@ function buildDeterministicCareerIntelligence(
     : [
         {
           id: 'ind_1',
-          industryName: inferredDomain,
+          industryName: safeDomain,
           category: 'CURRENT',
           categoryLabel: 'Current Core Industry',
           compatibilityScore: Math.min(96, Math.max(78, overallScore + 3)),
-          domainKnowledgeMatch: `Directly supported by historical roles and established technical track record in ${inferredDomain}.`,
+          domainKnowledgeMatch: `Directly supported by historical roles and established technical track record in ${safeDomain}.`,
           transferableResponsibilities: ['End-to-end service delivery', 'Workflow process governance', 'Technical quality standards'],
         },
         {
           id: 'ind_2',
-          industryName: inferredDomain.includes('Technology') ? 'Fintech & Banking Technology' : 'Technology & Digital Transformation',
+          industryName: safeDomain.includes('Technology') ? 'Fintech & Banking Technology' : 'Technology & Digital Transformation',
           category: 'COMPATIBLE',
           categoryLabel: 'Compatible Industry',
           compatibilityScore: Math.min(92, Math.max(72, overallScore - 3)),
@@ -705,10 +749,14 @@ function buildDeterministicCareerIntelligence(
         },
       ];
 
-  const industries: IndustryCompatibilityItem[] = Array.isArray(rawCi.industries) && rawCi.industries.length >= 2
-    ? rawCi.industries.slice(0, 4).map((ind: any, i: number) => ({
+  const rawIndList = Array.isArray(rawCi.industries)
+    ? rawCi.industries.filter((ind: any) => ind?.industryName && !INVALID_EXTRACTION_REGEX.test(String(ind.industryName)))
+    : [];
+
+  const industries: IndustryCompatibilityItem[] = rawIndList.length >= 2
+    ? rawIndList.slice(0, 4).map((ind: any, i: number) => ({
         id: String(ind.id || `ind_${i + 1}`),
-        industryName: String(ind.industryName || defaultIndustries[i]?.industryName || 'Corporate Enterprise'),
+        industryName: String(ind.industryName || defaultIndustries[i]?.industryName || safeDomain),
         category: ind.category || defaultIndustries[i]?.category || 'COMPATIBLE',
         categoryLabel: ind.categoryLabel || defaultIndustries[i]?.categoryLabel || 'Compatible Sector',
         compatibilityScore: Math.min(98, Math.max(40, Number(ind.compatibilityScore) || defaultIndustries[i]?.compatibilityScore || 75)),
@@ -1016,6 +1064,7 @@ export function calculateDeterministicAtsScore(
 
   return {
     assessmentId,
+    uploadId: input.uploadId,
     timestamp: new Date().toISOString(),
     targetRole: input.targetRole && input.targetRole.trim().length > 0 && input.targetRole !== 'Professional Role' ? input.targetRole : inferredRole,
     targetIndustry: input.targetIndustry && input.targetIndustry.trim().length > 0 && input.targetIndustry !== 'Corporate / Technology' ? input.targetIndustry : inferredDomain,
@@ -1359,6 +1408,7 @@ export function transformToPublicAtsAudit(
 
   return {
     assessmentId: assessment.assessmentId,
+    uploadId: assessment.uploadId,
     timestamp: assessment.timestamp,
     targetRole: assessment.targetRole,
     targetIndustry: assessment.targetIndustry,

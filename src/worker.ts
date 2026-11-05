@@ -974,8 +974,11 @@ export default {
 
       try {
         const body = (await request.json().catch(() => null)) as any;
+        const uploadId = body?.uploadId || `UPL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const requestedAssessmentId = body?.assessmentId;
         const fileBase64 = body?.fileBase64 || body?.fileData || '';
         const fileMimeType = body?.fileMimeType || '';
+        const fileSize = body?.fileSize || 0;
         const resumeText = body?.resumeText || '';
         const targetRole = body?.targetRole || '';
         const targetIndustry = body?.targetIndustry || '';
@@ -992,6 +995,12 @@ export default {
           return new Response(
             JSON.stringify({
               success: false,
+              uploadId,
+              errorType: 'INVALID_INPUT',
+              heading: 'No Resume Content Provided',
+              message: 'Please upload a readable resume file (PDF or DOCX) or provide resume text.',
+              secondaryText: 'Accepted formats: PDF, DOCX, TXT under 8MB.',
+              retryable: false,
               error: 'Please upload a readable resume file (PDF or DOCX) or provide resume text.',
             }),
             { status: 400, headers: CORS_HEADERS }
@@ -1002,8 +1011,11 @@ export default {
         const assessment = await globalAtsEngine.analyzeResume(
           resumeText,
           {
+            uploadId,
+            assessmentId: requestedAssessmentId,
             fileBase64,
             fileMimeType,
+            fileSize,
             targetRole,
             targetIndustry,
             jobDescription,
@@ -1019,11 +1031,13 @@ export default {
         const now = new Date().toISOString();
         const assessmentRecord = {
           ...assessment,
+          uploadId,
           isPublic,
           publicAssessment,
           customerId: customerId || 'guest',
           projectId: projectId || null,
           fileName,
+          fileSize,
           createdAt: now,
           conversionStatus: 'AUDIT_COMPLETED',
         };
@@ -1037,6 +1051,7 @@ export default {
         return new Response(
           JSON.stringify({
             success: true,
+            uploadId,
             isPublic,
             assessment: isPublic ? publicAssessment : assessmentRecord,
             message: isPublic
@@ -1046,46 +1061,58 @@ export default {
           { status: 200, headers: CORS_HEADERS }
         );
       } catch (err: any) {
+        const statusCode = Number(err?.statusCode) || (err?.message?.includes('unable to read') ? 422 : 503);
+        const errorType =
+          err?.errorType ||
+          (statusCode === 422
+            ? 'UNREADABLE_DOCUMENT'
+            : statusCode === 429
+            ? 'RATE_LIMITED'
+            : statusCode === 413
+            ? 'FILE_TOO_LARGE'
+            : statusCode === 504
+            ? 'TIMEOUT'
+            : 'SERVICE_UNAVAILABLE');
+
         // Secure internal diagnostic log (never logs API keys or raw resume content)
         console.error('[OpenAI ATS Evaluation Error]:', {
           timestamp: new Date().toISOString(),
-          error: err?.message || String(err),
+          errorType,
+          statusCode,
+          message: err?.message || String(err),
         });
 
-        const isUnreadable =
-          err?.message &&
-          (err.message.includes('unable to read') ||
-            err.message.includes('uncorrupted') ||
-            err.message.includes('standard text-based') ||
-            err.message.includes('malformed') ||
-            err.message.includes('no readable resume'));
+        let heading = 'Service Temporarily Unavailable';
+        let secondaryText = 'Please try again in a few moments.';
+        let retryable = true;
 
-        if (isUnreadable) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              errorType: 'UNREADABLE_DOCUMENT',
-              heading: 'Unable to Read Document',
-              message: err.message,
-              secondaryText: 'Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.',
-              error: err.message,
-            }),
-            { status: 422, headers: CORS_HEADERS }
-          );
+        if (errorType === 'UNREADABLE_DOCUMENT') {
+          heading = 'Unable to Read Document';
+          secondaryText = 'Please ensure your resume is an uncorrupted, standard text-based PDF or Word document.';
+          retryable = false;
+        } else if (errorType === 'RATE_LIMITED') {
+          heading = 'High Demand Experienced';
+          secondaryText = 'Our review capacity is temporarily full. Please wait 30 seconds and retry.';
+        } else if (errorType === 'FILE_TOO_LARGE') {
+          heading = 'File Size Exceeded';
+          secondaryText = 'Please upload a smaller document under 8MB.';
+          retryable = false;
+        } else if (errorType === 'TIMEOUT') {
+          heading = 'Request Timed Out';
+          secondaryText = 'Your document took longer than expected to analyze. Please retry.';
         }
 
         return new Response(
           JSON.stringify({
             success: false,
-            errorType: 'TEMPORARILY_UNAVAILABLE',
-            heading: 'Service Temporarily Unavailable',
-            message:
-              'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.',
-            secondaryText: 'Please try again in a few moments.',
-            error:
-              'Our resume review service is temporarily unavailable. Please try again shortly. Your resume has not been assessed yet.',
+            errorType,
+            heading,
+            message: err.message || 'Our resume review service is temporarily unavailable. Please try again shortly.',
+            secondaryText,
+            retryable,
+            error: err.message || 'Our resume review service is temporarily unavailable.',
           }),
-          { status: 503, headers: CORS_HEADERS }
+          { status: statusCode, headers: CORS_HEADERS }
         );
       }
     }

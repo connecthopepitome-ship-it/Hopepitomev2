@@ -335,11 +335,15 @@ interface EmbeddedAtsResumeCheckerProps {
 }
 
 export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: EmbeddedAtsResumeCheckerProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [fileSize, setFileSize] = useState<number>(0);
   const [fileBase64, setFileBase64] = useState<string | null>(null);
   const [fileMimeType, setFileMimeType] = useState<string>('');
+  const [uploadId, setUploadId] = useState<string>('');
+  const [isReadingFile, setIsReadingFile] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [resumeText, setResumeText] = useState<string>('');
   const [showJdInput, setShowJdInput] = useState<boolean>(false);
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -376,8 +380,13 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   const handleFile = async (selectedFile: File | null) => {
     if (!selectedFile) return;
 
+    // Immediately clear previous error states and previous file data
     setHighDemandError(null);
     setGenericErrorMessage(null);
+    setFileBase64(null);
+    setFileMimeType('');
+    setResumeText('');
+    setAuditResult(null);
 
     const validExtensions = ['.pdf', '.docx', '.doc', '.txt'];
     const lowerName = selectedFile.name.toLowerCase();
@@ -385,48 +394,67 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     if (!hasValidExt) {
       setGenericErrorMessage('Please upload a PDF or DOCX file (under 8MB).');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     if (selectedFile.size > 8 * 1024 * 1024) {
       setGenericErrorMessage('File size exceeds 8MB. Please choose a smaller document.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
+
+    // Generate fresh unique upload ID for each new file
+    const newUploadId = `UPL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    setUploadId(newUploadId);
 
     setFile(selectedFile);
     setFileName(selectedFile.name);
     setFileSize(selectedFile.size);
+    setIsReadingFile(true);
+
+    const mime =
+      selectedFile.type ||
+      (lowerName.endsWith('.pdf')
+        ? 'application/pdf'
+        : lowerName.endsWith('.docx')
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'text/plain');
+    setFileMimeType(mime);
 
     // Read as Base64 for direct native document understanding in GPT-6 Luna
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Url = reader.result as string;
       setFileBase64(base64Url);
-      const mime =
-        selectedFile.type ||
-        (lowerName.endsWith('.pdf')
-          ? 'application/pdf'
-          : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-      setFileMimeType(mime);
+      setIsReadingFile(false);
 
-      // Best effort local text extraction for immediate preview
+      // Best effort local text extraction for immediate preview (plain text / docx)
       try {
         const buffer = await selectedFile.arrayBuffer();
         const extracted = await extractCleanTextFromDocument(buffer, selectedFile.name);
-        if (extracted && extracted.length >= 30) {
-          setResumeText(extracted);
+        if (extracted && extracted.trim().length >= 30) {
+          setResumeText(extracted.trim());
         }
       } catch {
         // Safe to ignore because backend GPT-6 Luna parses the document directly
       }
     };
     reader.onerror = () => {
+      setIsReadingFile(false);
       setGenericErrorMessage('Failed to read file content. Please try another file.');
     };
     reader.readAsDataURL(selectedFile);
   };
 
   const handleStartReview = async (textToAssess?: string) => {
+    if (isSubmitting || viewState === 'processing') return;
+
+    if (isReadingFile) {
+      setGenericErrorMessage('Please wait a moment while your document finishes loading.');
+      return;
+    }
+
     const content = textToAssess || resumeText;
 
     if (!fileBase64 && (!content || content.trim().length < 30)) {
@@ -441,8 +469,12 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     setHighDemandError(null);
     setGenericErrorMessage(null);
+    setIsSubmitting(true);
     setViewState('processing');
     setProcessingStage(1);
+
+    // Unique assessment ID for this run
+    const assessmentId = `ATS-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     // Smooth stage transitions
     const timer1 = setTimeout(() => setProcessingStage(2), 700);
@@ -452,9 +484,12 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     try {
       const payload: Record<string, any> = {
+        uploadId: uploadId || `UPL-${Date.now()}`,
+        assessmentId,
         resumeText: content || '',
         fileBase64: fileBase64 || undefined,
         fileMimeType: fileMimeType || undefined,
+        fileSize,
         fileName: fileName || 'candidate_resume.pdf',
         isPublic: true,
       };
@@ -475,6 +510,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
+      setIsSubmitting(false);
 
       if (!res.ok || !data.success) {
         setViewState('idle');
@@ -483,6 +519,10 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
             data?.heading ||
             (data?.errorType === 'UNREADABLE_DOCUMENT'
               ? 'Unable to Read Document'
+              : data?.errorType === 'RATE_LIMITED'
+              ? 'High Demand Experienced'
+              : data?.errorType === 'FILE_TOO_LARGE'
+              ? 'File Size Exceeded'
               : "We're experiencing high demand."),
           message:
             data?.message ||
@@ -499,6 +539,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
+      setIsSubmitting(false);
       setViewState('idle');
       setHighDemandError({
         heading: "We're experiencing high demand.",
@@ -523,11 +564,17 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     setFileBase64(null);
     setFileMimeType('');
     setResumeText('');
+    setUploadId('');
     setAuditResult(null);
     setHighDemandError(null);
     setGenericErrorMessage(null);
     setShowJdInput(false);
     setJobDescription('');
+    setIsReadingFile(false);
+    setIsSubmitting(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleOpenLeadModal = (card?: LockedImprovementCard, service?: RecommendedServiceItem) => {
@@ -737,6 +784,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                 }`}
               >
                 <input
+                  ref={fileInputRef}
                   type="file"
                   id="career-resume-input"
                   accept=".pdf,.docx,.doc,.txt"
@@ -763,10 +811,13 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                     </div>
                     <span className="text-base font-bold text-slate-900">{fileName}</span>
                     <span className="text-xs text-slate-500 mt-0.5">
-                      {(fileSize / 1024).toFixed(1)} KB • Text ready for review
+                      {(fileSize / 1024).toFixed(1)} KB • {isReadingFile ? 'Reading document...' : 'Ready for assessment'}
                     </span>
                     <label
                       htmlFor="career-resume-input"
+                      onClick={() => {
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
                       className="mt-3 text-xs font-bold text-[#7357F5] hover:underline cursor-pointer"
                     >
                       Change File
@@ -824,15 +875,21 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                 <button
                   type="button"
                   onClick={() => handleStartReview()}
-                  disabled={!file}
+                  disabled={!file || isReadingFile || isSubmitting}
                   className={`w-full py-4 rounded-2xl text-sm sm:text-base font-bold text-white transition flex items-center justify-center gap-2 shadow-lg ${
-                    file
+                    file && !isReadingFile && !isSubmitting
                       ? 'bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#7357F5] hover:opacity-95 shadow-[#7357F5]/30 active:scale-[0.99]'
                       : 'bg-slate-300 cursor-not-allowed shadow-none'
                   }`}
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Upload & Check for Free</span>
+                  <span>
+                    {isReadingFile
+                      ? 'Preparing Document...'
+                      : isSubmitting
+                      ? 'Reviewing Your Resume...'
+                      : 'Upload & Check for Free'}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

@@ -90,6 +90,7 @@ export interface CandidateStructuredProfile {
 }
 
 export interface SanitizedResumeInput {
+  uploadId?: string;
   anonymizedText: string;
   targetRole?: string;
   targetIndustry?: string;
@@ -97,6 +98,7 @@ export interface SanitizedResumeInput {
   originalFileName?: string;
   fileMimeType?: string;
   fileBase64?: string;
+  fileSize?: number;
   characterCount: number;
 }
 
@@ -136,6 +138,7 @@ export interface AtsCategoryEvaluation {
 
 export interface AtsAssessmentResult {
   assessmentId: string;
+  uploadId?: string;
   timestamp: string;
   targetRole: string;
   targetIndustry?: string;
@@ -227,6 +230,7 @@ export interface RecommendedServiceItem {
 
 export interface PublicAtsAuditResult {
   assessmentId: string;
+  uploadId?: string;
   timestamp: string;
   targetRole: string;
   targetIndustry?: string;
@@ -263,4 +267,28 @@ export interface PublicAtsAuditResult {
   documentValidation?: DocumentValidationState;
   careerIntelligence?: PublicCareerIntelligence;
   isLocked: boolean;
+}
+
+export type AtsErrorClassification =
+  | 'UNREADABLE_DOCUMENT'
+  | 'RATE_LIMITED'
+  | 'FILE_TOO_LARGE'
+  | 'TIMEOUT'
+  | 'SERVICE_UNAVAILABLE'
+  | 'INVALID_INPUT'
+  | 'INTERNAL_ERROR';
+
+export interface AtsServerDiagnostic {
+  assessmentId: string;
+  uploadId?: string;
+  fileName: string;
+  fileSize?: number;
+  mimeType?: string;
+  model: string;
+  processingStage: string;
+  durationMs: number;
+  statusCode: number;
+  errorType: AtsErrorClassification;
+  errorReason?: string;
+  retryable: boolean;
 }

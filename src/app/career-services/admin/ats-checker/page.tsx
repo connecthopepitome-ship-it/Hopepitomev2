@@ -94,6 +94,7 @@ export default function AtsCheckerWorkspacePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          uploadId: `UPL-ADMIN-${Date.now()}`,
           resumeText: resumeText.trim().substring(0, 7000),
           fileBase64: fileBase64 || undefined,
           fileMimeType: fileMimeType || undefined,

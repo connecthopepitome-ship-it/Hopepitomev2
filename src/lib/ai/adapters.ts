@@ -7,7 +7,7 @@
 
 import { SanitizedResumeInput } from './types';
 import { ACTIVE_AI_MODEL, calculateGpt6LunaCost } from './models';
-import { buildAtsPrompt } from './scoring';
+import { buildAtsPrompt, INVALID_EXTRACTION_REGEX } from './scoring';
 
 export interface ProviderExecutionResult {
   success: boolean;
@@ -93,7 +93,7 @@ export class OpenAiAdapter {
             ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             : 'text/plain';
         }
-        const cleanBase64 = input.fileBase64.replace(/^data:[^;]+;base64,/, '').trim();
+        const cleanBase64 = input.fileBase64.replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
         userContent.push({
           type: 'input_file',
           filename: input.originalFileName || (lowerName.endsWith('.docx') ? 'resume.docx' : 'resume.pdf'),
@@ -132,11 +132,32 @@ export class OpenAiAdapter {
       if (!res.ok) {
         const errText = await res.text();
         const isRateLimit = res.status === 429;
+        let userReason = `OpenAI API returned HTTP ${res.status}.`;
+        if (res.status === 429) {
+          userReason = 'Our resume review service is experiencing high demand right now. Please try again in a few moments.';
+        } else if (res.status === 413) {
+          userReason = 'The uploaded file is too large for AI review. Please upload a document under 8MB.';
+        } else if (res.status === 401) {
+          userReason = 'Authentication error with AI provider. Please verify server configuration.';
+        } else if (res.status >= 500) {
+          userReason = 'The AI service encountered a temporary error. Please try again shortly.';
+        }
+
+        console.error('[OpenAI API Error Diagnostic]:', {
+          status: res.status,
+          statusText: res.statusText,
+          errorSummary: errText.substring(0, 400),
+          model: this.modelName,
+          fileName: input.originalFileName,
+          uploadId: input.uploadId,
+          durationMs,
+        });
+
         return {
           success: false,
           durationMs,
           errorCode: res.status,
-          errorReason: `OpenAI Responses API HTTP ${res.status}: ${errText.substring(0, 300)}`,
+          errorReason: userReason,
           isRateLimit,
         };
       }
@@ -164,7 +185,7 @@ export class OpenAiAdapter {
           success: false,
           durationMs,
           errorCode: 502,
-          errorReason: 'OpenAI GPT-6 Luna returned unparseable non-JSON content.',
+          errorReason: 'OpenAI GPT-6 Luna returned unparseable non-JSON content. Please try again.',
         };
       }
 
@@ -181,7 +202,16 @@ export class OpenAiAdapter {
 
       // Detect corrupted extraction fragments or unreadable content
       const prof = String(parsed.candidateProfile?.actualProfession || parsed.inferredRole || '').trim();
-      if (/\b(?:unable to identify|undetermined|pdf metadata|encoding fragments)\b/i.test(prof)) {
+      const domain = String(parsed.inferredDomain || parsed.candidateProfile?.inferredDomain || '').trim();
+      const hasExtractedData = Boolean(
+        (Array.isArray(parsed.candidateProfile?.skills) && parsed.candidateProfile.skills.length > 0) ||
+        (Array.isArray(parsed.candidateProfile?.employmentHistory) && parsed.candidateProfile.employmentHistory.length > 0)
+      );
+
+      if (
+        (!hasExtractedData && INVALID_EXTRACTION_REGEX.test(prof)) ||
+        (INVALID_EXTRACTION_REGEX.test(prof) && INVALID_EXTRACTION_REGEX.test(domain))
+      ) {
         return {
           success: false,
           durationMs,
@@ -214,13 +244,22 @@ export class OpenAiAdapter {
       const durationMs = Date.now() - startTime;
       const isAbort = err.name === 'AbortError';
 
+      console.error('[OpenAI Adapter Exception]:', {
+        isAbort,
+        name: err.name,
+        message: err.message,
+        uploadId: input.uploadId,
+        fileName: input.originalFileName,
+        durationMs,
+      });
+
       return {
         success: false,
         durationMs,
-        errorCode: isAbort ? 408 : 500,
+        errorCode: isAbort ? 504 : 500,
         errorReason: isAbort
-          ? 'OpenAI GPT-6 Luna request timed out after 45 seconds.'
-          : `OpenAI Connection Error: ${err.message}`,
+          ? 'The resume review timed out after 45 seconds. Please try again.'
+          : 'Failed to connect to the resume review service. Please verify your connection and try again.',
       };
     }
   }
