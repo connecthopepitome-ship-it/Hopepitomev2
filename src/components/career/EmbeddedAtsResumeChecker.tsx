@@ -431,7 +431,9 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Url = reader.result as string;
-      setFileBase64(base64Url);
+      if (base64Url && base64Url.length > 100) {
+        setFileBase64(base64Url);
+      }
       setIsReadingFile(false);
 
       // Best effort local text extraction for immediate preview (plain text / docx)
@@ -457,6 +459,15 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     if (isReadingFile) {
       setGenericErrorMessage('Please wait a moment while your document finishes loading.');
+      return;
+    }
+
+    const currentFileName = fileName || file?.name || '';
+    const lower = currentFileName.toLowerCase();
+    const isDocFile = Boolean(lower.endsWith('.pdf') || lower.endsWith('.docx') || lower.endsWith('.doc'));
+
+    if (isDocFile && (!fileBase64 || fileBase64.length < 100)) {
+      setGenericErrorMessage('Your document is still preparing. Please wait a moment and try again.');
       return;
     }
 
@@ -491,11 +502,11 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       const payload: Record<string, any> = {
         uploadId: uploadId || `UPL-${Date.now()}`,
         assessmentId,
-        resumeText: content || '',
+        resumeText: isDocFile && fileBase64 ? '' : (content || ''),
         fileBase64: fileBase64 || undefined,
         fileMimeType: fileMimeType || undefined,
-        fileSize,
-        fileName: fileName || 'candidate_resume.pdf',
+        fileSize: fileSize || file?.size || 0,
+        fileName: currentFileName || 'candidate_resume.pdf',
         isPublic: true,
       };
 

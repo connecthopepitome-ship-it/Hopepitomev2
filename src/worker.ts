@@ -1014,9 +1014,13 @@ export default {
           );
         }
 
+        // When a binary document (PDF/DOCX) is provided, pass empty text so GPT-6 Luna extracts directly from input_file
+        // without any client-side font-encoding noise polluting the prompt
+        const textToUse = hasFile ? '' : resumeText;
+
         // Run analysis strictly via OpenAI GPT-6 Luna engine
         const assessment = await globalAtsEngine.analyzeResume(
-          resumeText,
+          textToUse,
           {
             uploadId,
             assessmentId: requestedAssessmentId,
@@ -1205,6 +1209,12 @@ export default {
           eventsCount[name] = (eventsCount[name] || 0) + 1;
         }
 
+        const sortedAssessments = [...assessmentsDocs].sort((a: any, b: any) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
+
         return new Response(
           JSON.stringify({
             success: true,
@@ -1214,9 +1224,17 @@ export default {
               conversionRate,
               providerCounts,
               eventsCount,
-              recentAudits: assessmentsDocs.slice(0, 10).map((a: any) => ({
+              recentAudits: sortedAssessments.slice(0, 15).map((a: any) => ({
                 assessmentId: a.assessmentId,
+                fileName: a.fileName,
+                fileSize: a.fileSize,
+                hasFileBase64: Boolean(a.fileBase64 && a.fileBase64.length > 50),
                 targetRole: a.targetRole,
+                inferredRole: a.inferredRole,
+                candidateProfile: a.candidateProfile,
+                summary: a.summary,
+                topStrengths: a.topStrengths,
+                categories: a.categories?.map((c: any) => ({ category: c.category, rawScore: c.rawScore })),
                 overallScore: a.overallScore,
                 grade: a.grade,
                 createdAt: a.createdAt,
