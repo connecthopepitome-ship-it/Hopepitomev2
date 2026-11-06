@@ -119,6 +119,165 @@ export interface CareerCompetitiveness {
   };
 }
 
+// =============================================================================
+// COMPREHENSIVE AI CAREER INTELLIGENCE REPORT MODULES
+// =============================================================================
+
+export interface CareerPositioningAnalysis {
+  professionalIdentity: string;
+  careerStage: string;
+  experienceLevel: string;
+  specialization: string;
+  strongestDomain: string;
+  communicationEffectiveness: {
+    rating: 'Strong' | 'Moderate' | 'Needs Improvement';
+    reason: string;
+  };
+  recommendedPositioningPitch: string;
+}
+
+export interface SkillsGapAnalysisResult {
+  verifiedStrengths: string[];
+  missingFromResume: string[];
+  underrepresentedInResume: string[];
+  recommendedForDevelopment: {
+    tools: string[];
+    certifications: string[];
+    technicalOrFunctional: string[];
+  };
+  isLocked?: boolean;
+}
+
+export interface CareerGrowthPathways {
+  suitableNow: {
+    roleTitle: string;
+    rationale: string;
+    keyCompetencies: string[];
+    compatibilityScore: number;
+  }[];
+  nextLevel: {
+    roleTitle: string;
+    rationale: string;
+    requiredGrowth: string[];
+    compatibilityScore: number;
+    isLocked?: boolean;
+  }[];
+  adjacentOpportunities: {
+    roleTitle: string;
+    rationale: string;
+    transferableSkills: string[];
+    compatibilityScore: number;
+    isLocked?: boolean;
+  }[];
+}
+
+export interface ApplicationReadinessPillar {
+  pillar: string;
+  status: 'Optimal' | 'Needs Enhancement' | 'Critical Action';
+  observation: string;
+}
+
+export interface ApplicationReadinessResult {
+  overallScore: number;
+  pillars: ApplicationReadinessPillar[];
+  prioritizedActionChecklist: {
+    priority: 'High' | 'Medium' | 'Low';
+    item: string;
+    impact: string;
+  }[];
+  isLocked?: boolean;
+}
+
+export interface StarInterviewQuestion {
+  question: string;
+  purpose: string;
+  suggestedStarApproach: {
+    situation: string;
+    task: string;
+    action: string;
+    result: string;
+  };
+}
+
+export interface InterviewPreparationInsights {
+  roleSpecificQuestions: StarInterviewQuestion[];
+  behavioralQuestions: {
+    question: string;
+    competencyTested: string;
+    keyFocus: string;
+  }[];
+  technicalQuestions: {
+    question: string;
+    domainFocus: string;
+    keyPointsToCover: string[];
+  }[];
+  recruiterConcernsToPreempt: {
+    concern: string;
+    mitigationStrategy: string;
+  }[];
+  isLocked?: boolean;
+}
+
+export interface ProfessionalBrandingInsights {
+  targetResumeHeadline: string;
+  enhancedExecutiveSummary: string;
+  linkedInHeadline: string;
+  linkedInAboutSnippet: string;
+  coreCompetencyPillars: string[];
+  uniqueValueProposition: string;
+  isLocked?: boolean;
+}
+
+export interface ActionPlanPhase {
+  phase: string;
+  timeframe: string;
+  focus: string;
+  milestones: string[];
+  expectedOutcome: string;
+}
+
+export interface ActionPlan306090Result {
+  days1To30: ActionPlanPhase;
+  days31To60: ActionPlanPhase;
+  days61To90: ActionPlanPhase;
+  isLocked?: boolean;
+}
+
+export interface InternationalMarketIntelligence {
+  currentMarket: {
+    country: string;
+    code: string;
+    status: string;
+    marketSummary: string;
+  };
+  priorMarkets: {
+    country: string;
+    code: string;
+    historySummary: string;
+  }[];
+  explicitTargetMarkets: {
+    country: string;
+    code: string;
+    demandLevel: string;
+    visaFeasibility: string;
+    marketNotes: string;
+  }[];
+  potentialResearchMarkets: {
+    country: string;
+    code: string;
+    relevanceReason: string;
+    demandOutlook: string;
+  }[];
+}
+
+export interface JobDescriptionMatchInsight {
+  matchScore: number;
+  requiredSkillsFound: string[];
+  transferableSkillsFound: string[];
+  skillsMissing: string[];
+  experienceAlignmentSummary: string;
+}
+
 export interface CareerIntelligenceResult {
   profile: StructuredResumeProfile;
   roles: JobRoleRecommendation[];
@@ -127,6 +286,16 @@ export interface CareerIntelligenceResult {
   targetCountriesSpecified: boolean;
   evidencedEmploymentCountries: string[];
   competitiveness: CareerCompetitiveness;
+  // Advanced Career Intelligence Modules
+  careerPositioning?: CareerPositioningAnalysis;
+  skillsGapAnalysis?: SkillsGapAnalysisResult;
+  growthOpportunities?: CareerGrowthPathways;
+  applicationReadiness?: ApplicationReadinessResult;
+  interviewPrep?: InterviewPreparationInsights;
+  professionalBranding?: ProfessionalBrandingInsights;
+  actionPlan306090?: ActionPlan306090Result;
+  internationalCareerInsights?: InternationalMarketIntelligence;
+  jobDescriptionMatch?: JobDescriptionMatchInsight;
   recommendations: {
     topRoles: string[];
     topIndustries: string[];
@@ -178,6 +347,16 @@ export interface PublicCareerIntelligence {
   targetCountriesSpecified: boolean;
   evidencedEmploymentCountries: string[];
   competitiveness: CareerCompetitiveness;
+  // Advanced Career Intelligence Modules (Public / Gated)
+  careerPositioning?: CareerPositioningAnalysis;
+  skillsGapAnalysis?: SkillsGapAnalysisResult;
+  growthOpportunities?: CareerGrowthPathways;
+  applicationReadiness?: ApplicationReadinessResult;
+  interviewPrep?: InterviewPreparationInsights;
+  professionalBranding?: ProfessionalBrandingInsights;
+  actionPlan306090?: ActionPlan306090Result;
+  internationalCareerInsights?: InternationalMarketIntelligence;
+  jobDescriptionMatch?: JobDescriptionMatchInsight;
   recommendations: {
     topRoles: string[];
     topIndustries: string[];

@@ -28,6 +28,14 @@ import {
   Compass,
   ChevronDown,
   ChevronUp,
+  BookOpen,
+  Calendar,
+  Linkedin,
+  ListChecks,
+  UserCheck,
+  Lightbulb,
+  HelpCircle,
+  Layers,
 } from 'lucide-react';
 import type {
   PublicAtsAuditResult,
@@ -327,6 +335,143 @@ const SAMPLE_PREVIEW: PublicAtsAuditResult = {
       topCountries: ['India', 'United Arab Emirates', 'Singapore'],
       suggestedTransitionPathways: ['Cloud Strategy & Transformation Consultant'],
     },
+    careerPositioning: {
+      professionalIdentity: 'Senior Cloud Solutions Architect',
+      careerStage: 'Senior professional',
+      experienceLevel: '8+ years in Enterprise Cloud Architecture',
+      specialization: 'Multi-Cloud Migrations, Kubernetes, Distributed Systems',
+      strongestDomain: 'Cloud Infrastructure & Enterprise Systems',
+      communicationEffectiveness: {
+        rating: 'Strong',
+        reason: 'Resume articulates high-scale cloud deployments, cost governance, and microservices design authority effectively.',
+      },
+      recommendedPositioningPitch: 'Senior Cloud Solutions Architect with 8+ years architecting fault-tolerant distributed systems across AWS and Azure for Fortune 500 enterprises.',
+    },
+    skillsGapAnalysis: {
+      verifiedStrengths: ['Multi-Cloud Architecture', 'Kubernetes Cluster Orchestration', 'Terraform IaC', 'CI/CD Pipelines', 'Microservices Design', 'Zero-Downtime Migration', 'Cost Optimization'],
+      missingFromResume: ['FinOps Cloud Cost Governance', 'Zero Trust Architecture', 'Service Mesh (Istio)'],
+      underrepresentedInResume: ['Quantified cloud migration cost-avoidance metrics across multi-million dollar budgets'],
+      recommendedForDevelopment: {
+        tools: ['Terraform Cloud', 'Istio Service Mesh', 'Datadog Enterprise'],
+        certifications: ['AWS Solutions Architect Professional', 'CKA (Certified Kubernetes Administrator)'],
+        technicalOrFunctional: ['Enterprise FinOps Governance', 'Multi-Region High Availability Disaster Recovery'],
+      },
+      isLocked: true,
+    },
+    growthOpportunities: {
+      suitableNow: [
+        {
+          roleTitle: 'Senior Cloud Solutions Architect',
+          rationale: 'Direct alignment with enterprise cloud migrations, container orchestration, and technical governance.',
+          keyCompetencies: ['AWS / Azure Architecture', 'Kubernetes', 'Terraform'],
+          compatibilityScore: 92,
+        },
+      ],
+      nextLevel: [
+        {
+          roleTitle: 'Principal Infrastructure Architect',
+          rationale: 'Natural advancement expanding into organization-wide technical governance and C-suite architectural roadmapping.',
+          requiredGrowth: ['Executive stakeholder engagement', 'Multi-million enterprise budget ownership'],
+          compatibilityScore: 86,
+          isLocked: true,
+        },
+      ],
+      adjacentOpportunities: [
+        {
+          roleTitle: 'Platform Engineering Lead',
+          rationale: 'High transferability of developer tooling, infrastructure automation, and site reliability engineering.',
+          transferableSkills: ['DevOps Automation', 'CI/CD Pipelines', 'SRE Practices'],
+          compatibilityScore: 84,
+          isLocked: true,
+        },
+      ],
+    },
+    applicationReadiness: {
+      overallScore: 88,
+      pillars: [
+        { pillar: 'Headline & Title Clarity', status: 'Optimal', observation: 'Clear designation as Senior Cloud Solutions Architect creates instant recruiter resonance.' },
+        { pillar: 'Executive Summary Framing', status: 'Optimal', observation: 'Strong 3-sentence summary highlights scale, tools, and technical leadership.' },
+        { pillar: 'Quantified Achievements', status: 'Needs Enhancement', observation: 'Quantify cloud migration savings ($/%) across key enterprise projects.' },
+        { pillar: 'ATS Parse & Keywords', status: 'Optimal', observation: 'Single-column structure passes modern ATS parsers without text fragmentation.' },
+        { pillar: 'Work Chronology', status: 'Optimal', observation: 'Logical career progression from systems engineer to senior cloud architect.' },
+        { pillar: 'Core Domain Skills', status: 'Optimal', observation: 'High-frequency cloud infrastructure competencies grouped logically.' },
+        { pillar: 'Education & Certifications', status: 'Optimal', observation: 'B.Tech in Computer Science and AWS certifications clearly positioned.' },
+        { pillar: 'Contact & Online Presence', status: 'Optimal', observation: 'LinkedIn URL and professional contact details formatted to international standards.' },
+      ],
+      prioritizedActionChecklist: [
+        { priority: 'High', item: 'Quantify AWS/Azure cloud migration cost savings and uptime improvements with exact percentages.', impact: 'Increases recruiter shortlisting by 40% for principal-level roles.' },
+        { priority: 'High', item: 'Spotlight FinOps and Zero Trust security keywords in your latest position accomplishments.', impact: 'Pushes profile into top 5% of automated ATS search ranking.' },
+        { priority: 'Medium', item: 'Highlight mentoring and cross-functional leadership of junior platform engineers.', impact: 'Demonstrates readiness for Director / Principal leadership tracks.' },
+      ],
+      isLocked: true,
+    },
+    interviewPrep: {
+      roleSpecificQuestions: [
+        {
+          question: 'How did you execute zero-downtime cloud migrations for high-transaction enterprise microservices?',
+          purpose: 'Assesses architectural risk mitigation, canary deployment strategies, and fault tolerance under production loads.',
+          suggestedStarApproach: {
+            situation: 'Migrating a legacy monolithic banking core to AWS containerized microservices handling 5,000+ RPS.',
+            task: 'Ensure continuous 99.99% availability without transactional data loss or database locks.',
+            action: 'Implemented blue/green deployment with Route 53 weighted routing and dual-write database replication.',
+            result: 'Completed migration across 12 services with zero downtime and reduced latency by 35%.',
+          },
+        },
+      ],
+      behavioralQuestions: [
+        { question: 'Tell me about a time you resolved an architectural dispute between engineering and security teams.', competencyTested: 'Stakeholder Influence & Technical Diplomacy', keyFocus: 'Balance compliance standards with developer velocity.' },
+      ],
+      technicalQuestions: [
+        { question: 'How do you design multi-region disaster recovery with RPO < 1 min and RTO < 5 mins on AWS?', domainFocus: 'Enterprise Cloud Resilience', keyPointsToCover: ['Aurora Global Database', 'Active-active Route 53 latency routing', 'Cross-region S3 replication'] },
+      ],
+      recruiterConcernsToPreempt: [
+        { concern: 'Verifying hands-on infrastructure coding versus purely high-level advisory design.', mitigationStrategy: 'Lead with specific Terraform and Kubernetes manifest implementations you directly authored.' },
+      ],
+      isLocked: true,
+    },
+    professionalBranding: {
+      targetResumeHeadline: 'Senior Cloud Solutions Architect | Multi-Cloud & Distributed Systems | 8+ Years Experience',
+      enhancedExecutiveSummary: 'Results-oriented Senior Cloud Solutions Architect with 8+ years leading enterprise cloud modernization, container orchestration, and multi-region infrastructure design. Trusted partner to C-suite and engineering leadership in driving zero-downtime migrations, automating CI/CD pipelines, and enforcing FinOps governance.',
+      linkedInHeadline: 'Senior Cloud Solutions Architect | AWS & Azure Multi-Cloud | Kubernetes • Terraform • FinOps',
+      linkedInAboutSnippet: 'I architect resilient, high-throughput cloud infrastructure that scales with business growth.\n\nOver the past 8+ years, I have spearheaded cloud transformation initiatives for enterprise clients, reducing compute expenditures while accelerating deployment cycles through Infrastructure as Code (Terraform) and container orchestration (Kubernetes).\n\nPassionate about cloud architecture, platform engineering, and technical mentorship.',
+      coreCompetencyPillars: ['Enterprise Cloud Architecture (AWS / Azure)', 'Kubernetes & Container Orchestration', 'Infrastructure as Code (Terraform / Ansible)', 'FinOps Cloud Cost Optimization'],
+      uniqueValueProposition: 'Delivering resilient, cost-optimized enterprise cloud architectures with zero-downtime operational precision.',
+      isLocked: true,
+    },
+    actionPlan306090: {
+      days1To30: {
+        phase: 'Immediate Optimization (Days 1–30)',
+        timeframe: 'Days 1 to 30',
+        focus: 'Resume restructuring, ATS parse verification, and high-frequency keyword infusing.',
+        milestones: ['Reformat resume to single-column parse-compliant template', 'Infuse missing FinOps & Zero Trust keywords', 'Upgrade LinkedIn headline and About section'],
+        expectedOutcome: 'Achieve 92% ATS parse score and 100% recruiter search discoverability.',
+      },
+      days31To60: {
+        phase: 'Market Positioning & Targeted Outreach (Days 31–60)',
+        timeframe: 'Days 31 to 60',
+        focus: 'Target employer mapping and specialized recruiter networking.',
+        milestones: ['Map 25 target enterprise employers in UAE and Singapore', 'Engage directly with 15 specialized tech recruiters', 'Submit 15 tailored applications for Principal / Senior Architect roles'],
+        expectedOutcome: 'Secure 3–5 initial recruiter screening calls.',
+      },
+      days61To90: {
+        phase: 'Interview Conversion & Strategic Placement (Days 61–90)',
+        timeframe: 'Days 61 to 90',
+        focus: 'System design panel interviews and compensation benchmarking.',
+        milestones: ['Complete mock system design interviews with STAR methodology', 'Benchmark market compensation across Dubai and Singapore', 'Negotiate competitive total compensation package'],
+        expectedOutcome: 'Secure formal offer letter for Senior / Principal Cloud Architect.',
+      },
+      isLocked: true,
+    },
+    internationalCareerInsights: {
+      currentMarket: { country: 'India', code: 'IN', status: 'Active Base', marketSummary: 'Rapid growth in Global Capability Centers (GCCs) and multinational enterprise cloud divisions.' },
+      priorMarkets: [{ country: 'United Arab Emirates', code: 'AE', historySummary: 'Documented regional track record in Dubai tech hub.' }],
+      explicitTargetMarkets: [
+        { country: 'Singapore', code: 'SG', demandLevel: 'High', visaFeasibility: 'Points-based Compass framework values verified tech credentials', marketNotes: 'High regional HQ demand for enterprise cloud leadership.' },
+      ],
+      potentialResearchMarkets: [
+        { country: 'United Kingdom', code: 'GB', relevanceReason: 'Skilled worker shortage occupation for cloud engineers.', demandOutlook: 'High demand in London fintech sector.' },
+      ],
+    },
   },
   isLocked: true,
 };
@@ -356,6 +501,16 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   const [viewState, setViewState] = useState<'idle' | 'processing' | 'results' | 'sample'>('idle');
   const [processingStage, setProcessingStage] = useState<number>(1);
   const [auditResult, setAuditResult] = useState<PublicAtsAuditResult | null>(null);
+  const [activeSection, setActiveSection] = useState<string>('sec-overview');
+  const [expandedStarIndex, setExpandedStarIndex] = useState<number | null>(0);
+
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Friendly High Demand Error State
   const [highDemandError, setHighDemandError] = useState<{
@@ -1073,8 +1228,36 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
               )}
             </div>
 
+            {/* Section Quick Navigation Bar */}
+            <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-2 shadow-md flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {[
+                { id: 'sec-overview', label: 'Overview' },
+                { id: 'sec-positioning', label: 'Positioning' },
+                { id: 'sec-skills-gap', label: 'Skills Gap' },
+                { id: 'sec-pathways', label: 'Growth Pathways' },
+                { id: 'sec-readiness', label: 'Readiness Review' },
+                { id: 'sec-interview', label: 'Interview Prep' },
+                { id: 'sec-branding', label: 'Branding & LinkedIn' },
+                { id: 'sec-action-plan', label: '30-60-90 Plan' },
+                { id: 'sec-markets', label: 'Global Markets' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => scrollToSection(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+                    activeSection === tab.id
+                      ? 'bg-[#7357F5] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-[#7357F5] hover:bg-slate-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             {/* Overall Career Readiness & 3 Core Indicators */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div id="sec-overview" className="scroll-mt-20 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
               {/* Primary Circular Score Card */}
               <div className="lg:col-span-5 bg-white rounded-3xl border border-[#7357F5]/20 shadow-xl shadow-[#7357F5]/5 p-6 sm:p-8 flex flex-col items-center justify-center text-center">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -1209,9 +1392,677 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
               </div>
             </div>
 
+            {/* 1. Career Positioning Analysis */}
+            {activeResult.careerIntelligence?.careerPositioning && (
+              <div id="sec-positioning" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-[#7357F5] flex items-center justify-center">
+                      <Compass className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        Career Positioning Analysis
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        How your experience and professional identity position you in the hiring market
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#7357F5]/10 text-[#7357F5]">
+                    {activeResult.careerIntelligence.careerPositioning.communicationEffectiveness?.rating || 'Strong'} Communication
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Professional Identity</span>
+                    <p className="text-sm font-bold text-[#17152F]">
+                      {activeResult.careerIntelligence.careerPositioning.professionalIdentity}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Career Stage</span>
+                    <p className="text-sm font-bold text-[#17152F]">
+                      {activeResult.careerIntelligence.careerPositioning.careerStage}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Experience Level</span>
+                    <p className="text-sm font-bold text-[#17152F]">
+                      {activeResult.careerIntelligence.careerPositioning.experienceLevel}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Primary Domain</span>
+                    <p className="text-sm font-bold text-[#17152F]">
+                      {activeResult.careerIntelligence.careerPositioning.strongestDomain}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-50/60 to-indigo-50/40 border border-[#7357F5]/20 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#7357F5] uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Recommended Professional Positioning Pitch</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                    "{activeResult.careerIntelligence.careerPositioning.recommendedPositioningPitch}"
+                  </p>
+                  <p className="text-[11px] text-slate-500 pt-1">
+                    {activeResult.careerIntelligence.careerPositioning.communicationEffectiveness?.reason}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 2. Skills Gap Analysis */}
+            {activeResult.careerIntelligence?.skillsGapAnalysis && (
+              <div id="sec-skills-gap" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Target className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        Skills Gap & Keyword Alignment
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Benchmarked against competitive hiring requirements in your field
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">
+                    {activeResult.careerIntelligence.skillsGapAnalysis.verifiedStrengths?.length || 0} Evidenced Skills
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Verified Strengths */}
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+                    <span className="text-xs font-bold text-[#17152F] uppercase tracking-wider flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      Evidenced Core Competencies
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {activeResult.careerIntelligence.skillsGapAnalysis.verifiedStrengths?.map((skill, idx) => (
+                        <span key={idx} className="px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Missing & High-Value Competencies */}
+                  <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200/60 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600" />
+                        High-Impact Keywords to Spotlight
+                      </span>
+                      <span className="text-[11px] font-bold text-amber-700">Recruiter Priority</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {activeResult.careerIntelligence.skillsGapAnalysis.missingFromResume?.map((kw, idx) => (
+                        <span key={idx} className="px-3 py-1 rounded-full bg-white border border-amber-200 text-xs font-semibold text-amber-900 shadow-2xs">
+                          + {kw}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-amber-800/80 pt-1">
+                      Integrating these high-frequency terminology clusters into your work history will increase ATS keyword ranking into the top quartile.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Recommended for Development */}
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#17152F] uppercase tracking-wider flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4 text-[#7357F5]" />
+                      Targeted Career Development Roadmap
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenLeadModal(activeResult.improvementAreas?.[0] || null)}
+                      className="text-xs font-bold text-[#7357F5] hover:underline flex items-center gap-1"
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Unlock Custom Upskilling Plan</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Tools & Software</span>
+                      <ul className="text-xs text-slate-700 space-y-1 font-medium">
+                        {activeResult.careerIntelligence.skillsGapAnalysis.recommendedForDevelopment?.tools?.map((t, idx) => (
+                          <li key={idx} className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#7357F5]" />
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Certifications & Credentials</span>
+                      <ul className="text-xs text-slate-700 space-y-1 font-medium">
+                        {activeResult.careerIntelligence.skillsGapAnalysis.recommendedForDevelopment?.certifications?.map((c, idx) => (
+                          <li key={idx} className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>{c}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1.5">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Strategic Competencies</span>
+                      <ul className="text-xs text-slate-700 space-y-1 font-medium">
+                        {activeResult.careerIntelligence.skillsGapAnalysis.recommendedForDevelopment?.technicalOrFunctional?.map((f, idx) => (
+                          <li key={idx} className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3. Career Growth Pathways */}
+            {activeResult.careerIntelligence?.growthOpportunities && (
+              <div id="sec-pathways" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-cyan-50 text-[#0E7490] flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        Career Growth Pathways (3 Tiers)
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Roles structured by immediate suitability, advancement, and lateral transition
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Tier 1: Suitable Now */}
+                  <div className="p-5 rounded-2xl bg-emerald-50/40 border border-emerald-200/60 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                          Tier 1 • Suitable Now
+                        </span>
+                        <span className="text-xs font-bold text-emerald-700">Immediate Fit</span>
+                      </div>
+                      <div className="space-y-2">
+                        {activeResult.careerIntelligence.growthOpportunities.suitableNow?.map((r, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-white border border-emerald-100 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#17152F]">{r.roleTitle}</span>
+                              <span className="text-xs font-extrabold text-emerald-600">{r.compatibilityScore}%</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 line-clamp-2">{r.rationale}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-emerald-700/80 font-medium pt-2">
+                      Ready for immediate direct-hire applications with current credentials.
+                    </span>
+                  </div>
+
+                  {/* Tier 2: Next Level */}
+                  <div className="p-5 rounded-2xl bg-purple-50/40 border border-purple-200/60 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold uppercase tracking-wider">
+                          Tier 2 • Next Level
+                        </span>
+                        <span className="text-xs font-bold text-[#7357F5]">Progression</span>
+                      </div>
+                      <div className="space-y-2">
+                        {activeResult.careerIntelligence.growthOpportunities.nextLevel?.map((r, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-white border border-purple-100 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#17152F]">{r.roleTitle}</span>
+                              <span className="text-xs font-extrabold text-[#7357F5]">{r.compatibilityScore}%</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 line-clamp-2">{r.rationale}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenLeadModal(activeResult.improvementAreas?.[0] || null)}
+                      className="w-full py-2 rounded-xl bg-white hover:bg-purple-50 text-xs font-bold text-[#7357F5] border border-purple-200 transition flex items-center justify-center gap-1.5"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Unlock Promotion Strategy</span>
+                    </button>
+                  </div>
+
+                  {/* Tier 3: Adjacent & Transferable */}
+                  <div className="p-5 rounded-2xl bg-blue-50/40 border border-blue-200/60 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider">
+                          Tier 3 • Adjacent Pivot
+                        </span>
+                        <span className="text-xs font-bold text-blue-700">Transferable</span>
+                      </div>
+                      <div className="space-y-2">
+                        {activeResult.careerIntelligence.growthOpportunities.adjacentOpportunities?.map((r, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-white border border-blue-100 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#17152F]">{r.roleTitle}</span>
+                              <span className="text-xs font-extrabold text-blue-600">{r.compatibilityScore}%</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 line-clamp-2">{r.rationale}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenLeadModal(activeResult.improvementAreas?.[0] || null)}
+                      className="w-full py-2 rounded-xl bg-white hover:bg-blue-50 text-xs font-bold text-blue-700 border border-blue-200 transition flex items-center justify-center gap-1.5"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Unlock Transition Blueprint</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. Job Application Readiness Review */}
+            {activeResult.careerIntelligence?.applicationReadiness && (
+              <div id="sec-readiness" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-violet-50 text-[#7357F5] flex items-center justify-center">
+                      <ListChecks className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        Job Application Readiness Review (8 Pillars)
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Comprehensive structural and recruiter review checklist
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-[#17152F]">
+                      {activeResult.careerIntelligence.applicationReadiness.overallScore || 85}%
+                    </span>
+                    <span className="block text-[10px] font-bold text-slate-400 uppercase">Readiness</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {activeResult.careerIntelligence.applicationReadiness.pillars?.map((p, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col justify-between space-y-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#17152F]">{p.pillar}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            p.status === 'Optimal' ? 'bg-emerald-100 text-emerald-800' : p.status === 'Needs Enhancement' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-snug">{p.observation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Prioritized Action Checklist */}
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#17152F] uppercase tracking-wider flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      Prioritized Enhancement Checklist
+                    </span>
+                    <span className="text-[11px] font-bold text-[#7357F5]">Ranked by ROI</span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {activeResult.careerIntelligence.applicationReadiness.prioritizedActionChecklist?.map((item, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 mt-0.5 ${
+                            item.priority === 'High' ? 'bg-red-100 text-red-700' : item.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {item.priority} Priority
+                          </span>
+                          <span className="text-xs text-slate-800 font-medium leading-snug">{item.item}</span>
+                        </div>
+                        <span className="text-[11px] text-[#7357F5] font-semibold shrink-0 pl-7 sm:pl-0">
+                          {item.impact}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. Interview Preparation Insights */}
+            {activeResult.careerIntelligence?.interviewPrep && (
+              <div id="sec-interview" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-purple-50 text-[#7357F5] flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        Interview Preparation & STAR Framework
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Tailored questions grounded in your actual background and accomplishments
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#7357F5]/10 text-[#7357F5]">
+                    STAR Framework
+                  </span>
+                </div>
+
+                {/* Interactive STAR Question 1 */}
+                {activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions?.[0] && (
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-purple-50/30 border border-[#7357F5]/20 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#7357F5] text-white text-[10px] font-bold uppercase tracking-wider">
+                          Sample Target Interview Question
+                        </span>
+                        <h4 className="text-sm sm:text-base font-bold text-[#17152F] mt-2">
+                          "{activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions[0].question}"
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Evaluator's Purpose: {activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions[0].purpose}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                        <span className="text-[10px] font-black text-[#7357F5] uppercase tracking-wider block">S — Situation</span>
+                        <p className="text-xs text-slate-600 leading-snug">
+                          {activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions[0].suggestedStarApproach?.situation}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                        <span className="text-[10px] font-black text-[#0E7490] uppercase tracking-wider block">T — Task</span>
+                        <p className="text-xs text-slate-600 leading-snug">
+                          {activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions[0].suggestedStarApproach?.task}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider block">A — Action</span>
+                        <p className="text-xs text-slate-600 leading-snug">
+                          {activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions[0].suggestedStarApproach?.action}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block">R — Result</span>
+                        <p className="text-xs text-slate-600 leading-snug">
+                          {activeResult.careerIntelligence.interviewPrep.roleSpecificQuestions[0].suggestedStarApproach?.result}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Locked Questions Teaser & Recruiter Concerns */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <span className="text-xs font-bold text-[#17152F] flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-[#7357F5]" />
+                      Recruiter Concerns to Preempt
+                    </span>
+                    <ul className="text-xs text-slate-600 space-y-1.5">
+                      {activeResult.careerIntelligence.interviewPrep.recruiterConcernsToPreempt?.map((c, idx) => (
+                        <li key={idx} className="p-2.5 rounded-lg bg-white border border-slate-200 space-y-0.5">
+                          <span className="font-bold text-slate-800 block">{c.concern}</span>
+                          <span className="text-slate-500 text-[11px] block">{c.mitigationStrategy}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-[#17152F] to-[#241F47] text-white flex flex-col justify-between">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase mb-2">
+                        <Lock className="w-3 h-3 text-[#FFD66B]" />
+                        <span>Premium Module</span>
+                      </div>
+                      <h4 className="text-base font-bold text-white">Full STAR Interview Blueprint</h4>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        Unlock 10+ personalized behavioral, technical, and executive questions mapped directly to your work history.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenLeadModal(activeResult.improvementAreas?.[0] || null)}
+                      className="mt-4 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-xs font-bold text-[#17152F] transition flex items-center justify-center gap-1.5"
+                    >
+                      <span>Get Custom Quote for Interview Prep</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 6. Professional Branding & LinkedIn */}
+            {activeResult.careerIntelligence?.professionalBranding && (
+              <div id="sec-branding" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0077B5] flex items-center justify-center">
+                      <Linkedin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        Professional Branding & LinkedIn Optimization
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Executive framing and digital recruiter footprint alignment
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700">
+                    Personal Brand
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Target Resume Headline & UVP */}
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Target Resume Headline</span>
+                      <p className="text-sm font-bold text-[#17152F]">
+                        {activeResult.careerIntelligence.professionalBranding.targetResumeHeadline}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unique Value Proposition (UVP)</span>
+                      <p className="text-xs sm:text-sm text-slate-700 italic bg-white p-3 rounded-xl border border-slate-200">
+                        "{activeResult.careerIntelligence.professionalBranding.uniqueValueProposition}"
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Core Competency Pillars</span>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        {activeResult.careerIntelligence.professionalBranding.coreCompetencyPillars?.map((p, idx) => (
+                          <div key={idx} className="p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#7357F5]" />
+                            <span>{p}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* LinkedIn Copywriting (Preview / Locked) */}
+                  <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-blue-50/20 to-white border border-blue-200/80 space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#0077B5] uppercase tracking-wider flex items-center gap-1.5">
+                          <Linkedin className="w-4 h-4" />
+                          LinkedIn SEO Headline
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Recruiter SEO</span>
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-[#17152F] bg-white p-3 rounded-xl border border-slate-200">
+                        {activeResult.careerIntelligence.professionalBranding.linkedInHeadline}
+                      </p>
+
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">About Section Narrative Preview</span>
+                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 leading-relaxed max-h-24 overflow-hidden relative">
+                          <p className="whitespace-pre-line">{activeResult.careerIntelligence.professionalBranding.linkedInAboutSnippet}</p>
+                          <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenLeadModal(activeResult.improvementAreas?.[0] || null)}
+                      className="w-full py-2.5 rounded-xl bg-[#7357F5] hover:bg-[#6344E8] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Unlock Complete Executive LinkedIn Narrative</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 7. 30-60-90 Day Strategic Career Action Plan */}
+            {activeResult.careerIntelligence?.actionPlan306090 && (
+              <div id="sec-action-plan" className="scroll-mt-20 bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">
+                        30-60-90 Day Strategic Career Action Plan
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Phased execution roadmap to transition from evaluation to confirmed offers
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900">
+                    Phased Roadmap
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Days 1–30 */}
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#7357F5]/10 text-[#7357F5] text-[10px] font-bold uppercase">
+                          Phase 1 • Days 1–30
+                        </span>
+                        <span className="text-xs font-bold text-slate-700">Optimization</span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#17152F]">
+                        {activeResult.careerIntelligence.actionPlan306090.days1To30?.focus}
+                      </h4>
+                      <ul className="text-xs text-slate-600 space-y-1.5">
+                        {activeResult.careerIntelligence.actionPlan306090.days1To30?.milestones?.map((m, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                            <span>{m}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="pt-3 border-t border-slate-200 text-[11px] text-[#7357F5] font-bold">
+                      Goal: {activeResult.careerIntelligence.actionPlan306090.days1To30?.expectedOutcome}
+                    </div>
+                  </div>
+
+                  {/* Days 31–60 */}
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#0E7490]/10 text-[#0E7490] text-[10px] font-bold uppercase">
+                          Phase 2 • Days 31–60
+                        </span>
+                        <span className="text-xs font-bold text-slate-700">Outreach</span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#17152F]">
+                        {activeResult.careerIntelligence.actionPlan306090.days31To60?.focus}
+                      </h4>
+                      <ul className="text-xs text-slate-600 space-y-1.5">
+                        {activeResult.careerIntelligence.actionPlan306090.days31To60?.milestones?.map((m, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="w-3.5 h-3.5 text-cyan-600 shrink-0 mt-0.5" />
+                            <span>{m}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="pt-3 border-t border-slate-200 text-[11px] text-[#0E7490] font-bold">
+                      Goal: {activeResult.careerIntelligence.actionPlan306090.days31To60?.expectedOutcome}
+                    </div>
+                  </div>
+
+                  {/* Days 61–90 */}
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">
+                          Phase 3 • Days 61–90
+                        </span>
+                        <span className="text-xs font-bold text-slate-700">Conversion</span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#17152F]">
+                        {activeResult.careerIntelligence.actionPlan306090.days61To90?.focus}
+                      </h4>
+                      <ul className="text-xs text-slate-600 space-y-1.5">
+                        {activeResult.careerIntelligence.actionPlan306090.days61To90?.milestones?.map((m, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                            <span>{m}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="pt-3 border-t border-slate-200 text-[11px] text-emerald-700 font-bold">
+                      Goal: {activeResult.careerIntelligence.actionPlan306090.days61To90?.expectedOutcome}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Profile Matching Opportunities (Roles, Industries, Countries) */}
             {activeResult.careerIntelligence && (
-              <div className="space-y-6">
+              <div id="sec-markets" className="scroll-mt-20 space-y-6">
                 <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3">
                   <Compass className="w-5 h-5 text-[#7357F5]" />
                   <h3 className="text-lg sm:text-xl font-bold text-[#17152F]">

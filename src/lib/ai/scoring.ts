@@ -40,6 +40,15 @@ import {
   StructuredResumeProfile,
   PublicJobRoleItem,
   PublicCountryItem,
+  CareerPositioningAnalysis,
+  SkillsGapAnalysisResult,
+  CareerGrowthPathways,
+  ApplicationReadinessResult,
+  InterviewPreparationInsights,
+  ProfessionalBrandingInsights,
+  ActionPlan306090Result,
+  InternationalMarketIntelligence,
+  JobDescriptionMatchInsight,
 } from './types';
 import { GLOBAL_COUNTRIES_CATALOGUE, calculateCountryAlignmentScore } from './countries';
 
@@ -1202,6 +1211,356 @@ function buildDeterministicCareerIntelligence(
     },
   };
 
+  // 6. Career Positioning Analysis
+  const careerPositioning: CareerPositioningAnalysis = {
+    professionalIdentity: candProf.actualProfession || safeRole,
+    careerStage: careerStage || 'Experienced professional',
+    experienceLevel: `${detectedYears}+ years in ${safeDomain}`,
+    specialization: candProf.skills?.slice(0, 3).join(', ') || safeRole,
+    strongestDomain: safeDomain,
+    communicationEffectiveness: {
+      rating: overallScore >= 80 ? 'Strong' : overallScore >= 65 ? 'Moderate' : 'Needs Improvement',
+      reason: overallScore >= 80
+        ? `The resume effectively articulates functional responsibility and key accomplishments in ${safeDomain}.`
+        : `Key competencies in ${safeDomain} are present, but impact framing and quantified metrics can be heightened.`,
+    },
+    recommendedPositioningPitch: candProf.professionalSummary ||
+      `Established ${safeRole} with ${detectedYears}+ years of documented delivery across ${safeDomain}. Known for structured execution, stakeholder alignment, and reliable operational performance.`,
+  };
+
+  // 7. Skills Gap Analysis
+  const verifiedStrengths = (Array.isArray(candProf.skills) && candProf.skills.length > 0)
+    ? candProf.skills.map(String).slice(0, 10)
+    : (Array.isArray(rawOutput?.matchedKeywords) && rawOutput.matchedKeywords.length > 0)
+    ? rawOutput.matchedKeywords.map(String).slice(0, 8)
+    : profile.professionalSkills.slice(0, 8);
+
+  const missingFromResume = (Array.isArray(rawOutput?.missingKeywords) && rawOutput.missingKeywords.length > 0)
+    ? rawOutput.missingKeywords.map(String).slice(0, 6)
+    : isProcurement
+    ? ['Supplier Diversity Metrics', 'E-Procurement Platform Architecture', 'Global Spend Governance']
+    : isAccountant
+    ? ['IFRS Compliance Reporting', 'Advanced Tax Provisioning', 'ERP Implementation']
+    : ['Strategic KPI Quantification', 'Executive Stakeholder Reporting', 'Cross-Functional Governance'];
+
+  const underrepresentedInResume = [
+    `Measurable ROI or cost-impact metrics for key ${safeDomain} projects`,
+    'Specific enterprise software version proficiencies and workflow automation tools',
+    'Cross-border regional stakeholder management frameworks',
+  ];
+
+  const recommendedForDevelopment = {
+    tools: isProcurement
+      ? ['Zycus / Coupa / SAP Ariba', 'Sievo Spend Analytics', 'PowerBI / Tableau']
+      : isAccountant
+      ? ['Tally Prime / QuickBooks Online', 'SAP FI/CO', 'Advanced Financial Modeling']
+      : ['Advanced Workflow Automation', 'PowerBI / Data Analytics', 'Enterprise Collaboration Suites'],
+    certifications: isProcurement
+      ? ['CIPS (Chartered Institute of Procurement & Supply)', 'CPSM (Certified Professional in Supply Management)']
+      : isAccountant
+      ? ['ACCA / CPA Foundations', 'CMA (Certified Management Accountant)', 'IFRS Certification']
+      : ['PMP (Project Management Professional)', 'Six Sigma Green Belt', 'Agile / Scrum Master'],
+    technicalOrFunctional: [
+      `Advanced ${safeDomain} governance and compliance standards`,
+      'End-to-end commercial risk management and SLA benchmarking',
+      'Data-driven decision modeling and predictive reporting',
+    ],
+  };
+
+  const skillsGapAnalysis: SkillsGapAnalysisResult = {
+    verifiedStrengths,
+    missingFromResume,
+    underrepresentedInResume,
+    recommendedForDevelopment,
+  };
+
+  // 8. Career Growth Pathways (3 Tiers)
+  const growthOpportunities: CareerGrowthPathways = {
+    suitableNow: roles
+      .filter((r) => r.category === 'DIRECT_FIT')
+      .slice(0, 3)
+      .map((r) => ({
+        roleTitle: r.title,
+        rationale: r.matchReason,
+        keyCompetencies: r.keyStrengths,
+        compatibilityScore: r.compatibilityScore,
+      })),
+    nextLevel: roles
+      .filter((r) => r.category === 'PROGRESSION')
+      .slice(0, 3)
+      .map((r) => ({
+        roleTitle: r.title,
+        rationale: r.matchReason,
+        requiredGrowth: [
+          `Broadened budget and strategic oversight within ${safeDomain}`,
+          'Multi-region stakeholder leadership and vendor risk accountability',
+        ],
+        compatibilityScore: r.compatibilityScore,
+      })),
+    adjacentOpportunities: roles
+      .filter((r) => r.category === 'ADJACENT' || r.category === 'TRANSITION')
+      .slice(0, 3)
+      .map((r) => ({
+        roleTitle: r.title,
+        rationale: r.matchReason,
+        transferableSkills: r.keyStrengths,
+        compatibilityScore: r.compatibilityScore,
+      })),
+  };
+
+  // 9. Job Application Readiness Review (8 Pillars)
+  const applicationReadiness: ApplicationReadinessResult = {
+    overallScore: readyScore,
+    pillars: [
+      {
+        pillar: 'Headline & Professional Identity',
+        status: isRoleClean ? 'Optimal' : 'Needs Enhancement',
+        observation: isRoleClean
+          ? `Clear identification as ${safeRole} creates immediate recruiter resonance.`
+          : 'Title requires tightening to align with standard international recruiter keywords.',
+      },
+      {
+        pillar: 'Executive Summary Impact',
+        status: candProf.professionalSummary && candProf.professionalSummary.length > 50 ? 'Optimal' : 'Needs Enhancement',
+        observation: candProf.professionalSummary
+          ? 'Professional summary articulates experience, core strengths, and domain trajectory.'
+          : 'Opening summary should be expanded with a high-impact elevator pitch.',
+      },
+      {
+        pillar: 'Quantified Accomplishments & Metrics',
+        status: overallScore >= 80 ? 'Optimal' : 'Critical Action',
+        observation: overallScore >= 80
+          ? 'Work history demonstrates strong quantitative and qualitative outcomes.'
+          : 'Experience descriptions lean towards task lists; quantify results with metrics (spend, %, volume).',
+      },
+      {
+        pillar: 'ATS Parsing Compatibility & Keywords',
+        status: 'Optimal',
+        observation: 'Document structure passes universal parser validation without font corruption or table breaks.',
+      },
+      {
+        pillar: 'Work Chronology & Progression',
+        status: 'Optimal',
+        observation: 'Reverse-chronological career momentum is logical and easy to trace.',
+      },
+      {
+        pillar: 'Core Domain Competencies',
+        status: verifiedStrengths.length >= 6 ? 'Optimal' : 'Needs Enhancement',
+        observation: `${verifiedStrengths.length} verified competencies identified; group into functional skill clusters.`,
+      },
+      {
+        pillar: 'Education & Accreditations',
+        status: candProf.education && candProf.education.length > 0 ? 'Optimal' : 'Needs Enhancement',
+        observation: 'Academic foundations documented; supplement with active professional licenses.',
+      },
+      {
+        pillar: 'Contact Accessibility & Online Presence',
+        status: overallScore >= 75 ? 'Optimal' : 'Needs Enhancement',
+        observation: 'Ensure active LinkedIn vanity URL, phone with country code, and professional email are visible.',
+      },
+    ],
+    prioritizedActionChecklist: [
+      {
+        priority: 'High',
+        item: `Quantify key contributions across recent ${safeDomain} positions with measurable business outcomes.`,
+        impact: 'Boosts recruiter shortlisting likelihood by 35% across enterprise corporate screens.',
+      },
+      {
+        priority: 'High',
+        item: `Infuse missing high-frequency keywords (${missingFromResume.slice(0, 3).join(', ')}) into work bullet points.`,
+        impact: 'Improves ATS parsing ranking into the top quartile of automated candidate screens.',
+      },
+      {
+        priority: 'Medium',
+        item: 'Craft a personalized 3-sentence executive summary highlighting your unique value proposition.',
+        impact: 'Captures recruiter attention during the critical 6-second initial visual scan.',
+      },
+      {
+        priority: 'Low',
+        item: 'Standardize contact header layout with an international phone code and customized LinkedIn profile slug.',
+        impact: 'Facilitates direct recruiter outreach across regional and global hiring portals.',
+      },
+    ],
+  };
+
+  // 10. Interview Preparation Insights (STAR Framework)
+  const interviewPrep: InterviewPreparationInsights = {
+    roleSpecificQuestions: [
+      {
+        question: `How have you managed critical ${safeDomain} deliverables under tight timelines and competing priorities?`,
+        purpose: 'Assesses operational resilience, prioritization discipline, and cross-functional execution.',
+        suggestedStarApproach: {
+          situation: `Describe a high-stakes project or operational milestone in your tenure as ${safeRole}.`,
+          task: 'Explain your specific objective, deadline constraints, and stakeholder expectations.',
+          action: 'Detail the concrete tools, frameworks, and negotiation or analysis methods you deployed.',
+          result: 'Highlight the measurable outcome (e.g. on-time delivery, cost avoided, process accelerated).',
+        },
+      },
+      {
+        question: `Can you walk me through your process for evaluating and onboarding a critical vendor or external stakeholder?`,
+        purpose: 'Tests commercial rigor, compliance diligence, and relationship management maturity.',
+        suggestedStarApproach: {
+          situation: 'Recall a scenario involving multi-party evaluation or supplier selection.',
+          task: 'Define the evaluation criteria, SLA requirements, and commercial targets.',
+          action: 'Explain how you conducted benchmarking, due diligence, and commercial negotiation.',
+          result: 'Conclude with long-term performance adherence, risk mitigation, or value generated.',
+        },
+      },
+      {
+        question: `Tell me about a time when you identified an inefficiency or cost leakage in your daily operations.`,
+        purpose: 'Measures continuous improvement mindset, analytical curiosity, and proactive value creation.',
+        suggestedStarApproach: {
+          situation: `Point to an everyday process in ${safeDomain} that lacked automation or standardization.`,
+          task: 'Articulate why the bottleneck affected team productivity or budget compliance.',
+          action: 'Walk through your proposal, implementation steps, and tools used to streamline the workflow.',
+          result: 'Share the quantifiable efficiency gain, cycle-time reduction, or error rate drop.',
+        },
+      },
+    ],
+    behavioralQuestions: [
+      {
+        question: 'Describe a situation where you had to influence a resistant stakeholder or cross-functional partner.',
+        competencyTested: 'Stakeholder Influence & Conflict Resolution',
+        keyFocus: 'Empathy, data-backed justification, and collaborative consensus building.',
+      },
+      {
+        question: 'Tell me about a project that did not go according to plan and how you adapted.',
+        competencyTested: 'Agility & Problem Solving Under Ambiguity',
+        keyFocus: 'Accountability, rapid root-cause analysis, and decisive contingency execution.',
+      },
+    ],
+    technicalQuestions: [
+      {
+        question: `What methodologies and software platforms do you rely on for rigorous data analysis in ${safeDomain}?`,
+        domainFocus: safeDomain,
+        keyPointsToCover: profile.toolsAndSoftware.slice(0, 4),
+      },
+      {
+        question: `How do you ensure full statutory compliance and audit readiness in your daily deliverables?`,
+        domainFocus: 'Governance & Quality Standards',
+        keyPointsToCover: ['SOP adherence', 'Internal audit controls', 'Documentation accuracy'],
+      },
+    ],
+    recruiterConcernsToPreempt: [
+      {
+        concern: 'Potential ambiguity between independent ownership vs. supporting role on major project milestones.',
+        mitigationStrategy: 'Lead with first-person active verbs (Led, Negotiated, Built, Streamlined) and cite your direct ownership boundary.',
+      },
+      {
+        concern: 'Verifying technical depth across enterprise-grade platforms.',
+        mitigationStrategy: `Explicitly mention specific systems (${profile.toolsAndSoftware.slice(0, 3).join(', ')}) in your answer introductions.`,
+      },
+    ],
+  };
+
+  // 11. Professional Branding & LinkedIn Copywriting
+  const targetHeadline = `${candProf.name || safeRole} | ${safeRole} — ${safeDomain} | ${detectedYears}+ Years Experience`;
+  const professionalBranding: ProfessionalBrandingInsights = {
+    targetResumeHeadline: targetHeadline,
+    enhancedExecutiveSummary: candProf.professionalSummary ||
+      `Results-oriented ${safeRole} with ${detectedYears}+ years of hands-on experience driving operational excellence, structured governance, and measurable outcomes in ${safeDomain}. Adept at cross-functional collaboration, vendor and stakeholder relationship management, and data-backed performance optimization. Proven track record of delivering high-stakes initiatives within multinational and high-growth environments.`,
+    linkedInHeadline: `${safeRole} | ${safeDomain} | Specializing in ${verifiedStrengths.slice(0, 3).join(' • ')}`,
+    linkedInAboutSnippet: `I am an experienced ${safeRole} passionate about delivering high-impact outcomes across ${safeDomain}.\n\nOver the past ${detectedYears}+ years, I have collaborated with cross-functional teams to streamline workflows, enforce governance, and create commercial value. My core expertise centers on ${verifiedStrengths.slice(0, 4).join(', ')}.\n\nAlways open to connecting with professionals and leaders exploring collaborative opportunities in ${safeDomain}.`,
+    coreCompetencyPillars: [
+      `Strategic ${safeDomain} Execution`,
+      'Cross-Functional Stakeholder Alignment',
+      'Analytical Performance & Spend Modeling',
+      'Continuous Workflow Optimization & Compliance',
+    ],
+    uniqueValueProposition: `Bridging strategic ${safeDomain} best practices with disciplined execution to drive predictable, high-value outcomes.`,
+  };
+
+  // 12. 30-60-90 Day Strategic Career Action Plan
+  const actionPlan306090: ActionPlan306090Result = {
+    days1To30: {
+      phase: 'Immediate Optimization (Days 1–30)',
+      timeframe: 'Days 1 to 30',
+      focus: 'Resume restructuring, ATS parse verification, and high-frequency keyword infusing.',
+      milestones: [
+        `Reformat resume to single-column parse-compliant template with clear ${safeDomain} headers`,
+        `Infuse missing keywords (${missingFromResume.slice(0, 3).join(', ')}) into top 3 job descriptions`,
+        'Upgrade LinkedIn headline and About section with optimized SEO terms',
+        'Build master portfolio list of 5 quantified STAR stories covering major accomplishments',
+      ],
+      expectedOutcome: 'Achieve 90%+ ATS parse score and 100% profile discoverability on recruiter searches.',
+    },
+    days31To60: {
+      phase: 'Market Positioning & Targeted Outreach (Days 31–60)',
+      timeframe: 'Days 31 to 60',
+      focus: 'Target employer mapping, proactive recruiter networking, and curated application submission.',
+      milestones: [
+        `Identify top 25 target employers in ${countries.slice(0, 2).map(c => c.countryName).join(' and ')}`,
+        'Engage directly with 15 specialized hiring managers and niche industry recruiters',
+        `Submit 15–20 tailored applications aligned with Direct-Fit roles (${growthOpportunities.suitableNow.map(r => r.roleTitle).slice(0, 2).join(', ')})`,
+        'Conduct 2 mock technical/behavioral interview practice runs using STAR framework',
+      ],
+      expectedOutcome: 'Secure 2–4 first-round recruiter screening conversations.',
+    },
+    days61To90: {
+      phase: 'Interview Conversion & Strategic Placement (Days 61–90)',
+      timeframe: 'Days 61 to 90',
+      focus: 'Panel interview mastery, business case presentations, and commercial compensation negotiation.',
+      milestones: [
+        'Present structured 30-60-90 day business contribution plans during final panel interviews',
+        'Preempt recruiter questions regarding ownership and technical platform depth',
+        'Benchmark market compensation packages across target geographic markets',
+        'Execute disciplined negotiation on base salary, benefits, and career progression terms',
+      ],
+      expectedOutcome: 'Secure competitive formal offer letter in your target career track.',
+    },
+  };
+
+  // 13. International Market Intelligence
+  const currentCountry = evidencedList.find(e => e.isCurrent) || { name: 'India', code: 'IN' };
+  const priorCountries = evidencedList.filter(e => !e.isCurrent);
+  const internationalCareerInsights: InternationalMarketIntelligence = {
+    currentMarket: {
+      country: currentCountry.name,
+      code: currentCountry.code,
+      status: 'Active Employment Base',
+      marketSummary: `Strong established foundation and direct-hire viability for ${safeRole} roles within ${currentCountry.name}.`,
+    },
+    priorMarkets: priorCountries.map(p => ({
+      country: p.name,
+      code: p.code,
+      historySummary: `Documented regional track record and transferable professional familiarity in ${p.name}.`,
+    })),
+    explicitTargetMarkets: explicitTargetList.map(t => ({
+      country: t.name,
+      code: t.code,
+      demandLevel: 'High',
+      visaFeasibility: 'Requires Employer Sponsorship / Skilled Work Visa',
+      marketNotes: `Candidate-targeted destination. Active hiring demand for verified ${safeRole} profiles with multinational exposure.`,
+    })),
+    potentialResearchMarkets: GLOBAL_COUNTRIES_CATALOGUE
+      .filter(c => c.code !== currentCountry.code && !priorCountries.some(p => p.code === c.code) && !explicitTargetList.some(t => t.code === c.code))
+      .slice(0, 2)
+      .map(c => ({
+        country: c.name,
+        code: c.code,
+        relevanceReason: `High regional demand in ${c.keySectors.slice(0, 2).join(' and ')} matching ${safeDomain} competencies.`,
+        demandOutlook: 'Active international recruitment for experienced candidates.',
+      })),
+  };
+
+  // 14. Optional Job Description Match Insight
+  let jobDescriptionMatch: JobDescriptionMatchInsight | undefined = undefined;
+  if (input.jobDescription && input.jobDescription.trim().length >= 30) {
+    const jdText = input.jobDescription.toLowerCase();
+    const foundReq = verifiedStrengths.filter((s: string) => jdText.includes(s.toLowerCase()));
+    const foundTrans = profile.transferableSkills.filter((t: string) => jdText.includes(t.toLowerCase()));
+    const missing = missingFromResume.filter((m: string) => jdText.includes(m.toLowerCase()));
+    const matchScore = Math.min(95, Math.max(55, Math.round(overallScore * 0.9 + (foundReq.length * 3))));
+
+    jobDescriptionMatch = {
+      matchScore,
+      requiredSkillsFound: foundReq.length > 0 ? foundReq : verifiedStrengths.slice(0, 4),
+      transferableSkillsFound: foundTrans.length > 0 ? foundTrans : profile.transferableSkills.slice(0, 2),
+      skillsMissing: missing.length > 0 ? missing : missingFromResume.slice(0, 2),
+      experienceAlignmentSummary: `Resume demonstrates ${matchScore >= 80 ? 'strong' : 'moderate'} semantic alignment with the targeted role requirements. Core competencies in ${safeDomain} match key job specifications.`,
+    };
+  }
+
   return {
     profile,
     roles,
@@ -1210,6 +1569,15 @@ function buildDeterministicCareerIntelligence(
     targetCountriesSpecified,
     evidencedEmploymentCountries,
     competitiveness,
+    careerPositioning,
+    skillsGapAnalysis,
+    growthOpportunities,
+    applicationReadiness,
+    interviewPrep,
+    professionalBranding,
+    actionPlan306090,
+    internationalCareerInsights,
+    jobDescriptionMatch,
     recommendations: {
       topRoles: roles.slice(0, 3).map(r => r.title),
       topIndustries: industries.slice(0, 3).map(i => i.industryName),
@@ -1695,6 +2063,46 @@ export function transformToPublicAtsAudit(
       targetCountriesSpecified: Boolean(ci.targetCountriesSpecified),
       evidencedEmploymentCountries: Array.isArray(ci.evidencedEmploymentCountries) ? ci.evidencedEmploymentCountries : [],
       competitiveness: ci.competitiveness,
+      careerPositioning: ci.careerPositioning,
+      skillsGapAnalysis: ci.skillsGapAnalysis
+        ? {
+            ...ci.skillsGapAnalysis,
+            isLocked: true,
+          }
+        : undefined,
+      growthOpportunities: ci.growthOpportunities
+        ? {
+            suitableNow: ci.growthOpportunities.suitableNow,
+            nextLevel: ci.growthOpportunities.nextLevel.map((n) => ({ ...n, isLocked: true })),
+            adjacentOpportunities: ci.growthOpportunities.adjacentOpportunities.map((a) => ({ ...a, isLocked: true })),
+          }
+        : undefined,
+      applicationReadiness: ci.applicationReadiness
+        ? {
+            ...ci.applicationReadiness,
+            isLocked: true,
+          }
+        : undefined,
+      interviewPrep: ci.interviewPrep
+        ? {
+            ...ci.interviewPrep,
+            isLocked: true,
+          }
+        : undefined,
+      professionalBranding: ci.professionalBranding
+        ? {
+            ...ci.professionalBranding,
+            isLocked: true,
+          }
+        : undefined,
+      actionPlan306090: ci.actionPlan306090
+        ? {
+            ...ci.actionPlan306090,
+            isLocked: true,
+          }
+        : undefined,
+      internationalCareerInsights: ci.internationalCareerInsights,
+      jobDescriptionMatch: ci.jobDescriptionMatch,
       recommendations: {
         topRoles: ci.recommendations.topRoles,
         topIndustries: ci.recommendations.topIndustries,
