@@ -978,22 +978,60 @@ export default {
       let fileName = 'candidate_resume.pdf';
       let fileMimeType = '';
       let fileSize = 0;
+      let fileBase64 = '';
+      let resumeText = '';
+      let targetRole = '';
+      let targetIndustry = '';
+      let jobDescription = '';
+      let customerId: string | undefined = undefined;
+      let projectId: string | undefined = undefined;
+      let isPublic = true;
 
       try {
-        const body = (await request.json().catch(() => null)) as any;
-        if (body?.uploadId) uploadId = body.uploadId;
-        requestedAssessmentId = body?.assessmentId;
-        const fileBase64 = body?.fileBase64 || body?.fileData || '';
-        fileMimeType = body?.fileMimeType || '';
-        fileSize = body?.fileSize || 0;
-        const resumeText = body?.resumeText || '';
-        const targetRole = body?.targetRole || '';
-        const targetIndustry = body?.targetIndustry || '';
-        const jobDescription = body?.jobDescription || '';
-        if (body?.fileName) fileName = body.fileName;
-        const customerId = body?.customerId;
-        const projectId = body?.projectId;
-        const isPublic = body?.isPublic !== false; // Default to public gated audit
+        const contentType = request.headers.get('content-type') || '';
+
+        if (contentType.includes('multipart/form-data')) {
+          const formData = await request.formData();
+          const fileEntry = formData.get('file');
+          if (fileEntry && typeof fileEntry !== 'string') {
+            const fileObj = fileEntry as unknown as File;
+            fileName = fileObj.name || fileName;
+            fileSize = fileObj.size || 0;
+            const lower = fileName.toLowerCase();
+            fileMimeType =
+              fileObj.type && fileObj.type !== 'application/octet-stream'
+                ? fileObj.type
+                : lower.endsWith('.docx')
+                ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                : 'application/pdf';
+            const arrayBuf = await fileObj.arrayBuffer();
+            const base64Str = Buffer.from(arrayBuf).toString('base64');
+            fileBase64 = `data:${fileMimeType};base64,${base64Str}`;
+          }
+          if (formData.get('uploadId')) uploadId = String(formData.get('uploadId'));
+          if (formData.get('assessmentId')) requestedAssessmentId = String(formData.get('assessmentId'));
+          if (formData.get('fileName') && typeof formData.get('fileName') === 'string') fileName = String(formData.get('fileName'));
+          if (formData.get('jobDescription')) jobDescription = String(formData.get('jobDescription'));
+          if (formData.get('targetRole')) targetRole = String(formData.get('targetRole'));
+          if (formData.get('targetIndustry')) targetIndustry = String(formData.get('targetIndustry'));
+          if (formData.get('resumeText')) resumeText = String(formData.get('resumeText'));
+          if (formData.get('isPublic')) isPublic = formData.get('isPublic') !== 'false';
+        } else {
+          const body = (await request.json().catch(() => null)) as any;
+          if (body?.uploadId) uploadId = body.uploadId;
+          requestedAssessmentId = body?.assessmentId;
+          fileBase64 = body?.fileBase64 || body?.fileData || '';
+          fileMimeType = body?.fileMimeType || '';
+          fileSize = body?.fileSize || 0;
+          resumeText = body?.resumeText || '';
+          targetRole = body?.targetRole || '';
+          targetIndustry = body?.targetIndustry || '';
+          jobDescription = body?.jobDescription || '';
+          if (body?.fileName) fileName = body.fileName;
+          customerId = body?.customerId;
+          projectId = body?.projectId;
+          isPublic = body?.isPublic !== false;
+        }
 
         const isDocFile = Boolean(
           fileName.toLowerCase().endsWith('.pdf') ||

@@ -418,7 +418,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     setFile(selectedFile);
     setFileName(selectedFile.name);
     setFileSize(selectedFile.size);
-    setIsReadingFile(true);
+    setIsReadingFile(false);
 
     const mime =
       lowerName.endsWith('.pdf')
@@ -473,36 +473,10 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     let activeBase64 = activeBase64Ref.current || fileBase64;
     let activeSize = targetFile?.size || fileSize || 0;
 
-    // Guaranteed on-demand synchronous file reading if not ready in state
-    if (targetFile && (!activeBase64 || activeBase64.length < 50)) {
-      try {
-        setIsReadingFile(true);
-        activeBase64 = await new Promise<string>((resolve, reject) => {
-          const r = new FileReader();
-          r.onload = () => resolve(r.result as string);
-          r.onerror = () => reject(r.error || new Error('Failed to read file'));
-          r.readAsDataURL(targetFile);
-        });
-        activeBase64Ref.current = activeBase64;
-        setFileBase64(activeBase64);
-        activeSize = targetFile.size;
-        setFileSize(activeSize);
-        setIsReadingFile(false);
-      } catch {
-        setIsReadingFile(false);
-        setGenericErrorMessage('Failed to prepare document. Please re-select your file.');
-        return;
-      }
-    }
-
-    if (isDocFile && (!activeBase64 || activeBase64.length < 50)) {
-      setGenericErrorMessage('Your document is still preparing. Please wait a moment and try again.');
-      return;
-    }
-
+    // If targetFile is present, direct binary FormData is used. Otherwise, verify fallback content.
     const content = textToAssess || resumeText;
 
-    if (!activeBase64 && (!content || content.trim().length < 30)) {
+    if (!targetFile && !activeBase64 && (!content || content.trim().length < 30)) {
       setGenericErrorMessage('Please upload your resume (PDF or DOCX) to begin the assessment.');
       return;
     }
@@ -528,26 +502,46 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     const timer4 = setTimeout(() => setProcessingStage(5), 3600);
 
     try {
-      const payload: Record<string, any> = {
-        uploadId: uploadId || `UPL-${Date.now()}`,
-        assessmentId,
-        resumeText: isDocFile && activeBase64 ? '' : (content || ''),
-        fileBase64: activeBase64 || undefined,
-        fileMimeType: fileMimeType || (lower.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
-        fileSize: activeSize,
-        fileName: currentFileName || 'candidate_resume.pdf',
-        isPublic: true,
-      };
+      let res: Response;
 
-      if (jobDescription.trim().length >= 30) {
-        payload.jobDescription = jobDescription.trim();
+      if (targetFile) {
+        // Preferred production-grade transport: Direct binary FormData upload (bypasses FileReader overhead)
+        const fd = new FormData();
+        fd.append('file', targetFile);
+        fd.append('uploadId', uploadId || `UPL-${Date.now()}`);
+        fd.append('assessmentId', assessmentId);
+        fd.append('fileName', currentFileName || targetFile.name);
+        fd.append('fileSize', String(targetFile.size));
+        fd.append('isPublic', 'true');
+        if (jobDescription.trim().length >= 30) {
+          fd.append('jobDescription', jobDescription.trim());
+        }
+        res = await fetch('/api/career/ai/ats-evaluate', {
+          method: 'POST',
+          body: fd,
+        });
+      } else {
+        const payload: Record<string, any> = {
+          uploadId: uploadId || `UPL-${Date.now()}`,
+          assessmentId,
+          resumeText: content || '',
+          fileBase64: activeBase64 || undefined,
+          fileMimeType: fileMimeType || (lower.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+          fileSize: activeSize,
+          fileName: currentFileName || 'candidate_resume.pdf',
+          isPublic: true,
+        };
+
+        if (jobDescription.trim().length >= 30) {
+          payload.jobDescription = jobDescription.trim();
+        }
+
+        res = await fetch('/api/career/ai/ats-evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
       }
-
-      const res = await fetch('/api/career/ai/ats-evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
 
       const data = await res.json().catch(() => ({}));
 
