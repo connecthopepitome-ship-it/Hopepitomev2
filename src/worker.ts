@@ -995,8 +995,30 @@ export default {
         const projectId = body?.projectId;
         const isPublic = body?.isPublic !== false; // Default to public gated audit
 
+        const isDocFile = Boolean(
+          fileName.toLowerCase().endsWith('.pdf') ||
+          fileName.toLowerCase().endsWith('.docx') ||
+          fileName.toLowerCase().endsWith('.doc')
+        );
+
         const hasFile = Boolean(fileBase64 && fileBase64.length > 50);
         const hasText = Boolean(resumeText && resumeText.trim().length >= 30);
+
+        if (isDocFile && !hasFile) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              uploadId,
+              errorType: 'INVALID_INPUT',
+              heading: 'Resume File Not Received',
+              message: 'Your resume document payload was empty. Please re-select your file to start the free review.',
+              secondaryText: 'Accepted formats: PDF or DOCX up to 8MB.',
+              retryable: true,
+              error: 'Resume document content is missing.',
+            }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
 
         if (!hasFile && !hasText) {
           return new Response(
@@ -1014,6 +1036,8 @@ export default {
           );
         }
 
+        const effectiveFileSize = fileSize > 0 ? fileSize : (hasFile ? Math.round(fileBase64.length * 0.75) : 0);
+
         // When a binary document (PDF/DOCX) is provided, pass empty text so GPT-6 Luna extracts directly from input_file
         // without any client-side font-encoding noise polluting the prompt
         const textToUse = hasFile ? '' : resumeText;
@@ -1026,7 +1050,7 @@ export default {
             assessmentId: requestedAssessmentId,
             fileBase64,
             fileMimeType,
-            fileSize,
+            fileSize: effectiveFileSize,
             targetRole,
             targetIndustry,
             jobDescription,
@@ -1048,7 +1072,7 @@ export default {
           customerId: customerId || 'guest',
           projectId: projectId || null,
           fileName,
-          fileSize,
+          fileSize: effectiveFileSize,
           createdAt: now,
           conversionStatus: 'AUDIT_COMPLETED',
         };
@@ -1228,7 +1252,7 @@ export default {
                 assessmentId: a.assessmentId,
                 fileName: a.fileName,
                 fileSize: a.fileSize,
-                hasFileBase64: Boolean(a.fileBase64 && a.fileBase64.length > 50),
+                hasFileBase64: Boolean((a.fileSize && a.fileSize > 50) || (a.fileBase64 && a.fileBase64.length > 50)),
                 targetRole: a.targetRole,
                 inferredRole: a.inferredRole,
                 candidateProfile: a.candidateProfile,

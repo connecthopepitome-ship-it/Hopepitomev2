@@ -127,7 +127,7 @@ STAGE A — DOCUMENT EXTRACTION & UNDERSTANDING:
    - As long as candidate professional information (such as name, job titles, companies, skills, or education) is visually or textually identifiable in the document, set validation.documentReadable = true and proceed with full extraction.
    - If a candidate photo, avatar, or profile image is present, ignore the photo and focus on extracting the candidate's professional text, experience, and accomplishments.
    - ONLY set validation.documentReadable = false if the document is entirely blank, genuinely unreadable corrupted binary data, or completely non-resume material (e.g. random code, invoice, blank page, or unreadable blur).
-   - CRITICAL OUTPUT INTEGRITY: actualProfession, inferredRole, and inferredDomain must ALWAYS contain valid human professional titles and domains (e.g. "Procurement Specialist", "Supply Chain & Procurement", "Accountant", "Finance"). NEVER output meta-commentary, parsing complaints, or error phrases (such as "Unable to identify...", "Undetermined...", or "PDF metadata..."). If ambiguous, synthesize the best-fitting title from candidate context (e.g. "Operations Specialist", "Professional Services").
+   - CRITICAL OUTPUT INTEGRITY: actualProfession, inferredRole, and inferredDomain must ALWAYS contain realistic, high-calibre professional job titles and industry domains (e.g. "Procurement Specialist", "Supply Chain & Procurement", "Accountant", "Financial Services", "Operations Lead"). Always ground them in the candidate's verified track record and competencies.
 2. Read the full document visually and semantically. Extract candidate facts into candidateProfile:
    - name: Candidate's full name (or null if not found)
    - headline: Professional headline / title
@@ -452,21 +452,50 @@ function buildDeterministicCareerIntelligence(
   const rawProfile = rawCi.profile || {};
 
   // Sanitize inferredRole and inferredDomain against any leakage
+  const candProf = rawOutput?.candidateProfile || {};
+  const allProfSkills = [
+    candProf.actualProfession || '',
+    candProf.headline || '',
+    ...(Array.isArray(candProf.skills) ? candProf.skills : []),
+    ...(Array.isArray(candProf.toolsAndSoftware) ? candProf.toolsAndSoftware : []),
+  ].join(' ');
+
+  const isProcurementContext = /procure|sourcing|purchasing|buyer|zycus|rfp|rfq|vendor management/i.test(allProfSkills);
+  const isFinanceContext = /account|finance|audit|tax|tally|ledger|reconciliation|balance sheet/i.test(allProfSkills);
+  const isHealthcareContext = /nurse|doctor|clinical|hospital|patient care|icu/i.test(allProfSkills);
+  const isEngineeringContext = /civil|construction|mechanical|electrical|autocad|structural/i.test(allProfSkills);
+
   const cleanInferredRole = String(inferredRole || '').trim();
   const cleanInferredDomain = String(inferredDomain || '').trim();
 
   const isRoleClean =
     cleanInferredRole.length >= 3 &&
     !INVALID_EXTRACTION_REGEX.test(cleanInferredRole) &&
-    !/^(?:experienced professional|corporate professional|professional role|unspecified|not specified|n\/a)$/i.test(cleanInferredRole);
+    !/^(?:experienced professional|corporate professional|professional role|generalist professional|general operations professional|unspecified|not specified|n\/a|undetermined|unable to identify)$/i.test(cleanInferredRole);
 
   const isDomainClean =
     cleanInferredDomain.length >= 3 &&
     !INVALID_EXTRACTION_REGEX.test(cleanInferredDomain) &&
-    !/^(?:unspecified|not specified|corporate \/ technology|n\/a)$/i.test(cleanInferredDomain);
+    !/^(?:unspecified|not specified|corporate \/ technology|n\/a|undetermined|unable to identify)$/i.test(cleanInferredDomain);
 
-  const safeRole = isRoleClean ? cleanInferredRole : 'Experienced Specialist';
-  const safeDomain = isDomainClean ? cleanInferredDomain : 'Professional Services';
+  let safeRole = isRoleClean ? cleanInferredRole : '';
+  let safeDomain = isDomainClean ? cleanInferredDomain : '';
+
+  if (!safeRole) {
+    if (isProcurementContext) safeRole = 'IT Sourcing and Procurement Professional';
+    else if (isFinanceContext) safeRole = 'Senior Accountant';
+    else if (isHealthcareContext) safeRole = 'Healthcare Professional';
+    else if (isEngineeringContext) safeRole = 'Engineering Specialist';
+    else safeRole = 'Operations Specialist';
+  }
+
+  if (!safeDomain) {
+    if (isProcurementContext) safeDomain = 'Procurement and Strategic Sourcing';
+    else if (isFinanceContext) safeDomain = 'Accounting & Finance';
+    else if (isHealthcareContext) safeDomain = 'Healthcare & Life Sciences';
+    else if (isEngineeringContext) safeDomain = 'Engineering & Construction';
+    else safeDomain = 'Professional Services';
+  }
 
   // 1. Profile Extraction
   const yearsExpMatch = input.anonymizedText.match(/(\d+)\+?\s*years?/i);
@@ -658,14 +687,14 @@ function buildDeterministicCareerIntelligence(
           strengths: ['Established foundation ready for broader leadership and strategic ownership'],
         },
         {
-          title: `${safeRole.replace(/Specialist|Officer|Buyer|Executive/i, '').trim() || safeDomain} Operations Lead`,
+          title: `${safeRole.replace(/Specialist|Officer|Buyer|Executive/i, '').trim() || safeDomain} Practice Lead`,
           category: 'ADJACENT',
           categoryLabel: 'Adjacent / Transferable',
           matchReason: 'High transferability of delivery methods and workflow optimization skills',
           strengths: ['Strong transferable execution skills', 'Cross-functional adaptability'],
         },
         {
-          title: `${safeDomain} Practice Specialist`,
+          title: `${safeDomain} Strategy Consultant`,
           category: 'TRANSITION',
           categoryLabel: 'Career Transition',
           matchReason: 'Leverages subject matter expertise in an advisory or cross-sector capacity',
@@ -919,7 +948,6 @@ function buildDeterministicCareerIntelligence(
     : defaultIndustries;
 
   // 4. Country Compatibility (Strictly Grounded in Resume Evidence)
-  const candProf = rawOutput?.candidateProfile || {};
   const catalogueMap = new Map(GLOBAL_COUNTRIES_CATALOGUE.map(c => [c.code, c]));
 
   // A. Extract all documented employment locations from profile & resume text

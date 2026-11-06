@@ -378,6 +378,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   const [enquirySuccessRef, setEnquirySuccessRef] = useState<string | null>(null);
 
   const checkerSectionRef = useRef<HTMLDivElement>(null);
+  const activeFileRef = useRef<File | null>(null);
+  const activeBase64Ref = useRef<string | null>(null);
 
   const handleFile = async (selectedFile: File | null) => {
     if (!selectedFile) return;
@@ -389,6 +391,9 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     setFileMimeType('');
     setResumeText('');
     setAuditResult(null);
+
+    activeFileRef.current = selectedFile;
+    activeBase64Ref.current = null;
 
     const validExtensions = ['.pdf', '.docx', '.doc', '.txt'];
     const lowerName = selectedFile.name.toLowerCase();
@@ -431,20 +436,23 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Url = reader.result as string;
-      if (base64Url && base64Url.length > 100) {
+      if (base64Url && base64Url.length > 50) {
+        activeBase64Ref.current = base64Url;
         setFileBase64(base64Url);
       }
       setIsReadingFile(false);
 
-      // Best effort local text extraction for immediate preview (plain text / docx)
-      try {
-        const buffer = await selectedFile.arrayBuffer();
-        const extracted = await extractCleanTextFromDocument(buffer, selectedFile.name);
-        if (extracted && extracted.trim().length >= 30) {
-          setResumeText(extracted.trim());
+      // Best effort local text extraction for immediate preview for DOCX/TXT only (NEVER for PDF)
+      if (!lowerName.endsWith('.pdf')) {
+        try {
+          const buffer = await selectedFile.arrayBuffer();
+          const extracted = await extractCleanTextFromDocument(buffer, selectedFile.name);
+          if (extracted && extracted.trim().length >= 30) {
+            setResumeText(extracted.trim());
+          }
+        } catch {
+          // Safe to ignore because backend GPT-6 Luna parses the document directly
         }
-      } catch {
-        // Safe to ignore because backend GPT-6 Luna parses the document directly
       }
     };
     reader.onerror = () => {
@@ -457,23 +465,44 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   const handleStartReview = async (textToAssess?: string) => {
     if (isSubmitting || viewState === 'processing') return;
 
-    if (isReadingFile) {
-      setGenericErrorMessage('Please wait a moment while your document finishes loading.');
-      return;
-    }
-
-    const currentFileName = fileName || file?.name || '';
+    const targetFile = activeFileRef.current || file;
+    const currentFileName = targetFile?.name || fileName || '';
     const lower = currentFileName.toLowerCase();
     const isDocFile = Boolean(lower.endsWith('.pdf') || lower.endsWith('.docx') || lower.endsWith('.doc'));
 
-    if (isDocFile && (!fileBase64 || fileBase64.length < 100)) {
+    let activeBase64 = activeBase64Ref.current || fileBase64;
+    let activeSize = targetFile?.size || fileSize || 0;
+
+    // Guaranteed on-demand synchronous file reading if not ready in state
+    if (targetFile && (!activeBase64 || activeBase64.length < 50)) {
+      try {
+        setIsReadingFile(true);
+        activeBase64 = await new Promise<string>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result as string);
+          r.onerror = () => reject(r.error || new Error('Failed to read file'));
+          r.readAsDataURL(targetFile);
+        });
+        activeBase64Ref.current = activeBase64;
+        setFileBase64(activeBase64);
+        activeSize = targetFile.size;
+        setFileSize(activeSize);
+        setIsReadingFile(false);
+      } catch {
+        setIsReadingFile(false);
+        setGenericErrorMessage('Failed to prepare document. Please re-select your file.');
+        return;
+      }
+    }
+
+    if (isDocFile && (!activeBase64 || activeBase64.length < 50)) {
       setGenericErrorMessage('Your document is still preparing. Please wait a moment and try again.');
       return;
     }
 
     const content = textToAssess || resumeText;
 
-    if (!fileBase64 && (!content || content.trim().length < 30)) {
+    if (!activeBase64 && (!content || content.trim().length < 30)) {
       setGenericErrorMessage('Please upload your resume (PDF or DOCX) to begin the assessment.');
       return;
     }
@@ -502,10 +531,10 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       const payload: Record<string, any> = {
         uploadId: uploadId || `UPL-${Date.now()}`,
         assessmentId,
-        resumeText: isDocFile && fileBase64 ? '' : (content || ''),
-        fileBase64: fileBase64 || undefined,
-        fileMimeType: fileMimeType || undefined,
-        fileSize: fileSize || file?.size || 0,
+        resumeText: isDocFile && activeBase64 ? '' : (content || ''),
+        fileBase64: activeBase64 || undefined,
+        fileMimeType: fileMimeType || (lower.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+        fileSize: activeSize,
         fileName: currentFileName || 'candidate_resume.pdf',
         isPublic: true,
       };
@@ -574,6 +603,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       if (!confirmed) return;
     }
     setViewState('idle');
+    activeFileRef.current = null;
+    activeBase64Ref.current = null;
     setFile(null);
     setFileName('');
     setFileSize(0);
