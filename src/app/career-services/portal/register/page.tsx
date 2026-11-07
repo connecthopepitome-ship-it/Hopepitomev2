@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Copy,
   Printer,
-  Sparkles,
 } from 'lucide-react';
 
 export default function ClientRegisterPage() {

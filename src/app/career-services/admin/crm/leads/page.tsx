@@ -46,7 +46,6 @@ import {
   Shield,
   Briefcase,
   Layers,
-  Sparkles,
   Link as LinkIcon,
 } from 'lucide-react';
 

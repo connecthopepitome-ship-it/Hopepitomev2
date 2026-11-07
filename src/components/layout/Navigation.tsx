@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Menu, X, ArrowRight, Sparkles, ExternalLink } from 'lucide-react';
+import { Menu, X, ArrowRight, BriefcaseBusiness, ExternalLink } from 'lucide-react';
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -78,7 +78,7 @@ export function Navigation() {
               href="/career-services"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E8E2FF] hover:text-white transition-colors px-2.5 py-1 rounded-lg bg-white/5 border border-white/10"
             >
-              <Sparkles className="w-3 h-3 text-[#FFD66B]" />
+              <BriefcaseBusiness className="w-3.5 h-3.5 text-[#9D85FF]" />
               <span>Career Studio</span>
             </Link>
           </nav>
@@ -137,7 +137,7 @@ export function Navigation() {
                 className="px-3 py-2 rounded-xl text-sm font-bold text-[#E8E2FF] bg-white/5 border border-white/10 flex items-center justify-between"
               >
                 <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#FFD66B]" />
+                  <BriefcaseBusiness className="w-4 h-4 text-[#9D85FF]" />
                   <span>Hopepitome Career Studio</span>
                 </span>
                 <ArrowRight className="w-4 h-4" />

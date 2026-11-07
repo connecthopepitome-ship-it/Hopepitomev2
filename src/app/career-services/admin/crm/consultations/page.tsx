@@ -11,16 +11,16 @@ import {
 } from '@/lib/firebase/firestore';
 import type { CrmConsultation } from '@/lib/career/types';
 import {
-  Calendar,
-  Clock,
+  CalendarDays,
+  Clock3,
   Video,
   Plus,
-  CheckCircle2,
-  XCircle,
+  CircleCheck,
+  CircleX,
   ExternalLink,
   Phone,
   MessageSquare,
-  Sparkles,
+  X,
 } from 'lucide-react';
 
 export default function ConsultationsPage() {
@@ -152,7 +152,7 @@ export default function ConsultationsPage() {
             </div>
           ) : consultations.length === 0 ? (
             <div className="text-center py-12 px-4 space-y-2">
-              <Calendar className="w-8 h-8 text-[#8172A8] mx-auto" />
+              <CalendarDays className="w-8 h-8 text-[#8172A8] mx-auto" />
               <h2 className="text-xs font-bold text-[#17243B]">No consultations scheduled</h2>
               <p className="text-[11px] text-[#777781]">Book a strategy session for qualified leads.</p>
             </div>
@@ -232,9 +232,9 @@ export default function ConsultationsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="inline-flex items-center gap-1 text-xs text-[#777781] hover:text-[#17243B]"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" /> Close
                 </button>
               </div>
 

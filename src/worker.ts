@@ -133,7 +133,8 @@ async function callGoogleAppsScript(
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
+    try {
+      const url = new URL(request.url);
 
     // Handle CORS preflight for all /api/ routes
     if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
@@ -963,9 +964,188 @@ export default {
     }
 
     // =========================================================================
+    // CANDIDATE: LOOKUP ASSESSMENT REPORT VIA REFERENCE CODE (24-HOUR SECURE ACCESS)
+    // =========================================================================
+    if (url.pathname === '/api/career/report/lookup') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const ref = (body?.referenceId || '').trim();
+        const contact = (body?.contact || '').trim().toLowerCase();
+
+        if (!ref) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Reference ID or Assessment Code is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        // 1. Direct search by assessment ID or reference code in Firestore
+        let assessmentRecord = await firestore.getDocument('ats_assessments', ref);
+
+        // 2. If not found by direct ID, scan recent assessments
+        if (!assessmentRecord) {
+          try {
+            const recent = await firestore.listDocuments('ats_assessments', 80);
+            const cleanRef = ref.toUpperCase();
+            assessmentRecord = (recent as any[]).find(
+              (a) =>
+                (a.assessmentId && a.assessmentId.toUpperCase() === cleanRef) ||
+                (a.enquiryId && a.enquiryId.toUpperCase() === cleanRef) ||
+                (a.referenceCode && a.referenceCode.toUpperCase() === cleanRef)
+            );
+          } catch {}
+        }
+
+        if (assessmentRecord) {
+          const isUnlocked = Boolean(assessmentRecord.isUnlocked);
+          const approvedAtStr = assessmentRecord.unlockApprovedAt;
+
+          if (isUnlocked && approvedAtStr) {
+            const approvedTime = new Date(approvedAtStr).getTime();
+            const nowTime = Date.now();
+            const windowMs = 24 * 60 * 60 * 1000;
+            const remainingMs = approvedTime + windowMs - nowTime;
+
+            if (remainingMs <= 0) {
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  status: 'EXPIRED',
+                  message: 'The 24-hour access window for this report has expired.',
+                  referenceId: ref,
+                }),
+                { status: 200, headers: CORS_HEADERS }
+              );
+            }
+
+            const publicReport = assessmentRecord.publicAssessment || assessmentRecord;
+            return new Response(
+              JSON.stringify({
+                success: true,
+                status: 'APPROVED',
+                remainingSeconds: Math.floor(remainingMs / 1000),
+                assessment: {
+                  ...publicReport,
+                  isLocked: false,
+                },
+                candidateProfile: assessmentRecord.candidateProfile,
+                approvedAt: approvedAtStr,
+              }),
+              { status: 200, headers: CORS_HEADERS }
+            );
+          }
+
+          // Not unlocked yet -> Pending review
+          return new Response(
+            JSON.stringify({
+              success: true,
+              status: 'PENDING_APPROVAL',
+              referenceId: assessmentRecord.enquiryId || assessmentRecord.assessmentId || ref,
+              submittedAt: assessmentRecord.createdAt || assessmentRecord.convertedAt,
+              message:
+                'Your report unlock request is currently under consultant review. Once approved, 24-hour access will be granted.',
+            }),
+            { status: 200, headers: CORS_HEADERS }
+          );
+        }
+
+        // 3. Fallback: Search career_enquiries for referenceCode
+        try {
+          const enquiries = await firestore.listDocuments('career_enquiries', 50);
+          const cleanRef = ref.toUpperCase();
+          const matchEnquiry = (enquiries as any[]).find(
+            (e) => e.referenceCode && e.referenceCode.toUpperCase() === cleanRef
+          );
+
+          if (matchEnquiry) {
+            return new Response(
+              JSON.stringify({
+                success: true,
+                status: 'PENDING_APPROVAL',
+                referenceId: matchEnquiry.referenceCode,
+                submittedAt: matchEnquiry.createdAt,
+                message:
+                  'Your career request has been received. Our team is processing your report verification.',
+              }),
+              { status: 200, headers: CORS_HEADERS }
+            );
+          }
+        } catch {}
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            status: 'NOT_FOUND',
+            message: 'No assessment or enquiry found matching reference code: ' + ref,
+          }),
+          { status: 404, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Lookup failed.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // ADMIN: APPROVE REPORT UNLOCK (GRANTS 24-HOUR SECURE ACCESS)
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/approve-unlock') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const assessmentId = (body?.assessmentId || '').trim();
+        const approvedBy = (body?.approvedBy || 'ADMIN_CONSULTANT').trim();
+
+        if (!assessmentId) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Assessment ID is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        await firestore.setDocument('ats_assessments', assessmentId, {
+          isUnlocked: true,
+          unlockApprovedAt: now,
+          unlockApprovedBy: approvedBy,
+          unlockExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: `Report ${assessmentId} successfully unlocked for 24 hours.`,
+            unlockedAt: now,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (e: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: e?.message || 'Approval failed.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
     // MULTI-PROVIDER AI: RUN ATS EVALUATION WITH AUTOMATIC FREE-TIER FAILOVER
     // =========================================================================
-    if (url.pathname === '/api/career/ai/ats-evaluate') {
+    if (url.pathname === '/api/career/ai/ats-evaluate' || url.pathname === '/api/career/evaluate-resume') {
       if (request.method !== 'POST') {
         return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
           status: 405,
@@ -1003,6 +1183,12 @@ export default {
                 ? fileObj.type
                 : lower.endsWith('.docx')
                 ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                : lower.endsWith('.jpg') || lower.endsWith('.jpeg')
+                ? 'image/jpeg'
+                : lower.endsWith('.png')
+                ? 'image/png'
+                : lower.endsWith('.webp')
+                ? 'image/webp'
                 : 'application/pdf';
             const arrayBuf = await fileObj.arrayBuffer();
             const base64Str = Buffer.from(arrayBuf).toString('base64');
@@ -1036,7 +1222,11 @@ export default {
         const isDocFile = Boolean(
           fileName.toLowerCase().endsWith('.pdf') ||
           fileName.toLowerCase().endsWith('.docx') ||
-          fileName.toLowerCase().endsWith('.doc')
+          fileName.toLowerCase().endsWith('.doc') ||
+          fileName.toLowerCase().endsWith('.jpg') ||
+          fileName.toLowerCase().endsWith('.jpeg') ||
+          fileName.toLowerCase().endsWith('.png') ||
+          fileName.toLowerCase().endsWith('.webp')
         );
 
         const hasFile = Boolean(fileBase64 && fileBase64.length > 50);
@@ -2833,19 +3023,36 @@ export default {
     }
 
     // 5. Fallback: Serve static Next.js export assets from ./out
-    const assetRes = await env.ASSETS.fetch(request);
-    const contentType = assetRes.headers.get('content-type') || '';
-    if (contentType.includes('text/html')) {
-      const freshHeaders = new Headers(assetRes.headers);
-      freshHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      freshHeaders.set('Pragma', 'no-cache');
-      freshHeaders.set('Expires', '0');
-      return new Response(assetRes.body, {
-        status: assetRes.status,
-        statusText: assetRes.statusText,
-        headers: freshHeaders,
-      });
+    if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+      const assetRes = await env.ASSETS.fetch(request);
+      const contentType = assetRes.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const freshHeaders = new Headers(assetRes.headers);
+        freshHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        freshHeaders.set('Pragma', 'no-cache');
+        freshHeaders.set('Expires', '0');
+        freshHeaders.set('Clear-Site-Data', '"cache"');
+        return new Response(assetRes.body, {
+          status: assetRes.status,
+          statusText: assetRes.statusText,
+          headers: freshHeaders,
+        });
+      }
+      return assetRes;
     }
-    return assetRes;
-  },
+
+    return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
+  } catch (unhandledErr: any) {
+    console.error('[Worker Fatal Exception]:', unhandledErr);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Worker Fatal Exception',
+        message: unhandledErr?.message || String(unhandledErr),
+        stack: unhandledErr?.stack || null,
+      }),
+      { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+    );
+  }
+},
 };

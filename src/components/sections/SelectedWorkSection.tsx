@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { X } from 'lucide-react';
 
 interface ProjectStudy {
   id: string;
@@ -224,10 +225,10 @@ export function SelectedWorkSection() {
               <button
                 type="button"
                 onClick={() => setSelectedStudy(null)}
-                className="p-1.5 text-muted-stone hover:text-warm-white border border-white/10 text-xs font-mono"
+                className="inline-flex items-center gap-1 p-1.5 text-muted-stone hover:text-warm-white border border-white/10 text-xs font-mono"
                 aria-label="Close study details"
               >
-                ✕ CLOSE
+                <X className="w-3.5 h-3.5" /> CLOSE
               </button>
             </div>
 

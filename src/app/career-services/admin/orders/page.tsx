@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Clock,
   RotateCcw,
-  Sparkles,
   User,
   ArrowRight,
   Filter,

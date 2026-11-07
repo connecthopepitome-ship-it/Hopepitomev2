@@ -6,12 +6,11 @@ import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import {
   Settings,
   ShieldCheck,
-  CheckCircle2,
+  CircleCheck,
   Save,
   Users,
   Layers,
   Clock,
-  Sparkles,
 } from 'lucide-react';
 
 export default function CrmSettingsPage() {
@@ -53,7 +52,7 @@ export default function CrmSettingsPage() {
 
         {savedNotice && (
           <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CircleCheck className="w-4 h-4 text-emerald-600" />
             <span>CRM configuration preferences saved successfully.</span>
           </div>
         )}
@@ -102,7 +101,7 @@ export default function CrmSettingsPage() {
           {/* Automation & Google Drive Preferences */}
           <div className="bg-white p-6 rounded-2xl border border-[#E6E2DC] space-y-4">
             <h2 className="text-sm font-bold text-[#17243B] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#8172A8]" />
+              <Settings className="w-4 h-4 text-[#8172A8]" />
               <span>Automation & Integration Preferences</span>
             </h2>
 

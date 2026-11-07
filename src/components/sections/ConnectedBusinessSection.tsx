@@ -1,5 +1,7 @@
 'use client';
 
+import { X, ArrowRight } from 'lucide-react';
+
 export function ConnectedBusinessSection() {
   const transformations = [
     {
@@ -80,11 +82,11 @@ export function ConnectedBusinessSection() {
 
                 <div className="space-y-3 mb-5">
                   <div className="px-3 py-2 bg-red-950/30 border border-red-500/35 rounded flex items-center space-x-2.5 text-xs font-mono text-red-200">
-                    <span className="text-red-400 font-bold select-none text-sm">✕</span>
+                    <X className="w-3.5 h-3.5 text-red-400 shrink-0" />
                     <span className="line-through decoration-red-400/80">{t.from}</span>
                   </div>
                   <div className="px-3.5 py-2.5 bg-[#9D85FF]/10 border border-[#9D85FF]/35 rounded flex items-center space-x-2.5 text-base sm:text-lg font-display font-bold text-[#F8F9FA] uppercase tracking-tight">
-                    <span className="text-[#9D85FF] font-mono select-none font-bold">→</span>
+                    <ArrowRight className="w-4 h-4 text-[#9D85FF] shrink-0" />
                     <span className="text-[#E8E2FF]">{t.to}</span>
                   </div>
                 </div>

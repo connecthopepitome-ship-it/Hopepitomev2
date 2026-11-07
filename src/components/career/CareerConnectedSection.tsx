@@ -5,10 +5,9 @@ import {
   FileText,
   Linkedin,
   Globe,
-  Briefcase,
+  BriefcaseBusiness,
   ArrowRight,
-  Sparkles,
-  CheckCircle2,
+  CircleCheck,
 } from 'lucide-react';
 
 const touchpoints = [
@@ -58,7 +57,7 @@ const touchpoints = [
     step: '04',
     title: 'Job Search Support',
     subtitle: 'Organise your next opportunity.',
-    icon: Briefcase,
+    icon: BriefcaseBusiness,
     description:
       'Practical assistance with job portal profiles, identifying relevant job openings, and tracking applications so your search stays organized.',
     meta: 'Search Support · Systematic Organisation',
@@ -77,7 +76,7 @@ export function CareerConnectedSection() {
         {/* Editorial Section Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
-            <Sparkles className="w-3 h-3 text-[#8172A8]" />
+            <BriefcaseBusiness className="w-3 h-3 text-[#8172A8]" />
             YOUR COMPLETE PROFESSIONAL PROFILE
           </div>
 
@@ -135,7 +134,7 @@ export function CareerConnectedSection() {
                   <div className="pt-4 border-t border-[#E6E2DC]/80 space-y-2">
                     {tp.features.map((feat, fIdx) => (
                       <div key={fIdx} className="flex items-center space-x-2 text-[11px] text-[#292D36]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
+                        <CircleCheck className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
                         <span>{feat}</span>
                       </div>
                     ))}

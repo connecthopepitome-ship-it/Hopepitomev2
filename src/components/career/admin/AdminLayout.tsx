@@ -10,37 +10,39 @@ import Link from 'next/link';
 import {
   LayoutDashboard,
   Users,
-  Briefcase,
+  UsersRound,
+  BriefcaseBusiness,
   CheckSquare,
-  FileBox,
+  Files,
   RotateCcw,
   Receipt,
   History,
   ChevronRight,
-  Inbox,
+  UserSearch,
   Kanban,
   PhoneCall,
-  Calendar,
-  BarChart3,
+  CalendarDays,
+  ChartNoAxesCombined,
   Settings,
   UserPlus,
-  Shield,
+  ShieldCheck,
   Building2,
   Activity,
-  Lock,
+  LockKeyhole,
   KeyRound,
-  AlertCircle,
-  CheckCircle2,
-  Layers,
+  CircleX,
+  CircleCheck,
+  FolderKanban,
   LifeBuoy,
   MoreHorizontal,
   X,
   Search,
   ArrowRight,
-  Sparkles,
+  ClipboardList,
   CreditCard,
   Cpu,
-  FileCheck,
+  ScanText,
+  TriangleAlert,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -79,39 +81,39 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const canManageEmployees = hasPermission('employees', 'view');
 
   const careerNavItems = useMemo(() => [
-    { label: 'Career Enquiries', href: '/career-services/admin/career-enquiries', icon: Sparkles, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'NEW' },
-    { label: 'ATS Resume Audit', href: '/career-services/admin/ats-checker', icon: FileCheck, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'AI' },
-    { label: 'Career Customers', href: '/career-services/admin/clients', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-100' },
-    { label: 'Career Projects', href: '/career-services/admin/projects', icon: Briefcase, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-    { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: FileBox, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+    { label: 'Career Enquiries', href: '/career-services/admin/career-enquiries', icon: ClipboardList, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'NEW' },
+    { label: 'ATS Resume Audit', href: '/career-services/admin/ats-checker', icon: ScanText, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'AI' },
+    { label: 'Career Customers', href: '/career-services/admin/clients', icon: UsersRound, color: 'text-teal-600 bg-teal-50 border-teal-100' },
+    { label: 'Career Projects', href: '/career-services/admin/projects', icon: FolderKanban, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+    { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: Files, color: 'text-amber-600 bg-amber-50 border-amber-100' },
   ], []);
 
   const projectDeliveryNavItems = useMemo(() => [
-    { label: 'Project Hub', href: '/career-services/admin/projects', icon: Briefcase, color: 'text-violet-600 bg-violet-50 border-violet-100' },
+    { label: 'Project Hub', href: '/career-services/admin/projects', icon: FolderKanban, color: 'text-violet-600 bg-violet-50 border-violet-100' },
     { label: 'Work Orders', href: '/career-services/admin/orders', icon: RotateCcw, color: 'text-rose-600 bg-rose-50 border-rose-100' },
     { label: 'Task Board', href: '/career-services/admin/tasks', icon: CheckSquare, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     { label: 'Team Assignments', href: '/career-services/admin/employees/directory', icon: Users, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-    { label: 'Service Catalogue', href: '/career-services/admin/services', icon: Layers, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+    { label: 'Service Catalogue', href: '/career-services/admin/services', icon: BriefcaseBusiness, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Support & SLAs', href: '/career-services/admin/support', icon: LifeBuoy, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     { label: 'Audit Trail', href: '/career-services/admin/audit', icon: History, color: 'text-slate-600 bg-slate-50 border-slate-100' },
   ], []);
 
   const crmNavItems = useMemo(() => [
-    { label: 'Leads Inbox', href: '/career-services/admin/crm/leads', icon: Inbox, color: 'text-sky-600 bg-sky-50 border-sky-100' },
-    { label: 'Customer Directory', href: '/career-services/admin/clients', icon: Users, color: 'text-teal-600 bg-teal-50 border-teal-100' },
+    { label: 'Leads Inbox', href: '/career-services/admin/crm/leads', icon: UserSearch, color: 'text-sky-600 bg-sky-50 border-sky-100' },
+    { label: 'Customer Directory', href: '/career-services/admin/clients', icon: UsersRound, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Sales Pipeline', href: '/career-services/admin/crm/pipeline', icon: Kanban, color: 'text-purple-600 bg-purple-50 border-purple-100' },
     { label: 'Quotations', href: '/career-services/admin/crm/quotations', icon: Receipt, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     { label: 'Follow-ups & Calls', href: '/career-services/admin/crm/follow-ups', icon: PhoneCall, color: 'text-amber-600 bg-amber-50 border-amber-100' },
-    { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: Calendar, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+    { label: 'Consultations', href: '/career-services/admin/crm/consultations', icon: CalendarDays, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     { label: 'AI Providers & ATS', href: '/career-services/admin/crm/settings/ai-providers', icon: Cpu, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'FREE' },
-    { label: 'Sales Reports', href: '/career-services/admin/crm/reports', icon: BarChart3, color: 'text-teal-600 bg-teal-50 border-teal-100' },
+    { label: 'Sales Reports', href: '/career-services/admin/crm/reports', icon: ChartNoAxesCombined, color: 'text-teal-600 bg-teal-50 border-teal-100' },
   ], []);
 
   const empNavItems = useMemo(() => [
     { label: 'Staff Overview', href: '/career-services/admin/employees', icon: LayoutDashboard, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     { label: 'All Employees', href: '/career-services/admin/employees/directory', icon: Users, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     { label: 'Add Employee', href: '/career-services/admin/employees/new', icon: UserPlus, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-    { label: 'Roles & RBAC', href: '/career-services/admin/employees/roles', icon: Shield, color: 'text-purple-600 bg-purple-50 border-purple-100' },
+    { label: 'Roles & RBAC', href: '/career-services/admin/employees/roles', icon: ShieldCheck, color: 'text-purple-600 bg-purple-50 border-purple-100' },
     { label: 'Departments', href: '/career-services/admin/employees/departments', icon: Building2, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Activity Logs', href: '/career-services/admin/employees/activity', icon: Activity, color: 'text-amber-600 bg-amber-50 border-amber-100' },
   ], []);
@@ -152,7 +154,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div className="min-h-screen bg-[#F5F7FC] flex items-center justify-center p-4 font-['Manrope',sans-serif]">
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xl max-w-md w-full text-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-700 flex items-center justify-center mx-auto">
-            <AlertCircle className="w-6 h-6" />
+            <TriangleAlert className="w-6 h-6" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 font-['Plus_Jakarta_Sans',sans-serif]">Access Restricted</h2>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -230,7 +232,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <div className="mt-6 bg-white py-8 px-6 sm:px-10 rounded-2xl border border-slate-200 shadow-sm">
             {passError && (
               <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200/80 flex items-start gap-2.5 text-xs text-red-700">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{passError}</span>
               </div>
             )}
@@ -242,7 +244,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="w-4 h-4" />
+                    <LockKeyhole className="w-4 h-4" />
                   </div>
                   <input
                     type="password"
@@ -261,7 +263,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Lock className="w-4 h-4" />
+                    <LockKeyhole className="w-4 h-4" />
                   </div>
                   <input
                     type="password"
@@ -283,7 +285,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <CircleCheck className="w-4 h-4 text-emerald-400" />
                     <span>Set Password & Enter Workspace</span>
                   </>
                 )}
@@ -499,7 +501,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           }`}
         >
           <div className={`p-1 rounded-lg ${pathname.startsWith('/career-services/admin/crm') ? 'bg-sky-50 text-sky-600' : ''}`}>
-            <Inbox className="w-4 h-4" />
+            <UserSearch className="w-4 h-4" />
           </div>
           <span className="text-[10px] leading-tight mt-0.5">CRM</span>
         </Link>
@@ -513,7 +515,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           }`}
         >
           <div className={`p-1 rounded-lg ${pathname.startsWith('/career-services/admin/projects') ? 'bg-violet-50 text-[#6558D3]' : ''}`}>
-            <Briefcase className="w-4 h-4" />
+            <FolderKanban className="w-4 h-4" />
           </div>
           <span className="text-[10px] leading-tight mt-0.5">Projects</span>
         </Link>
@@ -623,7 +625,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition"
                 >
                   <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                    <Calendar className="w-4 h-4" />
+                    <CalendarDays className="w-4 h-4" />
                   </div>
                   <div className="truncate">
                     <p className="text-xs font-semibold text-slate-800 truncate">Consultations</p>
@@ -645,7 +647,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition"
                 >
                   <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                    <Users className="w-4 h-4" />
+                    <UsersRound className="w-4 h-4" />
                   </div>
                   <div className="truncate">
                     <p className="text-xs font-semibold text-slate-800 truncate">Customers 360</p>
@@ -659,7 +661,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition"
                 >
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Layers className="w-4 h-4" />
+                    <BriefcaseBusiness className="w-4 h-4" />
                   </div>
                   <div className="truncate">
                     <p className="text-xs font-semibold text-slate-800 truncate">Service Catalog</p>

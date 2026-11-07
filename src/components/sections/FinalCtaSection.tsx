@@ -3,17 +3,18 @@
 import React, { useState } from 'react';
 import {
   Send,
-  CheckCircle2,
+  CircleCheck,
   Copy,
   Check,
   ShieldCheck,
-  Sparkles,
+  FolderKanban,
   ArrowRight,
   MessageSquare,
   Globe,
   Code2,
   Zap,
   Users,
+  Lightbulb,
 } from 'lucide-react';
 
 interface ProjectFormState {
@@ -32,7 +33,7 @@ const SERVICE_CATEGORIES = [
   { id: 'Custom Business Software', label: 'Custom Software', icon: Code2 },
   { id: 'Business Automation', label: 'Automation', icon: Zap },
   { id: 'ERP & CRM Solutions', label: 'ERP & CRM', icon: Users },
-  { id: 'General Project Idea', label: 'Other / Just an Idea', icon: Sparkles },
+  { id: 'General Project Idea', label: 'Other / Just an Idea', icon: Lightbulb },
 ];
 
 export function FinalCtaSection() {
@@ -148,7 +149,7 @@ export function FinalCtaSection() {
         {/* Section Header */}
         <div className="text-center space-y-3 mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono tracking-wider uppercase text-[#9D85FF]">
-            <Sparkles className="w-3.5 h-3.5 text-[#FFD66B]" />
+            <FolderKanban className="w-3.5 h-3.5 text-[#9D85FF]" />
             <span>Start Your Project</span>
           </div>
 
@@ -324,7 +325,7 @@ export function FinalCtaSection() {
             /* Submission Success Receipt */
             <div className="text-center py-6 sm:py-8 space-y-6">
               <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-500/20 text-[#65DDB5] flex items-center justify-center shadow-lg border border-emerald-500/30">
-                <CheckCircle2 className="w-9 h-9" />
+                <CircleCheck className="w-9 h-9" />
               </div>
 
               <div className="space-y-1.5 max-w-md mx-auto">

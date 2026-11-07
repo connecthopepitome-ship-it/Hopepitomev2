@@ -31,7 +31,7 @@ import {
   ArrowRight,
   ArrowLeft,
   AlertCircle,
-  Sparkles,
+  Info,
   UploadCloud,
   FileText,
   FileCheck,
@@ -41,6 +41,7 @@ import {
   ExternalLink,
   ChevronRight,
   HelpCircle,
+  X,
 } from 'lucide-react';
 
 export default function CareerOnboardingWizardPage() {
@@ -451,7 +452,7 @@ export default function CareerOnboardingWizardPage() {
         {/* Reassuring Banner (Prompt requirement #8) */}
         <div className="bg-[#FAF8FC] border border-[#E6E2DC] p-4 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-[0_1px_3px_rgba(23,36,59,0.02)]">
           <div className="flex items-center gap-3">
-            <Sparkles className="w-5 h-5 text-[#8172A8] shrink-0" />
+            <Info className="w-5 h-5 text-[#8172A8] shrink-0" />
             <p className="text-xs sm:text-sm font-medium text-[#17243B]">
               “You don’t need to have everything ready. Start with what you have, and add the rest whenever you’re ready.”
             </p>
@@ -676,8 +677,8 @@ export default function CareerOnboardingWizardPage() {
                       <FileCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700">
-                        Resume Received ✓
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700">
+                        Resume Received <Check className="w-3 h-3 text-emerald-700" />
                       </span>
                       <h3 className="text-sm font-bold text-[#17243B]">
                         {uploadedResumeName}
@@ -734,9 +735,10 @@ export default function CareerOnboardingWizardPage() {
                       </div>
                       <button
                         onClick={() => setSelectedFile(null)}
-                        className="text-[#777781] hover:text-red-600 text-xs shrink-0 pl-2"
+                        className="text-[#777781] hover:text-red-600 text-xs shrink-0 pl-2 p-1"
+                        aria-label="Remove selected file"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
@@ -883,7 +885,7 @@ export default function CareerOnboardingWizardPage() {
                             : 'bg-[#E6E2DC] text-[#777781]'
                         }`}
                       >
-                        {isPast ? '✓' : st.number}
+                        {isPast ? <Check className="w-3.5 h-3.5" /> : st.number}
                       </div>
                       <span className="whitespace-nowrap">{st.title}</span>
                     </button>
@@ -1558,7 +1560,7 @@ export default function CareerOnboardingWizardPage() {
                   <div className="bg-[#17243B] text-white p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h4 className="text-sm font-bold flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-[#A69ACB]" />
+                        <Save className="w-4 h-4 text-[#A69ACB]" />
                         <span>Save Profile & Continue</span>
                       </h4>
                       <p className="text-xs text-white/80 mt-1 max-w-md">

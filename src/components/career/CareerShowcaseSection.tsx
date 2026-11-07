@@ -7,11 +7,9 @@ import {
   GraduationCap,
   Terminal,
   Globe,
-  Sparkles,
-  CheckCircle2,
+  CircleCheck,
   ExternalLink,
   ChevronRight,
-  Shield,
   Info,
 } from 'lucide-react';
 
@@ -192,7 +190,7 @@ export function CareerShowcaseSection() {
         {/* Section Header */}
         <div className="max-w-3xl mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
-            <Sparkles className="w-3 h-3 text-[#8172A8]" />
+            <FileText className="w-3.5 h-3.5 text-[#8172A8]" />
             SAMPLE SHOWCASE
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
@@ -265,7 +263,7 @@ export function CareerShowcaseSection() {
                       key={hIdx}
                       className="flex items-start space-x-2.5 p-3 rounded-xl bg-[#FAF8FC] border border-[#E6E2DC]/80"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
+                      <CircleCheck className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
                       <span className="text-xs text-[#292D36] font-medium leading-relaxed">
                         {hl}
                       </span>
@@ -394,7 +392,7 @@ export function CareerShowcaseSection() {
                       </div>
 
                       <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                         <span>Responsive layout with clear typography, project galleries, and contact section.</span>
                       </div>
                     </div>

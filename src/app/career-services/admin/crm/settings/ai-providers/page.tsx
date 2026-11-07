@@ -6,11 +6,9 @@ import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import {
   Cpu,
   ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Sparkles,
-  RefreshCw,
+  CircleCheck,
+  CircleX,
+  RotateCcw,
   Zap,
   Server,
   Activity,
@@ -142,7 +140,7 @@ Education: B.S. in Computer Science.`;
                 AI Provider Architecture
               </span>
               <span className="text-[10px] font-bold bg-blue-50 text-[#173B8F] px-2.5 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-[#173B8F]" />
+                <Cpu className="w-3 h-3 text-[#173B8F]" />
                 EXCLUSIVE: OPENAI GPT-6 LUNA
               </span>
             </div>
@@ -160,7 +158,7 @@ Education: B.S. in Computer Science.`;
               disabled={refreshing}
               className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5 transition"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              <RotateCcw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Refresh Metrics</span>
             </button>
 
@@ -187,9 +185,9 @@ Education: B.S. in Computer Science.`;
             <div className="flex items-center justify-between font-bold">
               <span className="flex items-center gap-1.5 text-sm font-['Plus_Jakarta_Sans',sans-serif]">
                 {testResult.success ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <CircleCheck className="w-4 h-4 text-emerald-600" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-red-600" />
+                  <CircleX className="w-4 h-4 text-red-600" />
                 )}
                 {testResult.success ? 'GPT-6 Luna Test Passed Successfully' : 'Connection Test Failed'}
               </span>
@@ -409,7 +407,7 @@ Education: B.S. in Computer Science.`;
 
               {budgetSaveSuccess && (
                 <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CircleCheck className="w-3.5 h-3.5" />
                   <span>Budget ceiling updated successfully.</span>
                 </div>
               )}

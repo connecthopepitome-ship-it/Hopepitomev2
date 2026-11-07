@@ -15,15 +15,9 @@ import {
   Plus,
   Phone,
   MessageSquare,
-  AlertCircle,
-  Clock,
-  UserCheck,
   ChevronRight,
-  ArrowRight,
-  MoveRight,
-  FolderKanban,
   TrendingUp,
-  Sparkles,
+  X,
 } from 'lucide-react';
 
 const PIPELINE_STAGES: { stage: CrmPipelineStage; color: string }[] = [
@@ -341,8 +335,8 @@ export default function SalesPipelinePage() {
             <div className="bg-surface-container-lowest rounded-2xl max-w-sm w-full p-6 shadow-xl border border-outline-variant/30 space-y-4">
               <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
                 <h3 className="font-headline-sm text-base font-bold text-primary">Move Funnel Stage</h3>
-                <button onClick={() => setSelectedLead(null)} className="p-1 rounded-lg hover:bg-surface-container-low text-secondary">
-                  ✕
+                <button onClick={() => setSelectedLead(null)} className="p-1 rounded-lg hover:bg-surface-container-low text-secondary" aria-label="Close dialog">
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { UserCheck, Sparkles, ShieldCheck } from 'lucide-react';
+import { UserCheck, ShieldCheck, FileText } from 'lucide-react';
 
 const WHY_POINTS = [
   {
@@ -13,7 +13,7 @@ const WHY_POINTS = [
       'Collaborate directly with seasoned industry strategists who understand your career trajectory. No robotic AI generators or outsourced cookie-cutter templates.',
   },
   {
-    icon: Sparkles,
+    icon: FileText,
     title: 'Professional Presentation',
     color: '#9B6BFF',
     bg: 'bg-[#9B6BFF]/10',

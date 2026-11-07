@@ -11,14 +11,8 @@ import {
 } from '@/lib/firebase/firestore';
 import type { CareerDeliverable, ServiceOrder } from '@/lib/career/types';
 import {
-  FileBox,
-  UploadCloud,
-  Download,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  Plus,
-  ExternalLink,
+  Upload,
+  X,
 } from 'lucide-react';
 
 export default function AdminDeliverablesPage() {
@@ -125,7 +119,7 @@ export default function AdminDeliverablesPage() {
             onClick={() => setShowUploadModal(true)}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition"
           >
-            <UploadCloud className="w-4 h-4" />
+            <Upload className="w-4 h-4" />
             <span>Upload New Deliverable</span>
           </button>
         </div>
@@ -195,9 +189,9 @@ export default function AdminDeliverablesPage() {
                 </h3>
                 <button
                   onClick={() => setShowUploadModal(false)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="inline-flex items-center gap-1 text-xs text-[#777781] hover:text-[#17243B]"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" /> Close
                 </button>
               </div>
 

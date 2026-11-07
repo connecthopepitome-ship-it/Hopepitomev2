@@ -12,10 +12,10 @@ import {
   Linkedin,
   Globe,
   Send,
-  CheckCircle2,
+  CircleCheck,
   ArrowRight,
   ShieldCheck,
-  Sparkles,
+  Check,
 } from 'lucide-react';
 
 export default function NewServiceOrderPage() {
@@ -165,7 +165,7 @@ export default function NewServiceOrderPage() {
 
         {orderCreated ? (
           <div className="bg-[#FFFFFF] p-12 rounded-2xl border border-emerald-200 text-center space-y-4">
-            <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+            <CircleCheck className="w-12 h-12 text-emerald-600 mx-auto" />
             <h2 className="text-lg font-bold text-[#17243B]">
               Order #{orderCreated} Successfully Registered!
             </h2>
@@ -211,7 +211,11 @@ export default function NewServiceOrderPage() {
                       </div>
                       <div className="mt-3 pt-2 border-t border-[#E6E2DC]/30 flex items-center justify-between text-[10px]">
                         <span>Allowance: {srv.revisionAllowance} revisions</span>
-                        {isSelected && <span className="font-semibold text-[#A69ACB]">Selected ✓</span>}
+                        {isSelected && (
+                          <span className="inline-flex items-center gap-1 font-semibold text-[#A69ACB]">
+                            Selected <Check className="w-3.5 h-3.5 text-[#A69ACB]" />
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -260,7 +264,7 @@ export default function NewServiceOrderPage() {
                         <ul className="space-y-1.5 text-[11px] text-[#292D36]">
                           {pkg.features.map((f, i) => (
                             <li key={i} className="flex items-center gap-1.5">
-                              <span className="text-[#8172A8] font-bold">✓</span>
+                              <Check className="w-3.5 h-3.5 text-[#8172A8] shrink-0" />
                               <span>{f}</span>
                             </li>
                           ))}

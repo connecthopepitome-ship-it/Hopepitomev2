@@ -1,51 +1,51 @@
-import { CareerNavigation } from '@/components/career/CareerNavigation';
-import { CareerHeroSection } from '@/components/career/CareerHeroSection';
+import { CareerStudioHeader } from '@/components/career/CareerStudioHeader';
+import { CareerStudioHero } from '@/components/career/CareerStudioHero';
+import { CandidateActivityCard } from '@/components/career/CandidateActivityCard';
+import { CompactServiceRows } from '@/components/career/CompactServiceRows';
 import { EmbeddedAtsResumeChecker } from '@/components/career/EmbeddedAtsResumeChecker';
-import { CareerIntakeWizard } from '@/components/career/CareerIntakeWizard';
-import { CareerWhyUsSection } from '@/components/career/CareerWhyUsSection';
 import { CareerProcessSection } from '@/components/career/CareerProcessSection';
 import { CareerFaqSection } from '@/components/career/CareerFaqSection';
-import { CareerFinalCtaSection } from '@/components/career/CareerFinalCtaSection';
 import { CareerFooter } from '@/components/career/CareerFooter';
+import { CareerBottomNav } from '@/components/career/CareerBottomNav';
 
 export const metadata = {
-  title: 'Hopepitome Career Services — Free AI Resume Checker & Career Studio',
+  title: 'Hopepitome Career Studio — Scan My Resume & Professional Resume Writing',
   description:
-    'Free AI resume checker, ATS score assessment, professional resume writing, ATS optimisation, LinkedIn profile makeovers, and career positioning for ambitious professionals.',
+    'Free AI resume assessment, ATS score verification, professional resume writing, and customized career solutions for ambitious professionals.',
 };
 
-export default function CareerServicesPage() {
+export default function CareerStudioPage() {
   return (
-    <div className="bg-[#FAF8FF] text-[#24233A] min-h-screen flex flex-col relative font-sans antialiased selection:bg-[#7357F5]/20 selection:text-[#7357F5]">
-      {/* 1. Sticky Navigation Header */}
-      <CareerNavigation />
+    <div className="bg-[#FAF8FF] text-[#24233A] min-h-screen flex flex-col relative font-sans antialiased selection:bg-[#7454F5]/20 selection:text-[#7454F5]">
+      {/* 1. Compact Header */}
+      <CareerStudioHeader />
 
-      {/* Main Studio Editorial Flow */}
-      <main className="flex-1 flex flex-col">
-        {/* Section 1 — Career Services Hero */}
-        <CareerHeroSection />
+      {/* Main Career Studio Flow */}
+      <main className="flex-1 flex flex-col pb-20 lg:pb-0">
+        {/* Section A: Welcome & Two Primary Action Cards (Scan My Resume + Resume Writing) */}
+        <CareerStudioHero />
 
-        {/* Section 2 — Embedded AI Resume Checker */}
+        {/* Section B: My Career Activity (Recent Scans, Unlocked Reports, Active Requests) */}
+        <CandidateActivityCard />
+
+        {/* Section C: Other Career Services (Compact Horizontal Rows) */}
+        <CompactServiceRows />
+
+        {/* Section D: Free AI Resume & ATS Scanner (Preserved 100%) */}
         <EmbeddedAtsResumeChecker />
 
-        {/* Section 3 — Service Catalogue & Compact Intake Flow */}
-        <CareerIntakeWizard />
-
-        {/* Section 4 — Why Hopepitome Feature Cards */}
-        <CareerWhyUsSection />
-
-        {/* Section 5 — How It Works 3-Step Visual Process */}
+        {/* Section E: How It Works Visual Workflow (Progressive Secondary Content) */}
         <CareerProcessSection />
 
-        {/* Section 6 — Frequently Asked Questions */}
+        {/* Section F: Frequently Asked Questions */}
         <CareerFaqSection />
-
-        {/* Section 7 — High-Converting Final Call to Action */}
-        <CareerFinalCtaSection />
       </main>
 
-      {/* 8. Modern Studio Footer */}
+      {/* Modern Studio Footer */}
       <CareerFooter />
+
+      {/* Mobile-First Bottom Navigation (Home, Scan, Services, Account) */}
+      <CareerBottomNav />
     </div>
   );
 }

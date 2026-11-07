@@ -7,14 +7,15 @@ import { subscribeDocuments, logActivity } from '@/lib/firebase/firestore';
 import type { CareerDocument, DocumentCategory } from '@/lib/career/types';
 import {
   FileText,
-  UploadCloud,
+  Upload,
   Download,
   ShieldCheck,
   Plus,
-  CheckCircle2,
-  AlertCircle,
+  CircleCheck,
+  CircleX,
   FolderSync,
   ExternalLink,
+  X,
 } from 'lucide-react';
 
 const ALLOWED_MIME_TYPES = [
@@ -236,7 +237,7 @@ export default function ClientDocumentsVaultPage() {
             onClick={() => setShowUploadModal(true)}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#17243B] hover:bg-[#292D36] text-white text-xs font-semibold shadow-sm transition"
           >
-            <UploadCloud className="w-4 h-4" />
+            <Upload className="w-4 h-4" />
             <span>Upload Document</span>
           </button>
         </div>
@@ -344,22 +345,22 @@ export default function ClientDocumentsVaultPage() {
                   type="button"
                   onClick={() => setShowUploadModal(false)}
                   disabled={uploading}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="inline-flex items-center gap-1 text-xs text-[#777781] hover:text-[#17243B]"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" /> Close
                 </button>
               </div>
 
               {uploadError && (
                 <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <CircleX className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{uploadError}</span>
                 </div>
               )}
 
               {uploadSuccess && (
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2 text-xs text-emerald-800">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                  <CircleCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
                   <span>{uploadSuccess}</span>
                 </div>
               )}
@@ -405,7 +406,7 @@ export default function ClientDocumentsVaultPage() {
                   className="hidden"
                 />
 
-                <UploadCloud className="w-8 h-8 text-[#8172A8] mx-auto mb-2" />
+                <Upload className="w-8 h-8 text-[#8172A8] mx-auto mb-2" />
                 <p className="text-xs font-bold text-[#17243B]">
                   {selectedFile ? selectedFile.name : 'Choose a file or drag and drop it here'}
                 </p>

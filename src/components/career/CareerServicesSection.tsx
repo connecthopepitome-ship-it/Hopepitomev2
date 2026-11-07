@@ -6,13 +6,12 @@ import {
   Search,
   Linkedin,
   Globe,
-  Briefcase,
-  CheckCircle,
+  BriefcaseBusiness,
+  CircleCheck,
   ArrowRight,
-  AlertCircle,
-  Shield,
-  Sparkles,
-  Lock,
+  Info,
+  ShieldCheck,
+  LockKeyhole,
 } from 'lucide-react';
 
 export function CareerServicesSection() {
@@ -34,7 +33,7 @@ export function CareerServicesSection() {
         {/* Section Header */}
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
-            <Sparkles className="w-3 h-3 text-[#8172A8]" />
+            <BriefcaseBusiness className="w-3.5 h-3.5 text-[#8172A8]" />
             OUR SERVICES
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
@@ -97,7 +96,7 @@ export function CareerServicesSection() {
                     'Editable and final document formats (DOCX + PDF)',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
-                      <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
+                      <CircleCheck className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -131,7 +130,7 @@ export function CareerServicesSection() {
 
                 {/* Important Technical & Ethical Policy Notice */}
                 <div className="bg-[#F7F5F0] border border-[#E6E2DC] rounded-xl p-4 flex items-start space-x-3">
-                  <AlertCircle className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
+                  <Info className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
                   <p className="text-xs text-[#777781] leading-relaxed">
                     <strong className="text-[#17243B] font-semibold">Important notice:</strong> We
                     do not promise guaranteed ATS scores, guaranteed shortlisting or guaranteed
@@ -167,7 +166,7 @@ export function CareerServicesSection() {
                     'Readability and consistency review',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
-                      <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
+                      <CircleCheck className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -226,7 +225,7 @@ export function CareerServicesSection() {
                     'Profile completeness review',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
-                      <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
+                      <CircleCheck className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -300,7 +299,7 @@ export function CareerServicesSection() {
                     'Deployment setup and handover',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
-                      <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
+                      <CircleCheck className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -315,7 +314,7 @@ export function CareerServicesSection() {
               <div className="lg:col-span-7 space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="p-2.5 rounded-xl bg-white border border-[#E6E2DC] text-[#8172A8] shadow-2xs">
-                    <Briefcase className="w-5 h-5" />
+                    <BriefcaseBusiness className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#8172A8]">
                     Service 05 · Managed Job Search & Applications
@@ -335,7 +334,7 @@ export function CareerServicesSection() {
                 {/* Important Service Boundaries Notice */}
                 <div className="bg-[#F7F5F0] border border-[#E6E2DC] rounded-xl p-4 space-y-2">
                   <div className="flex items-center space-x-2 text-xs font-bold text-[#17243B]">
-                    <Shield className="w-4 h-4 text-[#8172A8]" />
+                    <ShieldCheck className="w-4 h-4 text-[#8172A8]" />
                     <span>Important Service Boundaries & Candidate Consent</span>
                   </div>
                   <p className="text-xs text-[#777781] leading-relaxed">
@@ -347,7 +346,7 @@ export function CareerServicesSection() {
                     apply to unsuitable roles without your consent.
                   </p>
                   <div className="flex items-center space-x-2 text-[11px] font-mono text-[#8172A8] pt-1">
-                    <Lock className="w-3.5 h-3.5 text-[#8172A8]" />
+                    <LockKeyhole className="w-3.5 h-3.5 text-[#8172A8]" />
                     <span>Privacy Notice: Candidate credentials and personal data are strictly protected.</span>
                   </div>
                 </div>
@@ -380,7 +379,7 @@ export function CareerServicesSection() {
                     'Periodic progress updates',
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-start space-x-2.5">
-                      <CheckCircle className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
+                      <CircleCheck className="w-4 h-4 text-[#8172A8] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}

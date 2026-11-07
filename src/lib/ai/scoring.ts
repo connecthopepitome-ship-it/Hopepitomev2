@@ -131,11 +131,11 @@ You execute two logical stages in a single unified structured output:
 
 STAGE A — DOCUMENT EXTRACTION & UNDERSTANDING:
 1. DOCUMENT READABILITY & MULTIMODAL EXTRACTION:
-   - Carefully inspect the document text, visual formatting, tables, and page layout.
-   - You MUST extract information from resumes created via standard word processors, PDFs, graphic editors (e.g. Canva), and visual/scanned documents containing photos or styling.
-   - As long as candidate professional information (such as name, job titles, companies, skills, or education) is visually or textually identifiable in the document, set validation.documentReadable = true and proceed with full extraction.
-   - If a candidate photo, avatar, or profile image is present, ignore the photo and focus on extracting the candidate's professional text, experience, and accomplishments.
-   - ONLY set validation.documentReadable = false if the document is entirely blank, genuinely unreadable corrupted binary data, or completely non-resume material (e.g. random code, invoice, blank page, or unreadable blur).
+   - Carefully inspect the document text, visual formatting, tables, page layout, and any attached visual page scans.
+   - You have full multimodal vision capability. If the document is an image, screenshot, mobile photo, or scanned PDF (such as files containing '_Photo_' in the filename or documents generated from graphic editors like Canva), PERFORM VISUAL OCR to read all visible text, headings, job titles, companies, dates, metrics, and skills directly from the visual page.
+   - Ignore candidate portrait photographs, avatars, or decorative styling elements and focus entirely on extracting candidate professional qualifications, track record, and achievements.
+   - NEVER declare a document unreadable if candidate professional text or employment details can be visually or textually discerned.
+   - ONLY set validation.documentReadable = false if the document is entirely blank, completely corrupt with zero discernible content, or completely unrelated non-resume material (e.g. invoice, random binary noise, or unreadable blur).
    - CRITICAL OUTPUT INTEGRITY: actualProfession, inferredRole, and inferredDomain must ALWAYS contain realistic, high-calibre professional job titles and industry domains (e.g. "Procurement Specialist", "Supply Chain & Procurement", "Accountant", "Financial Services", "Operations Lead"). Always ground them in the candidate's verified track record and competencies.
 2. Read the full document visually and semantically. Extract candidate facts into candidateProfile:
    - name: Candidate's full name (or null if not found)

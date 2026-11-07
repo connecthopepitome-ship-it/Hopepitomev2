@@ -3,9 +3,10 @@
 import React from 'react';
 import {
   Check,
-  Clock,
+  Clock3,
   RotateCcw,
-  Sparkles,
+  Receipt,
+  FilePenLine,
   ArrowRight,
   ShieldCheck,
   CreditCard,
@@ -105,7 +106,7 @@ export function CareerPackagesSection() {
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
-            <Sparkles className="w-3 h-3 text-[#8172A8]" />
+            <Receipt className="w-3.5 h-3.5 text-[#8172A8]" />
             PACKAGES & PRICING
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">
@@ -168,7 +169,7 @@ export function CareerPackagesSection() {
                 {/* Timelines and Revisions */}
                 <div className="space-y-2 py-3 border-y border-[#E6E2DC]/80 mb-5 text-xs text-[#292D36]">
                   <div className="flex items-start space-x-2">
-                    <Clock className="w-3.5 h-3.5 text-[#8172A8] shrink-0 mt-0.5" />
+                    <Clock3 className="w-3.5 h-3.5 text-[#8172A8] shrink-0 mt-0.5" />
                     <span>
                       Timeline: <strong>{pkg.turnaround}</strong>
                     </span>
@@ -246,7 +247,7 @@ export function CareerPackagesSection() {
             </div>
 
             <div className="flex items-start space-x-3">
-              <Sparkles className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
+              <FilePenLine className="w-5 h-5 text-[#8172A8] shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-[#17243B] mb-1">Flexible Scoping</h3>
                 <p>

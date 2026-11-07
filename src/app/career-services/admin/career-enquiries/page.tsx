@@ -20,12 +20,11 @@ import type {
 } from '@/lib/career/types';
 import { formatINR } from '@/lib/currency';
 import {
-  Sparkles,
+  ClipboardList,
   Search,
   Filter,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
+  CircleCheck,
+  Clock3,
   FileText,
   Download,
   ExternalLink,
@@ -248,7 +247,7 @@ function CareerEnquiriesContent() {
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
             <span>Under Review</span>
-            <Clock className="w-3.5 h-3.5 text-purple-500" />
+            <Clock3 className="w-3.5 h-3.5 text-purple-500" />
           </div>
           <span className="text-2xl font-bold text-purple-700 font-['Plus_Jakarta_Sans',sans-serif]">
             {metrics.reviewCount}
@@ -268,7 +267,7 @@ function CareerEnquiriesContent() {
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
             <span>Approved</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <CircleCheck className="w-3.5 h-3.5 text-emerald-500" />
           </div>
           <span className="text-2xl font-bold text-emerald-700 font-['Plus_Jakarta_Sans',sans-serif]">
             {metrics.approvedCount}
@@ -349,7 +348,7 @@ function CareerEnquiriesContent() {
           <div className="p-12 text-center text-xs text-slate-400">Loading career enquiries...</div>
         ) : filteredEnquiries.length === 0 ? (
           <div className="p-12 text-center space-y-2">
-            <Sparkles className="w-8 h-8 text-slate-300 mx-auto" />
+            <ClipboardList className="w-8 h-8 text-slate-300 mx-auto" />
             <p className="text-sm font-semibold text-slate-700">No career enquiries found</p>
             <p className="text-xs text-slate-400">
               {searchQuery || selectedStatus !== 'ALL'
@@ -872,7 +871,7 @@ function CareerEnquiriesContent() {
             {approvalResult ? (
               <div className="space-y-4">
                 <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CircleCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{approvalResult}</span>
                 </div>
                 <div className="flex justify-end gap-2">

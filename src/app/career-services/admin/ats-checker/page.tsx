@@ -5,11 +5,10 @@ import { AdminLayout } from '@/components/career/admin/AdminLayout';
 import { useAdminAuth } from '@/components/career/admin/AdminAuthContext';
 import {
   FileText,
-  UploadCloud,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
+  Upload,
+  ScanText,
+  ScanSearch,
+  CircleX,
   Download,
   Share2,
   FileCheck,
@@ -19,7 +18,7 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
-  RotateCw,
+  RotateCcw,
 } from 'lucide-react';
 import type { AtsAssessmentResult, AtsCategoryEvaluation } from '@/lib/ai/types';
 
@@ -151,7 +150,7 @@ export default function AtsCheckerWorkspacePage() {
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#635BDB] to-[#8B5CF6] text-white text-xs font-bold shadow-sm hover:opacity-95"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <ScanSearch className="w-3.5 h-3.5" />
               <span>Open Public ATS Checker</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </a>
@@ -190,7 +189,7 @@ export default function AtsCheckerWorkspacePage() {
             <form onSubmit={handleRunEvaluation} className="bg-white p-5 rounded-2xl border border-slate-200/80 space-y-4 shadow-[0_1px_3px_rgba(23,59,143,0.03)] text-xs">
               <h2 className="font-bold text-slate-900 text-sm font-['Plus_Jakarta_Sans',sans-serif] pb-2 border-b border-slate-100 flex items-center justify-between">
                 <span>Upload & Audit Parameters</span>
-                <Sparkles className="w-4 h-4 text-[#173B8F]" />
+                <ScanText className="w-4 h-4 text-[#173B8F]" />
               </h2>
 
               <div>
@@ -251,7 +250,7 @@ export default function AtsCheckerWorkspacePage() {
 
               {error && (
                 <div className="p-3 bg-red-50 text-red-800 rounded-xl border border-red-200 flex items-start gap-2 text-xs font-semibold">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+                  <CircleX className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
                   <span>{error}</span>
                 </div>
               )}
@@ -263,7 +262,7 @@ export default function AtsCheckerWorkspacePage() {
               >
                 {loading ? (
                   <>
-                    <RotateCw className="w-4 h-4 animate-spin" />
+                    <RotateCcw className="w-4 h-4 animate-spin" />
                     <span>Analyzing with Multi-Provider Failover...</span>
                   </>
                 ) : (

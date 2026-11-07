@@ -27,7 +27,6 @@ import {
   Mail,
   UserCheck,
   ChevronRight,
-  Sparkles,
 } from 'lucide-react';
 
 export default function CrmDashboardPage() {

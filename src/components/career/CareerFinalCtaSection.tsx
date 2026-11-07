@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
+import { ArrowRight, TrendingUp, ShieldCheck } from 'lucide-react';
 
 export function CareerFinalCtaSection() {
   const scrollTo = (id: string) => {
@@ -18,7 +18,7 @@ export function CareerFinalCtaSection() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center space-y-6">
         
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-[#A69ACB] border border-white/15">
-          <Sparkles className="w-3.5 h-3.5 text-[#FFD66B]" />
+          <TrendingUp className="w-3.5 h-3.5 text-[#9B6BFF]" />
           <span>Elevate Your Executive Presence</span>
         </div>
 

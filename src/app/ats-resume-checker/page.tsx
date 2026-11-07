@@ -4,9 +4,10 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { CareerNavigation } from '@/components/career/CareerNavigation';
+import { CareerStudioHeader } from '@/components/career/CareerStudioHeader';
 import { EmbeddedAtsResumeChecker } from '@/components/career/EmbeddedAtsResumeChecker';
 import { CareerFooter } from '@/components/career/CareerFooter';
+import { CareerBottomNav } from '@/components/career/CareerBottomNav';
 
 export default function AtsResumeCheckerRedirectPage() {
   const router = useRouter();
@@ -20,8 +21,8 @@ export default function AtsResumeCheckerRedirectPage() {
 
   return (
     <div className="bg-[#FAF8FF] text-[#24233A] min-h-screen flex flex-col font-sans antialiased">
-      <CareerNavigation />
-      <main className="flex-1 pt-24 pb-12">
+      <CareerStudioHeader />
+      <main className="flex-1 pt-24 pb-20 lg:pb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
           <Link
             href="/career-services"
@@ -34,6 +35,7 @@ export default function AtsResumeCheckerRedirectPage() {
         <EmbeddedAtsResumeChecker />
       </main>
       <CareerFooter />
+      <CareerBottomNav />
     </div>
   );
 }

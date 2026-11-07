@@ -8,18 +8,17 @@ import {
   Linkedin,
   MonitorSmartphone,
   BriefcaseBusiness,
-  CheckCircle2,
+  CircleCheck,
   ArrowRight,
   ArrowLeft,
   Upload,
   FileCheck,
   X,
-  Sparkles,
+  Target,
   Phone,
   Mail,
   MessageSquare,
   ShieldCheck,
-  Clock,
   ChevronDown,
   ChevronUp,
   Copy,
@@ -394,7 +393,7 @@ export function CareerIntakeWizard() {
                         </span>
                         {isSelected && (
                           <span className="text-[#7357F5] flex items-center gap-0.5">
-                            <CheckCircle2 className="w-3 h-3" />
+                            <CircleCheck className="w-3 h-3" />
                             <span>Included in Scope</span>
                           </span>
                         )}
@@ -549,7 +548,7 @@ export function CareerIntakeWizard() {
                   className="w-full p-4 text-left flex items-center justify-between text-xs sm:text-sm font-bold text-[#17152F] hover:bg-slate-100/60 transition"
                 >
                   <span className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#7357F5]" />
+                    <Target className="w-4 h-4 text-[#7357F5]" />
                     <span>Optional: Add Current Role & Goals</span>
                   </span>
                   {showOptionalDetails ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
@@ -823,7 +822,7 @@ export function CareerIntakeWizard() {
           {step === 4 && submittedResult && (
             <div className="text-center py-6 sm:py-8 space-y-6">
               <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-md">
-                <CheckCircle2 className="w-9 h-9" />
+                <CircleCheck className="w-9 h-9" />
               </div>
 
               <div className="space-y-1.5 max-w-md mx-auto">

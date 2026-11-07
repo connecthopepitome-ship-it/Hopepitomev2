@@ -33,7 +33,6 @@ import {
   Printer,
   ChevronRight,
   ArrowRight,
-  Sparkles,
   Send,
   Download,
   Briefcase,

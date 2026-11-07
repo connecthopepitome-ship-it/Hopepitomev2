@@ -21,23 +21,21 @@ import type {
   CrmFollowUp,
 } from '@/lib/career/types';
 import {
-  Inbox,
-  Briefcase,
+  UserSearch,
+  FolderKanban,
   CheckSquare,
   CreditCard,
   Plus,
   ArrowRight,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  Calendar,
+  CircleX,
+  CircleCheck,
   ChevronRight,
   TrendingUp,
   UserPlus,
   FilePlus,
   Receipt,
   PhoneCall,
-  Sparkles,
+  BriefcaseBusiness,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -196,7 +194,7 @@ export default function AdminDashboardPage() {
               href="/career-services/admin/projects"
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
             >
-              <Briefcase className="w-3.5 h-3.5 text-violet-600" />
+              <FolderKanban className="w-3.5 h-3.5 text-violet-600" />
               <span>Projects</span>
             </Link>
             <Link
@@ -221,7 +219,7 @@ export default function AdminDashboardPage() {
                 New Leads
               </span>
               <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 group-hover:scale-105 transition-transform">
-                <Inbox className="w-4 h-4" />
+                <UserSearch className="w-4 h-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
@@ -245,7 +243,7 @@ export default function AdminDashboardPage() {
                 Active Projects
               </span>
               <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 group-hover:scale-105 transition-transform">
-                <Briefcase className="w-4 h-4" />
+                <FolderKanban className="w-4 h-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
@@ -320,7 +318,7 @@ export default function AdminDashboardPage() {
 
             {todayPriorities.length === 0 ? (
               <div className="py-8 text-center text-xs text-slate-400 space-y-2">
-                <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto" />
+                <CircleCheck className="w-6 h-6 text-emerald-500 mx-auto" />
                 <p>No critical bottlenecks or overdue items today.</p>
               </div>
             ) : (
@@ -381,7 +379,7 @@ export default function AdminDashboardPage() {
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
-                    <Sparkles className="w-4 h-4" />
+                    <BriefcaseBusiness className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-slate-800">Service Catalogue</p>
@@ -413,7 +411,7 @@ export default function AdminDashboardPage() {
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-                    <AlertCircle className="w-4 h-4" />
+                    <CircleX className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-slate-800">SLA Support Center</p>
@@ -449,7 +447,7 @@ export default function AdminDashboardPage() {
               <div key={lead.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2.5 truncate">
                   <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Inbox className="w-3.5 h-3.5" />
+                    <UserSearch className="w-3.5 h-3.5" />
                   </div>
                   <div className="truncate">
                     <p className="font-semibold text-slate-800 truncate">{lead.fullName}</p>

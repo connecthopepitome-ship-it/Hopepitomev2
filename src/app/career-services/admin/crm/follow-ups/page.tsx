@@ -18,18 +18,11 @@ import type {
 } from '@/lib/career/types';
 import {
   PhoneCall,
-  Clock,
-  AlertTriangle,
-  CheckCircle2,
-  Calendar,
+  CircleCheck,
   Plus,
   Phone,
   MessageSquare,
-  Mail,
-  User,
-  Filter,
-  ArrowRight,
-  Sparkles,
+  X,
 } from 'lucide-react';
 
 export default function FollowUpsManagementPage() {
@@ -266,7 +259,7 @@ export default function FollowUpsManagementPage() {
             </div>
           ) : displayedList.length === 0 ? (
             <div className="text-center py-12 px-4 space-y-2">
-              <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+              <CircleCheck className="w-8 h-8 text-emerald-500 mx-auto" />
               <h2 className="text-xs font-bold text-[#17243B]">No follow-ups in this queue</h2>
               <p className="text-[11px] text-[#777781]">All scheduled outreach tasks are up to date.</p>
             </div>
@@ -359,7 +352,7 @@ export default function FollowUpsManagementPage() {
                           onClick={() => setSelectedFollowUp(f)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <CircleCheck className="w-3.5 h-3.5" />
                           <span>Complete & Log</span>
                         </button>
                       )}
@@ -383,9 +376,9 @@ export default function FollowUpsManagementPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedFollowUp(null)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="inline-flex items-center gap-1 text-xs text-[#777781] hover:text-[#17243B]"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" /> Close
                 </button>
               </div>
 
@@ -490,9 +483,9 @@ export default function FollowUpsManagementPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
-                  className="text-xs text-[#777781] hover:text-[#17243B]"
+                  className="inline-flex items-center gap-1 text-xs text-[#777781] hover:text-[#17243B]"
                 >
-                  ✕ Close
+                  <X className="w-4 h-4" /> Close
                 </button>
               </div>
 

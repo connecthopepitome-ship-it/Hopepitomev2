@@ -6,7 +6,7 @@ import {
   Award,
   Compass,
   Zap,
-  Sparkles,
+  UserRound,
 } from 'lucide-react';
 
 const audiences = [
@@ -59,7 +59,7 @@ export function CareerAudienceSection() {
         {/* Section Header */}
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
-            <Sparkles className="w-3 h-3 text-[#8172A8]" />
+            <UserRound className="w-3 h-3 text-[#8172A8]" />
             WHO WE HELP
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">

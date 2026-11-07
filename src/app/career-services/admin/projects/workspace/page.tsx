@@ -46,7 +46,7 @@ import {
   FileCode,
   Shield,
   MessageSquare,
-  Sparkles,
+  ClipboardList,
   ChevronRight,
   X,
   Edit3,
@@ -451,7 +451,7 @@ function ProjectWorkspaceContent() {
                 href="/career-services/admin/career-enquiries"
                 className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+                <ClipboardList className="w-3.5 h-3.5 text-violet-600" />
                 <span>Original Enquiry</span>
               </Link>
             )}

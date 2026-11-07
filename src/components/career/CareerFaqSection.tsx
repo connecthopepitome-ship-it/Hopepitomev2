@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown, CircleHelp } from 'lucide-react';
 
 interface FaqItem {
   q: string;
@@ -72,7 +72,7 @@ export function CareerFaqSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-[#F2EFF7] text-[#8172A8] border border-[#E6E2DC] mb-3">
-            <Sparkles className="w-3 h-3 text-[#8172A8]" />
+            <CircleHelp className="w-3.5 h-3.5 text-[#8172A8]" />
             FREQUENTLY ASKED QUESTIONS
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#17243B] tracking-tight mb-4">

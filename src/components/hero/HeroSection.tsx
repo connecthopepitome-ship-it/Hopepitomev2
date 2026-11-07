@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, Sparkles, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 
 export function HeroSection() {
   const scrollTo = (id: string) => {

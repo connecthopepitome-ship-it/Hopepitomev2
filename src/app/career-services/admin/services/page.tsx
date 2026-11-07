@@ -20,15 +20,14 @@ import {
   Plus,
   Search,
   Filter,
-  CheckCircle2,
-  Clock,
+  CircleCheck,
+  Clock3,
   DollarSign,
   Briefcase,
   ChevronRight,
   ExternalLink,
   Edit,
   SlidersHorizontal,
-  Sparkles,
   ShieldCheck,
   RefreshCw,
   X,
@@ -282,7 +281,7 @@ export default function ServiceCataloguePage() {
               <span className="text-[12px] text-slate-500">across catalog</span>
             </div>
             <div className="flex items-center gap-1 text-emerald-700 text-[12px] font-bold">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CircleCheck className="w-3.5 h-3.5" />
               <span>Above 38% corporate target</span>
             </div>
           </div>
@@ -438,7 +437,7 @@ export default function ServiceCataloguePage() {
                   {/* Mid Metadata Matrix */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-lg bg-slate-50 border border-slate-200/80 text-[12px]">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-slate-400" />
+                      <Clock3 className="w-4 h-4 text-slate-400" />
                       <div>
                         <p className="text-slate-500 uppercase text-[10px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">Delivery Frame</p>
                         <p className="font-bold text-slate-800">{srv.defaultDurationDays} Days Frame</p>
@@ -508,7 +507,7 @@ export default function ServiceCataloguePage() {
                 <span className="px-2.5 py-0.5 rounded bg-white/10 text-blue-200 text-[11px] font-bold uppercase tracking-wider font-['Plus_Jakarta_Sans',sans-serif]">
                   Top Velocity Bundle
                 </span>
-                <Sparkles className="w-4 h-4 text-amber-300" />
+                <TrendingUp className="w-4 h-4 text-emerald-300" />
               </div>
               <div>
                 <h3 className="text-[17px] font-bold font-['Plus_Jakarta_Sans',sans-serif]">

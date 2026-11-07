@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   FileText,
   UploadCloud,
-  Sparkles,
+  ScanSearch,
+  Send,
   CheckCircle2,
   AlertCircle,
   FileCheck,
@@ -44,6 +46,7 @@ import type {
   RoleMatchCategory,
 } from '@/lib/ai/types';
 import { extractCleanTextFromDocument } from '@/lib/document-parser';
+import { PersonalizedCareerRecommendationSection } from './PersonalizedCareerRecommendationSection';
 
 // Sample preview data for interactive demonstration
 const SAMPLE_PREVIEW: PublicAtsAuditResult = {
@@ -531,6 +534,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   const [leadRequirements, setLeadRequirements] = useState<string>('');
   const [enquirySubmitting, setEnquirySubmitting] = useState<boolean>(false);
   const [enquirySuccessRef, setEnquirySuccessRef] = useState<string | null>(null);
+  const [isUnlockRequest, setIsUnlockRequest] = useState<boolean>(true);
+  const [selectedAddonServices, setSelectedAddonServices] = useState<string[]>([]);
 
   const checkerSectionRef = useRef<HTMLDivElement>(null);
   const activeFileRef = useRef<File | null>(null);
@@ -550,12 +555,12 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
     activeFileRef.current = selectedFile;
     activeBase64Ref.current = null;
 
-    const validExtensions = ['.pdf', '.docx', '.doc', '.txt'];
+    const validExtensions = ['.pdf', '.docx', '.doc', '.txt', '.jpg', '.jpeg', '.png', '.webp'];
     const lowerName = selectedFile.name.toLowerCase();
     const hasValidExt = validExtensions.some((ext) => lowerName.endsWith(ext));
 
     if (!hasValidExt) {
-      setGenericErrorMessage('Please upload a PDF or DOCX file (under 8MB).');
+      setGenericErrorMessage('Please upload a PDF, DOCX, or image document (under 8MB).');
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -579,12 +584,18 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       lowerName.endsWith('.pdf')
         ? 'application/pdf'
         : lowerName.endsWith('.docx')
-        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        : lowerName.endsWith('.txt')
-        ? 'text/plain'
-        : selectedFile.type && selectedFile.type !== 'application/octet-stream'
-        ? selectedFile.type
-        : 'application/pdf';
+          ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          : lowerName.endsWith('.txt')
+            ? 'text/plain'
+            : lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')
+              ? 'image/jpeg'
+              : lowerName.endsWith('.png')
+                ? 'image/png'
+                : lowerName.endsWith('.webp')
+                  ? 'image/webp'
+                  : selectedFile.type && selectedFile.type !== 'application/octet-stream'
+                    ? selectedFile.type
+                    : 'application/pdf';
     setFileMimeType(mime);
 
     // Read as Base64 for direct native document understanding in GPT-6 Luna
@@ -714,10 +725,10 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
             (data?.errorType === 'UNREADABLE_DOCUMENT'
               ? 'Unable to Read Document'
               : data?.errorType === 'RATE_LIMITED'
-              ? 'High Demand Experienced'
-              : data?.errorType === 'FILE_TOO_LARGE'
-              ? 'File Size Exceeded'
-              : "We're experiencing high demand."),
+                ? 'High Demand Experienced'
+                : data?.errorType === 'FILE_TOO_LARGE'
+                  ? 'File Size Exceeded'
+                  : "We're experiencing high demand."),
           message:
             data?.message ||
             'Our resume review service is temporarily busy. Please try again in a little while. Your resume has not been assessed yet.',
@@ -728,6 +739,27 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
       setAuditResult(data.assessment);
       setViewState('results');
+
+      // Cache lightweight assessment metadata for Candidate Activity card & portal
+      try {
+        if (typeof window !== 'undefined' && data.assessment) {
+          localStorage.setItem(
+            'hopepitome_last_assessment',
+            JSON.stringify({
+              assessmentId: data.assessment.assessmentId,
+              candidateName: data.assessment.candidateProfile?.candidateName || 'Candidate',
+              profession:
+                data.assessment.candidateProfile?.actualProfession ||
+                data.assessment.inferredRole ||
+                'Professional',
+              overallScore: data.assessment.overallScore || 0,
+              timestamp: new Date().toISOString(),
+              fileName: targetFile?.name || currentFileName || 'Resume.pdf',
+              unlocked: data.assessment.isUnlocked || false,
+            })
+          );
+        }
+      } catch {}
     } catch {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -774,17 +806,70 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
   };
 
   const handleOpenLeadModal = (card?: LockedImprovementCard, service?: RecommendedServiceItem) => {
+    setIsUnlockRequest(false);
     setSelectedModalCard(card || null);
     setSelectedService(service || null);
+    setSelectedAddonServices([]);
+    if (!leadName && activeResult?.candidateProfile?.name) {
+      setLeadName(activeResult.candidateProfile.name);
+    }
     setLeadRequirements(
       card
         ? `Focus requested on: ${card.title}. Reason: ${card.reason}`
         : service
-        ? `Inquiry for ${service.name}. Addressed areas: ${service.addressedAreas.join(', ')}`
-        : 'Resume consultation and assessment review.'
+          ? `Inquiry for ${service.name}. Addressed areas: ${service.addressedAreas.join(', ')}`
+          : 'Resume consultation and assessment review.'
     );
     setEnquirySuccessRef(null);
     setConversionModalOpen(true);
+  };
+
+  const handleOpenCustomQuoteModal = (serviceName: string, prefillNote?: string) => {
+    setIsUnlockRequest(false);
+    setSelectedModalCard(null);
+    setSelectedService({
+      code: 'CUSTOM',
+      name: serviceName,
+      tagline: 'Custom Tailored Service Scope',
+      pricingLabel: 'Quote Based on Scope',
+      ctaText: 'Get My Custom Quote',
+      quoteMessage: prefillNote || 'Request a custom service quotation tailored to your career background.',
+      isPrimary: true,
+      addressedAreas: [],
+    });
+    setSelectedAddonServices([]);
+    if (!leadName && activeResult?.candidateProfile?.name) {
+      setLeadName(activeResult.candidateProfile.name);
+    }
+    setLeadRequirements(
+      prefillNote ||
+      `[ATS Assessment Ref: ${activeResult?.assessmentId || 'N/A'}] Requesting personalized custom quote for ${serviceName}. Target Role: ${activeResult?.inferredRole || activeResult?.targetRole || 'Professional'}.`
+    );
+    setEnquirySuccessRef(null);
+    setConversionModalOpen(true);
+  };
+
+  const handleOpenUnlockModal = (sectionTitle?: string) => {
+    setIsUnlockRequest(true);
+    setSelectedModalCard(null);
+    setSelectedService(null);
+    setSelectedAddonServices([]);
+    if (!leadName && activeResult?.candidateProfile?.name) {
+      setLeadName(activeResult.candidateProfile.name);
+    }
+    setLeadRequirements(
+      sectionTitle
+        ? `Requesting complete Career Intelligence Report unlock (₹49) for section: ${sectionTitle}`
+        : 'Requesting complete Career Intelligence Report unlock (₹49)'
+    );
+    setEnquirySuccessRef(null);
+    setConversionModalOpen(true);
+  };
+
+  const toggleAddonService = (serviceName: string) => {
+    setSelectedAddonServices((prev) =>
+      prev.includes(serviceName) ? prev.filter((s) => s !== serviceName) : [...prev, serviceName]
+    );
   };
 
   const handleSelectServiceDirect = (service: RecommendedServiceItem) => {
@@ -804,23 +889,26 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
     setEnquirySubmitting(true);
     try {
-      const targetServiceName =
-        selectedService?.name ||
-        selectedModalCard?.recommendedServiceName ||
-        'Professional Resume Writing';
+      const targetServiceName = isUnlockRequest
+        ? 'Premium Career Intelligence Report Unlock (₹49)'
+        : (selectedService?.name || selectedModalCard?.recommendedServiceName || 'Professional Resume Writing');
+
+      const allServices = isUnlockRequest
+        ? ['Premium Career Intelligence Report Unlock (₹49)', ...selectedAddonServices]
+        : [targetServiceName, ...selectedAddonServices];
 
       const payload = {
         fullName: leadName.trim(),
         email: leadEmail.trim().toLowerCase(),
         phoneWhatsapp: leadPhone.trim(),
         serviceRequired: targetServiceName,
-        selectedServices: [targetServiceName],
+        selectedServices: allServices,
         preferredContactMethod: leadContactMethod,
         targetRole: activeResult?.inferredRole || activeResult?.targetRole,
-        totalExperience: activeResult?.careerIntelligence?.totalYearsExperience
-          ? `${activeResult.careerIntelligence.totalYearsExperience} years`
+        totalExperience: activeResult?.candidateProfile?.totalYearsExperience || activeResult?.careerIntelligence?.totalYearsExperience
+          ? `${activeResult?.candidateProfile?.totalYearsExperience || activeResult?.careerIntelligence?.totalYearsExperience} years`
           : undefined,
-        requirements: `[ATS Assessment Ref: ${activeResult?.assessmentId || 'N/A'}] ${leadRequirements.trim()}`,
+        requirements: `[ATS Assessment Ref: ${activeResult?.assessmentId || 'N/A'}] ${isUnlockRequest ? '[REQUEST: ₹49 Premium Report Unlock (Zero Payment Gateway - Admin Approval Needed)] ' : ''}${leadRequirements.trim()}`,
         leadSource: 'integrated_career_services_ats_checker',
         assessmentId: activeResult?.assessmentId,
         consent: true,
@@ -836,10 +924,10 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
       if (res.ok && data.success) {
         setEnquirySuccessRef(data.referenceCode || `HP-${Math.floor(100000 + Math.random() * 900000)}`);
       } else {
-        alert(data.error || 'Failed to submit your enquiry. Please try again.');
+        alert(data.error || 'Failed to submit your request. Please try again.');
       }
     } catch {
-      alert('Unable to submit your enquiry right now. Please check your connection.');
+      alert('Unable to submit your request right now. Please check your connection.');
     } finally {
       setEnquirySubmitting(false);
     }
@@ -890,7 +978,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
            ========================================================================= */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#7357F5]/20 shadow-sm text-xs font-bold text-[#7357F5] mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-[#7357F5]" />
+            <ScanSearch className="w-3.5 h-3.5 text-[#7357F5]" />
             <span>FREE AI RESUME CHECKER</span>
           </div>
 
@@ -971,19 +1059,18 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                   setIsDragging(false);
                   handleFile(e.dataTransfer.files?.[0] || null);
                 }}
-                className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all duration-200 ${
-                  isDragging
+                className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all duration-200 ${isDragging
                     ? 'border-[#7357F5] bg-[#7357F5]/5 scale-[0.99]'
                     : file
-                    ? 'border-emerald-300 bg-emerald-50/30'
-                    : 'border-slate-200 hover:border-[#7357F5]/40 hover:bg-slate-50/50'
-                }`}
+                      ? 'border-emerald-300 bg-emerald-50/30'
+                      : 'border-slate-200 hover:border-[#7357F5]/40 hover:bg-slate-50/50'
+                  }`}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
                   id="career-resume-input"
-                  accept=".pdf,.docx,.doc,.txt"
+                  accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.webp"
                   onChange={(e) => handleFile(e.target.files?.[0] || null)}
                   className="sr-only"
                 />
@@ -997,7 +1084,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                       Drag and drop your resume here, or <span className="text-[#7357F5] underline underline-offset-4">browse</span>
                     </span>
                     <span className="mt-2 text-xs sm:text-sm text-slate-500">
-                      Supports PDF and DOCX documents (up to 8MB)
+                      Supports PDF, DOCX, and photo/scanned documents (up to 8MB)
                     </span>
                   </label>
                 ) : (
@@ -1072,19 +1159,18 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                   type="button"
                   onClick={() => handleStartReview()}
                   disabled={!file || isReadingFile || isSubmitting}
-                  className={`w-full py-4 rounded-2xl text-sm sm:text-base font-bold text-white transition flex items-center justify-center gap-2 shadow-lg ${
-                    file && !isReadingFile && !isSubmitting
+                  className={`w-full py-4 rounded-2xl text-sm sm:text-base font-bold text-white transition flex items-center justify-center gap-2 shadow-lg ${file && !isReadingFile && !isSubmitting
                       ? 'bg-gradient-to-r from-[#7357F5] via-[#9B6BFF] to-[#7357F5] hover:opacity-95 shadow-[#7357F5]/30 active:scale-[0.99]'
                       : 'bg-slate-300 cursor-not-allowed shadow-none'
-                  }`}
+                    }`}
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <ScanSearch className="w-4 h-4" />
                   <span>
                     {isReadingFile
                       ? 'Preparing Document...'
                       : isSubmitting
-                      ? 'Reviewing Your Resume...'
-                      : 'Upload & Check for Free'}
+                        ? 'Reviewing Your Resume...'
+                        : 'Upload & Check for Free'}
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -1138,13 +1224,12 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                 return (
                   <div
                     key={item.stage}
-                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${
-                      isCurrent
+                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${isCurrent
                         ? 'bg-[#7357F5]/10 border border-[#7357F5]/20 text-[#17152F]'
                         : isCompleted
-                        ? 'bg-slate-50 text-slate-700'
-                        : 'opacity-40 text-slate-400'
-                    }`}
+                          ? 'bg-slate-50 text-slate-700'
+                          : 'opacity-40 text-slate-400'
+                      }`}
                   >
                     <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold">
                       {isCompleted ? (
@@ -1245,11 +1330,10 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                   key={tab.id}
                   type="button"
                   onClick={() => scrollToSection(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-                    activeSection === tab.id
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${activeSection === tab.id
                       ? 'bg-[#7357F5] text-white shadow-sm'
                       : 'text-slate-600 hover:text-[#7357F5] hover:bg-slate-100'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -1300,9 +1384,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                 {/* Score Interpretation Band */}
                 <div className="mt-2">
                   <span
-                    className={`inline-block px-3.5 py-1 rounded-full text-xs font-bold border ${
-                      getScoreColor(activeResult.overallScore).bg
-                    }`}
+                    className={`inline-block px-3.5 py-1 rounded-full text-xs font-bold border ${getScoreColor(activeResult.overallScore).bg
+                      }`}
                   >
                     {activeResult.interpretation || getInterpretationLabel(activeResult.overallScore)}
                   </span>
@@ -1443,7 +1526,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
                 <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-50/60 to-indigo-50/40 border border-[#7357F5]/20 space-y-2">
                   <div className="flex items-center gap-2 text-xs font-bold text-[#7357F5] uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4" />
+                    <Target className="w-4 h-4" />
                     <span>Recommended Professional Positioning Pitch</span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
@@ -1716,9 +1799,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-[#17152F]">{p.pillar}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            p.status === 'Optimal' ? 'bg-emerald-100 text-emerald-800' : p.status === 'Needs Enhancement' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === 'Optimal' ? 'bg-emerald-100 text-emerald-800' : p.status === 'Needs Enhancement' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                            }`}>
                             {p.status}
                           </span>
                         </div>
@@ -1742,9 +1824,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                     {activeResult.careerIntelligence.applicationReadiness.prioritizedActionChecklist?.map((item, idx) => (
                       <div key={idx} className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div className="flex items-start gap-2.5">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 mt-0.5 ${
-                            item.priority === 'High' ? 'bg-red-100 text-red-700' : item.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 mt-0.5 ${item.priority === 'High' ? 'bg-red-100 text-red-700' : item.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
+                            }`}>
                             {item.priority} Priority
                           </span>
                           <span className="text-xs text-slate-800 font-medium leading-snug">{item.item}</span>
@@ -2246,63 +2327,13 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
               </div>
             </div>
 
-            {/* Service Conversion Section ("Make Your Resume Stronger with Hopepitome") */}
-            <div className="bg-gradient-to-br from-[#17152F] via-[#241F47] to-[#17152F] rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-[#7357F5]/20 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative max-w-3xl">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#A69ACB] mb-2 block">
-                  Next Step Recommendation
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                  Make Your Resume Stronger with Hopepitome
-                </h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
-                  Based on your assessment results, our career strategists can rewrite, optimize, or position your profile for top employer ATS systems.
-                </p>
-
-                {/* Recommended Service Cards (Zero fixed prices) */}
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {activeResult.recommendedServices.map((srv) => (
-                    <div
-                      key={srv.code}
-                      className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 p-5 flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="text-xs font-bold text-[#FFD66B] uppercase tracking-wider">
-                            {srv.isPrimary ? 'Recommended Priority' : 'Complementary Service'}
-                          </span>
-                        </div>
-                        <h4 className="text-base font-bold text-white mb-1.5">{srv.name}</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed mb-4">{srv.tagline}</p>
-
-                        <div className="space-y-1 mb-4">
-                          {srv.addressedAreas.map((area, idx) => (
-                            <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-300">
-                              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                              <span>{area}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
-                        <span className="text-xs text-slate-300 font-medium">{srv.pricingLabel}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleSelectServiceDirect(srv)}
-                          className="px-4 py-2 rounded-xl text-xs font-bold text-[#17152F] bg-white hover:bg-slate-100 transition shadow-sm flex items-center gap-1"
-                        >
-                          <span>{srv.ctaText}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            {/* Personalized Career Service Conversion Section */}
+            <PersonalizedCareerRecommendationSection
+              assessment={activeResult}
+              onSelectService={(serviceName, prefillNote) =>
+                handleOpenCustomQuoteModal(serviceName, prefillNote)
+              }
+            />
           </div>
         )}
 
@@ -2322,39 +2353,75 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
 
               {!enquirySuccessRef ? (
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7357F5]/10 text-[#7357F5] text-xs font-bold mb-3">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Personalised Career Guidance</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7454F5]/10 text-[#7454F5] text-xs font-bold mb-3">
+                    <Award className="w-3.5 h-3.5" />
+                    <span>
+                      {isUnlockRequest ? 'Premium Career Intelligence' : 'Personalised Career Guidance'}
+                    </span>
                   </div>
 
-                  <h3 className="text-xl font-black text-[#17152F] tracking-tight">
-                    {selectedService?.name || selectedModalCard?.title || 'Unlock Tailored Recommendations'}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-lg sm:text-xl font-black text-[#17152F] tracking-tight">
+                      {isUnlockRequest
+                        ? 'Unlock Complete Career Intelligence Report'
+                        : selectedService?.name || selectedModalCard?.title || 'Personalised Career Guidance'}
+                    </h3>
+                  </div>
 
-                  <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Unlock detailed recommendations tailored to your background, including:
-                  </p>
+                  {isUnlockRequest ? (
+                    <div className="mt-2 space-y-3">
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#7454F5]/10 via-[#A78BFA]/10 to-[#7454F5]/5 border border-[#7454F5]/20 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold text-[#7454F5] uppercase tracking-wider block">
+                            Configured Request Fee
+                          </span>
+                          <span className="text-lg font-black text-[#17152F]">₹49</span>
+                        </div>
+                        <span className="text-[11px] font-semibold text-[#149B75] bg-[#149B75]/10 px-2.5 py-1 rounded-lg border border-[#149B75]/20">
+                          24-Hour Verified Access
+                        </span>
+                      </div>
 
-                  <ul className="mt-3 space-y-1.5 text-xs text-slate-700">
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                      <span>What specific phrasing needs to change in your summary and experience</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                      <span>Which quantifiable details should be highlighted for senior roles</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                      <span>How to improve your positioning for target companies and markets</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                      <span>An example of a professionally rewritten elevator pitch</span>
-                    </li>
-                  </ul>
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/90 text-xs text-slate-600 space-y-1">
+                        <div className="font-bold text-[#17152F] flex items-center gap-1.5">
+                          <ShieldCheck className="w-4 h-4 text-[#149B75]" />
+                          <span>Zero Payment Gateway Required</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
+                          In accordance with application policy, no automated payment gateway is connected. Submitting this request issues an assessment reference code; our administrators verify your report and grant 24-hour access.
+                        </p>
+                      </div>
 
-                  <form onSubmit={handleSubmitLead} className="mt-6 space-y-3.5">
+                      <div className="text-xs text-slate-700">
+                        <span className="font-bold text-[#17152F] block mb-1.5">
+                          Full Report Modules Included:
+                        </span>
+                        <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-600">
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />Executive Positioning Pitch</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />Skills Gap & Target Keywords</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />3-Tier Career Growth Pathways</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />8-Pillar Application Readiness</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />STAR Method Interview Prep</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />LinkedIn & Branding Assets</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />30-60-90 Day Career Plan</span>
+                          <span className="flex items-center"><Check className="w-3.5 h-3.5 text-[#149B75] mr-1 shrink-0" />Global Market Compatibility</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      <div className="p-3.5 rounded-2xl bg-[#7454F5]/5 border border-[#7454F5]/20 text-xs text-slate-700">
+                        <span className="font-bold text-[#7454F5] block mb-0.5">
+                          Tailored Service: {selectedService?.name || 'Custom Career Consultation'}
+                        </span>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          Our senior career strategists will analyze your assessment findings (Ref: {activeResult?.assessmentId}) and prepare a customized scope proposal without fixed packages or automated obligations.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmitLead} className="mt-5 space-y-3.5">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
                       <input
@@ -2362,8 +2429,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                         required
                         value={leadName}
                         onChange={(e) => setLeadName(e.target.value)}
-                        placeholder="e.g. Alex Johnson"
-                        className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-[#7357F5] focus:ring-2 focus:ring-[#7357F5]/20 outline-none"
+                        placeholder="e.g. Tharun Jose"
+                        className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-[#7454F5] focus:ring-2 focus:ring-[#7454F5]/20 outline-none"
                       />
                     </div>
 
@@ -2375,8 +2442,8 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                           required
                           value={leadEmail}
                           onChange={(e) => setLeadEmail(e.target.value)}
-                          placeholder="alex@example.com"
-                          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-[#7357F5] focus:ring-2 focus:ring-[#7357F5]/20 outline-none"
+                          placeholder="name@example.com"
+                          className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-[#7454F5] focus:ring-2 focus:ring-[#7454F5]/20 outline-none"
                         />
                       </div>
                       <div>
@@ -2387,7 +2454,7 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                           value={leadPhone}
                           onChange={(e) => setLeadPhone(e.target.value)}
                           placeholder="+91 98765 43210"
-                          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-[#7357F5] focus:ring-2 focus:ring-[#7357F5]/20 outline-none"
+                          className="w-full min-h-[44px] rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:border-[#7454F5] focus:ring-2 focus:ring-[#7454F5]/20 outline-none font-mono"
                         />
                       </div>
                     </div>
@@ -2400,15 +2467,47 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                             key={method}
                             type="button"
                             onClick={() => setLeadContactMethod(method)}
-                            className={`py-2 rounded-xl text-xs font-bold border transition ${
-                              leadContactMethod === method
-                                ? 'bg-[#7357F5] border-[#7357F5] text-white'
+                            className={`min-h-[40px] py-2 rounded-xl text-xs font-bold border transition ${leadContactMethod === method
+                                ? 'bg-[#7454F5] border-[#7454F5] text-white shadow-xs'
                                 : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                            }`}
+                              }`}
                           >
                             {method}
                           </button>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Additional Service Quotation Checkboxes */}
+                    <div className="pt-2 border-t border-slate-100 space-y-2">
+                      <label className="block text-xs font-bold text-slate-700">
+                        {isUnlockRequest
+                          ? 'Also request a custom quote for career services (Optional):'
+                          : 'Combine with complementary services for your proposal (Optional):'}
+                      </label>
+                      <div className="space-y-1.5 text-xs text-slate-700">
+                        {[
+                          'Professional Resume Writing',
+                          'ATS Resume Optimisation',
+                          'LinkedIn Profile Makeover',
+                          'Personal Portfolio Website',
+                          'Managed Job Search & Applications',
+                        ]
+                          .filter((srv) => srv !== selectedService?.name)
+                          .map((srv) => (
+                            <label
+                              key={srv}
+                              className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer text-[11px]"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedAddonServices.includes(srv)}
+                                onChange={() => toggleAddonService(srv)}
+                                className="w-3.5 h-3.5 rounded text-[#7454F5] focus:ring-[#7454F5]/30 cursor-pointer"
+                              />
+                              <span>{srv}</span>
+                            </label>
+                          ))}
                       </div>
                     </div>
 
@@ -2418,25 +2517,26 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                         rows={2}
                         value={leadRequirements}
                         onChange={(e) => setLeadRequirements(e.target.value)}
-                        placeholder="Tell us about your target roles, companies, or timeline..."
-                        className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 focus:border-[#7357F5] focus:ring-2 focus:ring-[#7357F5]/20 outline-none"
+                        placeholder="Target roles, industry focus, or timeline..."
+                        className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 focus:border-[#7454F5] focus:ring-2 focus:ring-[#7454F5]/20 outline-none"
                       />
                     </div>
-
-                    <p className="text-[11px] text-slate-500">
-                      Pricing is tailored to your experience level and specific requirements. No fixed packages or obligations.
-                    </p>
 
                     <button
                       type="submit"
                       disabled={enquirySubmitting}
-                      className="w-full py-3.5 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7357F5] to-[#9B6BFF] hover:opacity-95 transition shadow-lg shadow-[#7357F5]/30 flex items-center justify-center gap-2"
+                      className="w-full min-h-[46px] py-3.5 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7454F5] via-[#9B6BFF] to-[#7454F5] hover:opacity-95 transition shadow-lg shadow-[#7454F5]/25 flex items-center justify-center gap-2 active:scale-98"
                     >
                       {enquirySubmitting ? (
-                        <span>Submitting...</span>
+                        <span>Submitting Request...</span>
                       ) : (
                         <>
-                          <span>Request a Custom Quote</span>
+                          <Send className="w-4 h-4" />
+                          <span>
+                            {isUnlockRequest
+                              ? 'Submit Unlock Request (₹49)'
+                              : 'Request a Custom Quote'}
+                          </span>
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
@@ -2444,28 +2544,49 @@ export function EmbeddedAtsResumeChecker({ onServiceSelect, className = '' }: Em
                   </form>
                 </div>
               ) : (
-                <div className="text-center py-4">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                <div className="text-center py-4 space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-xl font-black text-[#17152F]">Enquiry Received</h3>
-                  <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Thank you! Your resume assessment has been securely linked to your consultation request.
-                  </p>
-                  <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-xs text-slate-500 block">Reference Code</span>
-                    <span className="text-base font-black text-[#7357F5]">{enquirySuccessRef}</span>
+                  <div>
+                    <h3 className="text-xl font-black text-[#17152F]">
+                      {isUnlockRequest ? 'Unlock Request Submitted' : 'Enquiry Received'}
+                    </h3>
+                    <p className="mt-1 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      {isUnlockRequest
+                        ? 'Your ₹49 report unlock request is queued for administrator review. Once verified, access will be granted for 24 hours.'
+                        : 'Your resume assessment has been securely linked to your consultation request.'}
+                    </p>
                   </div>
-                  <p className="mt-4 text-xs text-slate-500">
-                    A Hopepitome senior career consultant will review your assessment and reach out via {leadContactMethod} within 2 business hours.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setConversionModalOpen(false)}
-                    className="mt-6 w-full py-3 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
-                  >
-                    Close
-                  </button>
+
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left space-y-1.5 text-xs">
+                    <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">
+                      Assessment Reference Code
+                    </span>
+                    <span className="text-base font-black font-mono text-[#7454F5] block">
+                      {enquirySuccessRef}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block pt-1">
+                      Save this code to check your report status anytime.
+                    </span>
+                  </div>
+
+                  <div className="pt-2 flex flex-col gap-2">
+                    <Link
+                      href="/career-services/access-report"
+                      className="w-full min-h-[44px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#7454F5] text-white text-xs font-bold hover:bg-[#6342E8] shadow-sm transition"
+                    >
+                      <span>Track / Access Report with Code →</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => setConversionModalOpen(false)}
+                      className="w-full min-h-[40px] py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                    >
+                      Close Window
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

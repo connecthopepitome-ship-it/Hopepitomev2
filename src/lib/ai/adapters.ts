@@ -96,6 +96,12 @@ export class OpenAiAdapter {
           mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         } else if (lowerName.endsWith('.txt')) {
           mime = 'text/plain';
+        } else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) {
+          mime = 'image/jpeg';
+        } else if (lowerName.endsWith('.png')) {
+          mime = 'image/png';
+        } else if (lowerName.endsWith('.webp')) {
+          mime = 'image/webp';
         } else if (lowerName.endsWith('.pdf')) {
           mime = 'application/pdf';
         } else if (input.fileMimeType && input.fileMimeType !== 'application/octet-stream') {
@@ -103,11 +109,21 @@ export class OpenAiAdapter {
         }
 
         const cleanBase64 = input.fileBase64.replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
-        userContent.push({
-          type: 'input_file',
-          filename: input.originalFileName || (lowerName.endsWith('.docx') ? 'resume.docx' : 'resume.pdf'),
-          file_data: `data:${mime};base64,${cleanBase64}`,
-        });
+
+        if (mime.startsWith('image/')) {
+          // Native multimodal image understanding for photograph / scan resumes
+          userContent.push({
+            type: 'input_image',
+            image_url: `data:${mime};base64,${cleanBase64}`,
+          });
+        } else {
+          // Standard document input_file for PDF / DOCX
+          userContent.push({
+            type: 'input_file',
+            filename: input.originalFileName || (lowerName.endsWith('.docx') ? 'resume.docx' : 'resume.pdf'),
+            file_data: `data:${mime};base64,${cleanBase64}`,
+          });
+        }
       }
       userContent.push({
         type: 'input_text',
