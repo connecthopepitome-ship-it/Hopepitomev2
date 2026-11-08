@@ -72,6 +72,14 @@ function doPost(e) {
         output = handleDeleteFile(data.fileId);
         break;
 
+      case 'uploadScanningLeadResume':
+        output = handleUploadScanningLeadResume(data);
+        break;
+
+      case 'getFileContent':
+        output = handleGetFileContent(data.fileId);
+        break;
+
       default:
         output = { success: false, error: 'Unsupported action: ' + action };
         break;
@@ -318,4 +326,107 @@ function handleDeleteFile(fileId) {
     message: 'File moved to trash',
   };
 }
+
+/**
+ * Finds or creates a subfolder by name within a parent folder
+ */
+function getOrCreateFolderByName(parentFolder, name) {
+  var iter = parentFolder.getFoldersByName(name);
+  if (iter.hasNext()) {
+    return iter.next();
+  }
+  return parentFolder.createFolder(name);
+}
+
+/**
+ * Uploads an original candidate resume from the ATS Scanner into dedicated folder hierarchy:
+ * Hopepitome Career Services / Career Studio / Scanning Leads / YYYY / MM /
+ */
+function handleUploadScanningLeadResume(data) {
+  var fileName = data.fileName;
+  var mimeType = data.mimeType || 'application/pdf';
+  var base64Content = data.base64Content;
+  var scanReference = data.scanReference || ('SCAN_' + Date.now());
+  var year = data.year || new Date().getFullYear().toString();
+  var month = data.month || ('0' + (new Date().getMonth() + 1)).slice(-2);
+
+  if (!fileName || !base64Content) {
+    return { success: false, error: 'Missing fileName or base64Content' };
+  }
+
+  // 1. Get or create root folder: Hopepitome Career Services
+  var scriptProps = PropertiesService.getScriptProperties();
+  var rootId = scriptProps.getProperty('ROOT_FOLDER_ID');
+  var rootFolder;
+
+  if (rootId) {
+    try {
+      rootFolder = DriveApp.getFolderById(rootId);
+    } catch (e) {}
+  }
+
+  if (!rootFolder) {
+    var rootFolders = DriveApp.getFoldersByName('Hopepitome Career Services');
+    if (rootFolders.hasNext()) {
+      rootFolder = rootFolders.next();
+    } else {
+      rootFolder = DriveApp.createFolder('Hopepitome Career Services');
+    }
+    scriptProps.setProperty('ROOT_FOLDER_ID', rootFolder.getId());
+  }
+
+  // 2. Navigate/create: Career Studio -> Scanning Leads -> YYYY -> MM
+  var careerStudioFolder = getOrCreateFolderByName(rootFolder, 'Career Studio');
+  var scanningLeadsFolder = getOrCreateFolderByName(careerStudioFolder, 'Scanning Leads');
+  var yearFolder = getOrCreateFolderByName(scanningLeadsFolder, year);
+  var monthFolder = getOrCreateFolderByName(yearFolder, month);
+
+  // 3. Decode base64 content
+  var cleanBase64 = base64Content;
+  if (cleanBase64.indexOf(',') > -1) {
+    cleanBase64 = cleanBase64.split(',')[1];
+  }
+  var decodedBytes = Utilities.base64Decode(cleanBase64);
+  var safeFileName = scanReference + '_' + fileName;
+  var blob = Utilities.newBlob(decodedBytes, mimeType, safeFileName);
+
+  // 4. Create file in monthFolder (kept private in root hierarchy)
+  var file = monthFolder.createFile(blob);
+
+  return {
+    success: true,
+    fileId: file.getId(),
+    fileName: safeFileName,
+    mimeType: file.getMimeType(),
+    fileSize: file.getSize(),
+    driveFolderId: monthFolder.getId(),
+    downloadUrl: file.getDownloadUrl() || ('https://drive.google.com/uc?export=download&id=' + file.getId()),
+    viewUrl: file.getUrl(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Retrieves file binary content as base64 for secure authorized admin proxying
+ */
+function handleGetFileContent(fileId) {
+  if (!fileId) return { success: false, error: 'Missing fileId' };
+  try {
+    var file = DriveApp.getFileById(fileId);
+    var blob = file.getBlob();
+    var bytes = blob.getBytes();
+    var base64 = Utilities.base64Encode(bytes);
+    return {
+      success: true,
+      fileId: fileId,
+      fileName: file.getName(),
+      mimeType: file.getMimeType(),
+      fileSize: file.getSize(),
+      base64Content: base64,
+    };
+  } catch (err) {
+    return { success: false, error: err.message || String(err) };
+  }
+}
+
 

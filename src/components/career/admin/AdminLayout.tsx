@@ -82,7 +82,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const careerNavItems = useMemo(() => [
     { label: 'Career Enquiries', href: '/career-services/admin/career-enquiries', icon: ClipboardList, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'NEW' },
-    { label: 'ATS Resume Audit', href: '/career-services/admin/ats-checker', icon: ScanText, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'AI' },
+    { label: 'Scanning Leads', href: '/career-services/admin/scanning-leads', icon: ScanText, color: 'text-amber-600 bg-amber-50 border-amber-100', badge: 'AUTO' },
+    { label: 'ATS Resume Audit', href: '/career-services/admin/ats-checker', icon: Cpu, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'AI' },
     { label: 'Career Customers', href: '/career-services/admin/clients', icon: UsersRound, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Career Projects', href: '/career-services/admin/projects', icon: FolderKanban, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: Files, color: 'text-amber-600 bg-amber-50 border-amber-100' },
@@ -99,6 +100,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   ], []);
 
   const crmNavItems = useMemo(() => [
+    { label: 'Scanning Leads', href: '/career-services/admin/scanning-leads', icon: ScanText, color: 'text-amber-600 bg-amber-50 border-amber-100', badge: 'ATS' },
     { label: 'Leads Inbox', href: '/career-services/admin/crm/leads', icon: UserSearch, color: 'text-sky-600 bg-sky-50 border-sky-100' },
     { label: 'Customer Directory', href: '/career-services/admin/clients', icon: UsersRound, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Sales Pipeline', href: '/career-services/admin/crm/pipeline', icon: Kanban, color: 'text-purple-600 bg-purple-50 border-purple-100' },

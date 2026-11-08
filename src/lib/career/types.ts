@@ -1227,6 +1227,73 @@ export interface CommercialPaymentRecord {
   createdAt: string;
 }
 
+// =========================================================================
+// SCANNING LEADS MODULE (INDEPENDENT CRM CATEGORY)
+// =========================================================================
+
+export type ScanningLeadStatus =
+  | 'NEW'
+  | 'CONTACTED'
+  | 'FOLLOW_UP_REQUIRED'
+  | 'CONVERTED'
+  | 'NOT_INTERESTED'
+  | 'CLOSED';
+
+export type ScanProcessStatus =
+  | 'INITIATED'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED';
+
+export type StorageStatus =
+  | 'PENDING'
+  | 'STORED'
+  | 'FAILED'
+  | 'RETRY_REQUIRED';
+
+export interface ScanningLeadRecord {
+  // Lead Information
+  scanning_lead_id: string; // Format: SL-YYYYMMDD-XXXXX
+  scan_reference: string; // Stable reference: SCAN-YYYYMMDD-XXXX
+  lead_type: 'SCANNING_LEAD';
+  source: 'CAREER_STUDIO_ATS_SCANNER';
+  created_at: string;
+  last_updated_at: string;
+  scan_status: ScanProcessStatus;
+  scan_error?: string;
+  candidate_name?: string;
+  email?: string;
+  mobile_number?: string;
+  location?: string;
+
+  // Resume Information
+  original_file_name: string;
+  file_extension: string;
+  file_size: number;
+  mime_type: string;
+  google_drive_file_id?: string;
+  google_drive_file_url?: string; // Private / Internal reference only
+  google_drive_folder_id?: string;
+  upload_status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  storage_status: StorageStatus;
+  storage_error?: string;
+
+  // Assessment Information
+  assessment_id?: string;
+  overall_score?: number | null;
+  assessment_status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  scan_completed_at?: string | null;
+
+  // Lead Management
+  lead_status: ScanningLeadStatus;
+  assigned_to?: string;
+  assigned_staff_name?: string;
+  admin_notes?: string;
+  converted_lead_id?: string;
+  converted_client_id?: string;
+}
+
+
 
 
 

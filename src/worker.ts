@@ -1155,6 +1155,7 @@ export default {
 
       let uploadId = `UPL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       let requestedAssessmentId: string | undefined = undefined;
+      let targetScanningLeadId = `SL-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
       let fileName = 'candidate_resume.pdf';
       let fileMimeType = '';
       let fileSize = 0;
@@ -1266,6 +1267,124 @@ export default {
 
         const effectiveFileSize = fileSize > 0 ? fileSize : (hasFile ? Math.round(fileBase64.length * 0.75) : 0);
 
+        // =========================================================================
+        // SCANNING LEADS MODULE: INITIALIZE LEAD & STORE RESUME IN GOOGLE DRIVE
+        // =========================================================================
+        const scanReference = requestedAssessmentId || uploadId || `SCAN-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const scanStartTime = new Date().toISOString();
+        const fileExt = fileName.includes('.') ? fileName.split('.').pop()!.toLowerCase() : 'pdf';
+
+        // Check idempotency: If this scanReference was already initialized (e.g. rapid network retry), reuse it
+        try {
+          const existingMatches = await firestore.queryCollection('scanning_leads', {
+            field: 'scan_reference',
+            op: 'EQUAL',
+            value: scanReference,
+          }, 1);
+          if (existingMatches && existingMatches.length > 0) {
+            targetScanningLeadId = existingMatches[0].scanning_lead_id || existingMatches[0].id;
+          }
+        } catch (e) {}
+
+        const initialLeadRecord = {
+          scanning_lead_id: targetScanningLeadId,
+          scan_reference: scanReference,
+          lead_type: 'SCANNING_LEAD',
+          source: 'CAREER_STUDIO_ATS_SCANNER',
+          created_at: scanStartTime,
+          last_updated_at: scanStartTime,
+          scan_status: 'PROCESSING',
+          candidate_name: '',
+          email: '',
+          mobile_number: '',
+          location: '',
+          original_file_name: fileName || 'candidate_resume.pdf',
+          file_extension: fileExt,
+          file_size: effectiveFileSize,
+          mime_type: fileMimeType || (fileExt === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/pdf'),
+          google_drive_file_id: '',
+          google_drive_file_url: '',
+          upload_status: 'PENDING',
+          storage_status: 'PENDING',
+          assessment_id: requestedAssessmentId || scanReference,
+          overall_score: null,
+          assessment_status: 'PENDING',
+          scan_completed_at: null,
+          lead_status: 'NEW',
+          assigned_to: '',
+          admin_notes: '',
+        };
+
+        try {
+          await firestore.setDocument('scanning_leads', targetScanningLeadId, initialLeadRecord);
+        } catch (leadInitErr) {
+          console.warn('[Scanning Lead Init Warning]:', leadInitErr);
+        }
+
+        // Store original uploaded resume in dedicated Google Drive hierarchy (Career Studio / Scanning Leads / YYYY / MM)
+        let driveFileId = '';
+        let driveFileUrl = '';
+        let driveFolderId = '';
+        let storageStatus = 'PENDING';
+        let storageError = '';
+
+        if (hasFile && fileBase64) {
+          try {
+            const nowD = new Date();
+            const yearStr = nowD.getFullYear().toString();
+            const monthStr = ('0' + (nowD.getMonth() + 1)).slice(-2);
+
+            let gasResult = await callGoogleAppsScript(env, {
+              action: 'uploadScanningLeadResume',
+              fileName: fileName,
+              mimeType: fileMimeType || 'application/pdf',
+              base64Content: fileBase64,
+              scanReference: scanReference,
+              year: yearStr,
+              month: monthStr,
+            });
+
+            // Resilient fallback to standard uploadFile if GAS app has not been reloaded
+            if (!gasResult || !gasResult.success) {
+              gasResult = await callGoogleAppsScript(env, {
+                action: 'uploadFile',
+                workOrderId: `SCAN_${yearStr}_${monthStr}`,
+                fileName: `${scanReference}_${fileName}`,
+                mimeType: fileMimeType || 'application/pdf',
+                subfolder: 'Original Resume',
+                base64Content: fileBase64,
+              });
+            }
+
+            if (gasResult && gasResult.success) {
+              driveFileId = gasResult.fileId || '';
+              driveFileUrl = gasResult.viewUrl || '';
+              driveFolderId = gasResult.driveFolderId || '';
+              storageStatus = 'STORED';
+            } else {
+              storageStatus = 'FAILED';
+              storageError = gasResult?.error || 'Failed to save file in Google Drive.';
+            }
+          } catch (driveErr: any) {
+            storageStatus = 'FAILED';
+            storageError = driveErr?.message || String(driveErr);
+          }
+
+          try {
+            await firestore.setDocument('scanning_leads', targetScanningLeadId, {
+              google_drive_file_id: driveFileId,
+              google_drive_file_url: driveFileUrl,
+              google_drive_folder_id: driveFolderId,
+              storage_status: storageStatus,
+              upload_status: storageStatus === 'STORED' ? 'SUCCESS' : 'FAILED',
+              storage_error: storageError || null,
+              last_updated_at: new Date().toISOString(),
+            });
+          } catch (upErr) {
+            console.warn('[Scanning Lead Storage Update Warning]:', upErr);
+          }
+        }
+
         // When a binary document (PDF/DOCX) is provided, pass empty text so GPT-6 Luna extracts directly from input_file
         // without any client-side font-encoding noise polluting the prompt
         const textToUse = hasFile ? '' : resumeText;
@@ -1286,6 +1405,32 @@ export default {
           },
           env
         );
+
+        // Update Scanning Lead with extracted facts & score
+        const candProfile = (assessment as any)?.candidateProfile || {};
+        const extractedName = candProfile.name || '';
+        const extractedEmail = candProfile.email || '';
+        const extractedPhone = candProfile.phone || '';
+        const extractedLoc = candProfile.currentLocation || '';
+        const scoreVal = assessment.overallScore ?? null;
+        const completionTime = new Date().toISOString();
+
+        try {
+          await firestore.setDocument('scanning_leads', targetScanningLeadId, {
+            scan_status: 'COMPLETED',
+            assessment_status: 'COMPLETED',
+            overall_score: scoreVal,
+            candidate_name: extractedName,
+            email: extractedEmail,
+            mobile_number: extractedPhone,
+            location: extractedLoc,
+            assessment_id: assessment.assessmentId,
+            scan_completed_at: completionTime,
+            last_updated_at: completionTime,
+          });
+        } catch (leadCompleteErr) {
+          console.warn('[Scanning Lead Completion Update Warning]:', leadCompleteErr);
+        }
 
         // Transform into conversion-optimized public audit (strips recommendations and missing keywords)
         const publicAssessment = isPublic ? transformToPublicAtsAudit(assessment, jobDescription) : null;
@@ -1376,6 +1521,20 @@ export default {
         } else if (errorType === 'OPENAI_AUTHENTICATION_FAILED' || errorType === 'OPENAI_QUOTA_OR_BILLING_ERROR') {
           heading = 'Review Service Temporarily Busy';
           secondaryText = 'Our automated review engine is undergoing scheduled maintenance. Please retry shortly.';
+        }
+
+        // Update scanning lead failure status
+        if (targetScanningLeadId) {
+          try {
+            await firestore.setDocument('scanning_leads', targetScanningLeadId, {
+              scan_status: 'FAILED',
+              assessment_status: 'FAILED',
+              scan_error: err?.message || 'ATS evaluation failed',
+              last_updated_at: new Date().toISOString(),
+            });
+          } catch (leadFailErr) {
+            console.warn('[Scanning Lead Failure Update Warning]:', leadFailErr);
+          }
         }
 
         return new Response(
@@ -1782,6 +1941,359 @@ export default {
         console.error('[CRM Convert Exception]:', err);
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to convert lead.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // SCANNING LEADS MODULE: ADMIN LIST & METRICS
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/scanning-leads/list') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const limit = Number(body?.limit) || 400;
+        const rawDocs = await firestore.listDocuments('scanning_leads', limit);
+
+        const list = (rawDocs || []).map((d: any) => ({
+          ...d,
+          scanning_lead_id: d.scanning_lead_id || d.id,
+        }));
+
+        // Sort descending by created_at
+        list.sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+        // Compute metrics
+        const todayStr = new Date().toISOString().slice(0, 10);
+        let todayScans = 0;
+        let completedScans = 0;
+        let failedScans = 0;
+        let pendingFollowUps = 0;
+
+        for (const item of list) {
+          if (item.created_at && item.created_at.startsWith(todayStr)) {
+            todayScans++;
+          }
+          if (item.scan_status === 'COMPLETED') {
+            completedScans++;
+          } else if (item.scan_status === 'FAILED') {
+            failedScans++;
+          }
+          if (item.lead_status === 'NEW' || item.lead_status === 'FOLLOW_UP_REQUIRED') {
+            pendingFollowUps++;
+          }
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            leads: list,
+            metrics: {
+              totalLeads: list.length,
+              todayScans,
+              completedScans,
+              failedScans,
+              pendingFollowUps,
+            },
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to list scanning leads.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // SCANNING LEADS MODULE: ADMIN UPDATE STATUS & NOTES
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/scanning-leads/update') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const leadId = body?.leadId || body?.scanning_lead_id;
+
+        if (!leadId) {
+          return new Response(JSON.stringify({ success: false, error: 'leadId is required.' }), {
+            status: 400,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        const updateData: Record<string, any> = {
+          last_updated_at: new Date().toISOString(),
+        };
+
+        if (body.lead_status) updateData.lead_status = body.lead_status;
+        if (body.assigned_to !== undefined) updateData.assigned_to = body.assigned_to;
+        if (body.assigned_staff_name !== undefined) updateData.assigned_staff_name = body.assigned_staff_name;
+        if (body.admin_notes !== undefined) updateData.admin_notes = body.admin_notes;
+        if (body.candidate_name !== undefined) updateData.candidate_name = body.candidate_name;
+        if (body.email !== undefined) updateData.email = body.email;
+        if (body.mobile_number !== undefined) updateData.mobile_number = body.mobile_number;
+        if (body.location !== undefined) updateData.location = body.location;
+
+        await firestore.setDocument('scanning_leads', leadId, updateData);
+
+        return new Response(
+          JSON.stringify({ success: true, leadId, updated: updateData }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to update scanning lead.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // SCANNING LEADS MODULE: AUTHORIZED RESUME FILE PROXY / STREAM
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/scanning-leads/file') {
+      const leadId = url.searchParams.get('leadId') || '';
+      const action = url.searchParams.get('action') === 'download' ? 'download' : 'view';
+
+      if (!leadId) {
+        return new Response(JSON.stringify({ success: false, error: 'leadId is required.' }), {
+          status: 400,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const lead = await firestore.getDocument('scanning_leads', leadId);
+        if (!lead) {
+          return new Response(JSON.stringify({ success: false, error: 'Scanning lead not found.' }), {
+            status: 404,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        const driveFileId = lead.google_drive_file_id;
+        if (!driveFileId) {
+          return new Response(JSON.stringify({ success: false, error: 'Resume file is not stored in Google Drive.' }), {
+            status: 404,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        // Call Google Apps Script to securely retrieve the file base64 content
+        const gasResult = await callGoogleAppsScript(env, {
+          action: 'getFileContent',
+          fileId: driveFileId,
+        });
+
+        if (!gasResult || !gasResult.success || !gasResult.base64Content) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: gasResult?.error || 'Failed to retrieve file from Google Drive vault.',
+            }),
+            { status: 502, headers: CORS_HEADERS }
+          );
+        }
+
+        const cleanBase64 = gasResult.base64Content.includes(',')
+          ? gasResult.base64Content.split(',')[1]
+          : gasResult.base64Content;
+        const binaryBuffer = Buffer.from(cleanBase64, 'base64');
+        const mimeType = lead.mime_type || gasResult.mimeType || 'application/pdf';
+        const fileName = lead.original_file_name || gasResult.fileName || 'candidate_resume.pdf';
+        const disposition = action === 'download' ? 'attachment' : 'inline';
+
+        return new Response(binaryBuffer, {
+          status: 200,
+          headers: {
+            ...CORS_HEADERS,
+            'Content-Type': mimeType,
+            'Content-Disposition': `${disposition}; filename="${encodeURIComponent(fileName)}"`,
+            'Content-Length': String(binaryBuffer.length),
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          },
+        });
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Error streaming file.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // SCANNING LEADS MODULE: CONVERT TO CRM LEAD (NON-DESTRUCTIVE)
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/scanning-leads/convert') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const leadId = body?.leadId;
+        const adminName = body?.adminName || 'Admin';
+
+        if (!leadId) {
+          return new Response(JSON.stringify({ success: false, error: 'leadId is required.' }), {
+            status: 400,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        const scanLead = await firestore.getDocument('scanning_leads', leadId);
+        if (!scanLead) {
+          return new Response(JSON.stringify({ success: false, error: 'Scanning lead not found.' }), {
+            status: 404,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        const now = new Date().toISOString();
+        const datePrefix = now.slice(0, 7).replace('-', '');
+        const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const crmLeadId = `LEAD-${datePrefix}-${randomHex}`;
+
+        const newCrmLead: Record<string, any> = {
+          id: crmLeadId,
+          fullName: scanLead.candidate_name || 'Candidate from Resume Scan',
+          mobile: scanLead.mobile_number || 'N/A',
+          email: scanLead.email || '',
+          preferredContactMethod: 'WHATSAPP',
+          city: scanLead.location || '',
+          country: 'India',
+          serviceInterestedIn: body?.serviceInterestedIn || 'Professional Resume Writing',
+          enquiryDescription: `Converted from Scanning Lead [${scanLead.scan_reference}]. ATS Score: ${scanLead.overall_score ?? 'N/A'}. File: ${scanLead.original_file_name}`,
+          targetRole: '',
+          leadSource: 'CAREER_STUDIO_ATS_SCANNER',
+          leadOwner: adminName,
+          priority: body?.priority || 'HIGH',
+          stage: 'NEW_LEAD',
+          notes: `Original Resume stored in Google Drive: File ID ${scanLead.google_drive_file_id || 'N/A'}. ${scanLead.admin_notes ? `Notes: ${scanLead.admin_notes}` : ''}`,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        await firestore.setDocument('crm_leads', crmLeadId, newCrmLead);
+
+        // Update scanning lead with converted reference
+        await firestore.setDocument('scanning_leads', leadId, {
+          lead_status: 'CONVERTED',
+          converted_lead_id: crmLeadId,
+          last_updated_at: now,
+        });
+
+        return new Response(
+          JSON.stringify({ success: true, crmLeadId, message: `Successfully converted to CRM Lead ${crmLeadId}` }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to convert scanning lead.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // SCANNING LEADS MODULE: RETRY GOOGLE DRIVE STORAGE
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/scanning-leads/retry-storage') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => ({}))) as any;
+        const leadId = body?.leadId;
+        const base64Content = body?.base64Content;
+
+        if (!leadId) {
+          return new Response(JSON.stringify({ success: false, error: 'leadId is required.' }), {
+            status: 400,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        const lead = await firestore.getDocument('scanning_leads', leadId);
+        if (!lead) {
+          return new Response(JSON.stringify({ success: false, error: 'Scanning lead not found.' }), {
+            status: 404,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        if (!base64Content) {
+          return new Response(JSON.stringify({ success: false, error: 'base64Content is required for re-upload.' }), {
+            status: 400,
+            headers: CORS_HEADERS,
+          });
+        }
+
+        const nowD = new Date();
+        const yearStr = nowD.getFullYear().toString();
+        const monthStr = ('0' + (nowD.getMonth() + 1)).slice(-2);
+
+        const gasResult = await callGoogleAppsScript(env, {
+          action: 'uploadScanningLeadResume',
+          fileName: lead.original_file_name,
+          mimeType: lead.mime_type || 'application/pdf',
+          base64Content,
+          scanReference: lead.scan_reference,
+          year: yearStr,
+          month: monthStr,
+        });
+
+        if (gasResult && gasResult.success) {
+          const now = new Date().toISOString();
+          await firestore.setDocument('scanning_leads', leadId, {
+            google_drive_file_id: gasResult.fileId,
+            google_drive_file_url: gasResult.viewUrl || '',
+            google_drive_folder_id: gasResult.driveFolderId || '',
+            storage_status: 'STORED',
+            upload_status: 'SUCCESS',
+            storage_error: null,
+            last_updated_at: now,
+          });
+
+          return new Response(
+            JSON.stringify({ success: true, fileId: gasResult.fileId, message: 'File successfully stored in Google Drive.' }),
+            { status: 200, headers: CORS_HEADERS }
+          );
+        } else {
+          await firestore.setDocument('scanning_leads', leadId, {
+            storage_status: 'FAILED',
+            storage_error: gasResult?.error || 'Retry upload failed',
+            last_updated_at: new Date().toISOString(),
+          });
+          return new Response(
+            JSON.stringify({ success: false, error: gasResult?.error || 'Google Drive retry failed.' }),
+            { status: 502, headers: CORS_HEADERS }
+          );
+        }
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Error retrying storage.' }),
           { status: 500, headers: CORS_HEADERS }
         );
       }

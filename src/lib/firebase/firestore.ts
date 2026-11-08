@@ -55,6 +55,7 @@ import type {
   ClientRecord,
   CareerEnquiryRecord,
   CareerEnquiryStatus,
+  ScanningLeadRecord,
 } from '../career/types';
 
 // Helper to sanitize undefined values before saving to Firestore
@@ -883,6 +884,72 @@ export function subscribeUniversalTasks(
 export async function saveUniversalTask(task: UniversalTaskRecord): Promise<void> {
   await resilientSaveDoc('universal_tasks', task.taskId, task);
 }
+
+// 26. Scanning Leads (Independent CRM Category for ATS Scanner Uploads)
+export function subscribeScanningLeads(
+  callback: (leads: ScanningLeadRecord[]) => void
+): () => void {
+  if (!db) {
+    // If client Firestore db is not initialized, fallback to Worker API
+    fetchScanningLeadsApi().then(callback);
+    return () => {};
+  }
+  const q = query(collection(db, 'scanning_leads'));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const list = snapshot.docs.map(
+        (d) =>
+          ({
+            ...d.data(),
+            scanning_lead_id: d.data().scanning_lead_id || d.id,
+          } as ScanningLeadRecord)
+      );
+      list.sort(
+        (a, b) =>
+          new Date(b.created_at || 0).getTime() -
+          new Date(a.created_at || 0).getTime()
+      );
+      callback(list);
+    },
+    (err) => {
+      console.warn('[Firestore Scanning Leads Listener Error, failing over to API]:', err);
+      fetchScanningLeadsApi().then(callback);
+    }
+  );
+}
+
+export async function fetchScanningLeadsApi(): Promise<ScanningLeadRecord[]> {
+  try {
+    const res = await fetch('/api/career/admin/scanning-leads/list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 400 }),
+    });
+    const data = await res.json();
+    return (data?.leads || []) as ScanningLeadRecord[];
+  } catch (e) {
+    console.error('[Fetch Scanning Leads API Error]:', e);
+    return [];
+  }
+}
+
+export async function updateScanningLead(
+  leadId: string,
+  updateData: Partial<ScanningLeadRecord>
+): Promise<boolean> {
+  try {
+    await resilientSaveDoc('scanning_leads', leadId, {
+      ...updateData,
+      last_updated_at: new Date().toISOString(),
+    });
+    return true;
+  } catch (e) {
+    console.error('[Update Scanning Lead Error]:', e);
+    return false;
+  }
+}
+
 
 
 

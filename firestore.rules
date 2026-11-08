@@ -98,6 +98,9 @@ service cloud.firestore {
     match /crm_leads/{leadId} {
       allow read, write: if isStaff();
     }
+    match /scanning_leads/{leadId} {
+      allow read, write: if isStaff();
+    }
     match /crm_followups/{followUpId} {
       allow read, write: if isStaff();
     }
