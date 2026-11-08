@@ -9,6 +9,7 @@ import { globalAtsEngine } from './lib/ai/engine';
 import { ACTIVE_AI_MODEL } from './lib/ai/models';
 import { transformToPublicAtsAudit } from './lib/ai/scoring';
 import { AtsFailureClassification } from './lib/ai/types';
+import { extractCleanTextFromDocument } from './lib/document-parser';
 
 interface Env {
   ASSETS: {
@@ -1194,6 +1195,14 @@ export default {
             const arrayBuf = await fileObj.arrayBuffer();
             const base64Str = Buffer.from(arrayBuf).toString('base64');
             fileBase64 = `data:${fileMimeType};base64,${base64Str}`;
+            try {
+              const parsedTxt = await extractCleanTextFromDocument(arrayBuf, fileName);
+              if (parsedTxt && parsedTxt.trim().length >= 20) {
+                resumeText = parsedTxt.trim();
+              }
+            } catch (txtErr) {
+              console.warn('[Resume Text Extraction from FileObj Warning]:', txtErr);
+            }
           }
           if (formData.get('uploadId')) uploadId = String(formData.get('uploadId'));
           if (formData.get('assessmentId')) requestedAssessmentId = String(formData.get('assessmentId'));
@@ -1218,6 +1227,22 @@ export default {
           customerId = body?.customerId;
           projectId = body?.projectId;
           isPublic = body?.isPublic !== false;
+
+          if (!resumeText && fileBase64) {
+            try {
+              const rawB64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
+              const bBuf = Buffer.from(rawB64.replace(/\s+/g, ''), 'base64');
+              const parsedTxt = await extractCleanTextFromDocument(
+                bBuf.buffer.slice(bBuf.byteOffset, bBuf.byteOffset + bBuf.byteLength),
+                fileName || 'resume.pdf'
+              );
+              if (parsedTxt && parsedTxt.trim().length >= 20) {
+                resumeText = parsedTxt.trim();
+              }
+            } catch (b64TxtErr) {
+              console.warn('[Resume Text Extraction from Base64 Body Warning]:', b64TxtErr);
+            }
+          }
         }
 
         const isDocFile = Boolean(
@@ -1334,11 +1359,15 @@ export default {
             const yearStr = nowD.getFullYear().toString();
             const monthStr = ('0' + (nowD.getMonth() + 1)).slice(-2);
 
+            // Strip data: prefix and any whitespace so Google Apps Script base64Decode succeeds cleanly
+            const rawB64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
+            const pureBase64 = rawB64.replace(/\s+/g, '');
+
             let gasResult = await callGoogleAppsScript(env, {
               action: 'uploadScanningLeadResume',
               fileName: fileName,
               mimeType: fileMimeType || 'application/pdf',
-              base64Content: fileBase64,
+              base64Content: pureBase64,
               scanReference: scanReference,
               year: yearStr,
               month: monthStr,
@@ -1352,7 +1381,7 @@ export default {
                 fileName: `${scanReference}_${fileName}`,
                 mimeType: fileMimeType || 'application/pdf',
                 subfolder: 'Original Resume',
-                base64Content: fileBase64,
+                base64Content: pureBase64,
               });
             }
 
@@ -1408,10 +1437,37 @@ export default {
 
         // Update Scanning Lead with extracted facts & score
         const candProfile = (assessment as any)?.candidateProfile || {};
-        const extractedName = candProfile.name || '';
-        const extractedEmail = candProfile.email || '';
-        const extractedPhone = candProfile.phone || '';
-        const extractedLoc = candProfile.currentLocation || '';
+        let extractedName = candProfile.name || '';
+        let extractedEmail = candProfile.email || (assessment as any)?.email || '';
+        let extractedPhone = candProfile.phone || candProfile.mobile || (assessment as any)?.phone || '';
+        let extractedLoc = candProfile.currentLocation || '';
+
+        // Resilient regex fallbacks if AI schema did not capture candidate contact details
+        if (!extractedEmail && resumeText) {
+          const emailMatch = resumeText.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/);
+          if (emailMatch) {
+            extractedEmail = emailMatch[0];
+          }
+        }
+
+        if (!extractedPhone && resumeText) {
+          const phoneMatch = resumeText.match(/(?:\+?\d{1,4}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}/);
+          if (phoneMatch) {
+            extractedPhone = phoneMatch[0].trim();
+          }
+        }
+
+        if (!extractedName && fileName) {
+          const cleanName = fileName
+            .replace(/\.[^/.]+$/, '')
+            .replace(/[_-]/g, ' ')
+            .replace(/\b(resume|cv|accountant|engineer|developer|profile|updated|final|latest|candidate)\b/gi, '')
+            .trim();
+          if (cleanName.length >= 3) {
+            extractedName = cleanName;
+          }
+        }
+
         const scoreVal = assessment.overallScore ?? null;
         const completionTime = new Date().toISOString();
 
@@ -2250,19 +2306,34 @@ export default {
           });
         }
 
+        const rawB64 = base64Content.includes(',') ? base64Content.split(',')[1] : base64Content;
+        const pureBase64 = rawB64.replace(/\s+/g, '');
+
         const nowD = new Date();
         const yearStr = nowD.getFullYear().toString();
         const monthStr = ('0' + (nowD.getMonth() + 1)).slice(-2);
 
-        const gasResult = await callGoogleAppsScript(env, {
+        let gasResult = await callGoogleAppsScript(env, {
           action: 'uploadScanningLeadResume',
           fileName: lead.original_file_name,
           mimeType: lead.mime_type || 'application/pdf',
-          base64Content,
+          base64Content: pureBase64,
           scanReference: lead.scan_reference,
           year: yearStr,
           month: monthStr,
         });
+
+        // Resilient fallback to standard uploadFile if GAS app has not been reloaded
+        if (!gasResult || !gasResult.success) {
+          gasResult = await callGoogleAppsScript(env, {
+            action: 'uploadFile',
+            workOrderId: `SCAN_${yearStr}_${monthStr}`,
+            fileName: `${lead.scan_reference}_${lead.original_file_name}`,
+            mimeType: lead.mime_type || 'application/pdf',
+            subfolder: 'Original Resume',
+            base64Content: pureBase64,
+          });
+        }
 
         if (gasResult && gasResult.success) {
           const now = new Date().toISOString();

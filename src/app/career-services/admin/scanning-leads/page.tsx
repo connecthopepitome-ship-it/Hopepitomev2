@@ -43,6 +43,7 @@ import {
   Sparkles,
   ShieldCheck,
   Check,
+  Upload,
 } from 'lucide-react';
 
 const LEAD_STATUS_CONFIG: Record<
@@ -119,11 +120,19 @@ function ScanningLeadsContent() {
   const [activeLead, setActiveLead] = useState<ScanningLeadRecord | null>(null);
 
   // Update State in Drawer
+  const [editingName, setEditingName] = useState('');
+  const [editingEmail, setEditingEmail] = useState('');
+  const [editingMobile, setEditingMobile] = useState('');
+  const [editingLocation, setEditingLocation] = useState('');
   const [editingNotes, setEditingNotes] = useState('');
   const [editingStatus, setEditingStatus] = useState<ScanningLeadStatus>('NEW');
   const [editingAssignee, setEditingAssignee] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  // Storage Retry State
+  const [isRetryingStorage, setIsRetryingStorage] = useState(false);
+  const [retryStorageError, setRetryStorageError] = useState<string | null>(null);
 
   // Lead Conversion State
   const [isConverting, setIsConverting] = useState(false);
@@ -146,11 +155,16 @@ function ScanningLeadsContent() {
   // Sync active lead fields when opened
   useEffect(() => {
     if (activeLead) {
+      setEditingName(activeLead.candidate_name || '');
+      setEditingEmail(activeLead.email || '');
+      setEditingMobile(activeLead.mobile_number || '');
+      setEditingLocation(activeLead.location || '');
       setEditingNotes(activeLead.admin_notes || '');
       setEditingStatus(activeLead.lead_status || 'NEW');
       setEditingAssignee(activeLead.assigned_to || '');
       setSaveSuccessMsg(null);
       setConvertResult(null);
+      setRetryStorageError(null);
     }
   }, [activeLead]);
 
@@ -253,6 +267,10 @@ function ScanningLeadsContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           leadId: activeLead.scanning_lead_id,
+          candidate_name: editingName,
+          email: editingEmail,
+          mobile_number: editingMobile,
+          location: editingLocation,
           lead_status: editingStatus,
           assigned_to: editingAssignee,
           assigned_staff_name: assignedName,
@@ -267,6 +285,10 @@ function ScanningLeadsContent() {
           prev
             ? {
                 ...prev,
+                candidate_name: editingName,
+                email: editingEmail,
+                mobile_number: editingMobile,
+                location: editingLocation,
                 lead_status: editingStatus,
                 assigned_to: editingAssignee,
                 assigned_staff_name: assignedName,
@@ -275,6 +297,24 @@ function ScanningLeadsContent() {
               }
             : null
         );
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.scanning_lead_id === activeLead.scanning_lead_id
+              ? {
+                  ...l,
+                  candidate_name: editingName,
+                  email: editingEmail,
+                  mobile_number: editingMobile,
+                  location: editingLocation,
+                  lead_status: editingStatus,
+                  assigned_to: editingAssignee,
+                  assigned_staff_name: assignedName,
+                  admin_notes: editingNotes,
+                  last_updated_at: new Date().toISOString(),
+                }
+              : l
+          )
+        );
       } else {
         alert(data.error || 'Failed to update lead');
       }
@@ -282,6 +322,73 @@ function ScanningLeadsContent() {
       alert(e?.message || 'Error updating lead');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Handle Retry / Re-upload to Google Drive Storage
+  const handleRetryStorageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeLead) return;
+    setIsRetryingStorage(true);
+    setRetryStorageError(null);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const rawResult = reader.result as string;
+          const pureBase64 = rawResult.includes(',') ? rawResult.split(',')[1] : rawResult;
+
+          const res = await fetch('/api/career/admin/scanning-leads/retry-storage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              leadId: activeLead.scanning_lead_id,
+              base64Content: pureBase64,
+            }),
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            setActiveLead((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    google_drive_file_id: data.fileId,
+                    storage_status: 'STORED',
+                    storage_error: undefined,
+                  }
+                : null
+            );
+            setLeads((prev) =>
+              prev.map((l) =>
+                l.scanning_lead_id === activeLead.scanning_lead_id
+                  ? {
+                      ...l,
+                      google_drive_file_id: data.fileId,
+                      storage_status: 'STORED',
+                      storage_error: undefined,
+                    }
+                  : l
+              )
+            );
+          } else {
+            setRetryStorageError(data.error || 'Google Drive retry storage failed.');
+          }
+        } catch (innerErr: any) {
+          setRetryStorageError(innerErr?.message || 'Error uploading file.');
+        } finally {
+          setIsRetryingStorage(false);
+        }
+      };
+      reader.onerror = () => {
+        setRetryStorageError('Failed to read local file.');
+        setIsRetryingStorage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      setRetryStorageError(err?.message || 'Failed to initiate storage retry.');
+      setIsRetryingStorage(false);
     }
   };
 
@@ -900,8 +1007,34 @@ function ScanningLeadsContent() {
                       </div>
                     </div>
                   ) : (
-                    <div className="pt-2 border-t border-slate-100 text-[11px] text-rose-600 font-medium">
-                      {activeLead.storage_error || 'File not available in Google Drive.'}
+                    <div className="pt-2 border-t border-slate-100 space-y-2">
+                      <div className="text-[11px] text-rose-600 font-medium">
+                        {retryStorageError || activeLead.storage_error || 'File not available in Google Drive.'}
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <label className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                          isRetryingStorage
+                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                            : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200'
+                        }`}>
+                          {isRetryingStorage ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Upload className="w-3.5 h-3.5" />
+                          )}
+                          <span>{isRetryingStorage ? 'Uploading to Drive...' : 'Re-upload Resume to Drive'}</span>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept=".pdf,.docx"
+                            disabled={isRetryingStorage}
+                            onChange={handleRetryStorageFile}
+                          />
+                        </label>
+                        <span className="text-[10px] text-slate-400">
+                          Select resume to retry Google Drive storage
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -963,6 +1096,55 @@ function ScanningLeadsContent() {
                 <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 block">
                   Lead Management Operations
                 </span>
+
+                {/* Candidate Contact Details (Editable) */}
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold block">
+                    Candidate Profile Details
+                  </span>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-600 block mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        placeholder="Full name"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-600 block mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={editingLocation}
+                        onChange={(e) => setEditingLocation(e.target.value)}
+                        placeholder="City, Country"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-600 block mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={editingEmail}
+                        onChange={(e) => setEditingEmail(e.target.value)}
+                        placeholder="candidate@email.com"
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-600 block mb-1">Mobile / WhatsApp</label>
+                      <input
+                        type="text"
+                        value={editingMobile}
+                        onChange={(e) => setEditingMobile(e.target.value)}
+                        placeholder="+974 / +91 ..."
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#173B8F]"
+                      />
+                    </div>
+                  </div>
+                </div>
 
                 {/* Status Selection */}
                 <div>

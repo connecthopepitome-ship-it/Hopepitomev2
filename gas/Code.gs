@@ -219,8 +219,13 @@ function handleUploadFile(data) {
   var targetFolderId = folderInit.subfolders[targetSubfolderName];
   var targetFolder = DriveApp.getFolderById(targetFolderId);
 
-  // Decode file
-  var decodedBytes = Utilities.base64Decode(base64Content);
+  // Decode file - safely sanitize data URL prefix and any whitespace
+  var cleanBase64 = base64Content;
+  if (cleanBase64.indexOf(',') > -1) {
+    cleanBase64 = cleanBase64.split(',')[1];
+  }
+  cleanBase64 = cleanBase64.replace(/\s+/g, '');
+  var decodedBytes = Utilities.base64Decode(cleanBase64);
   var blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
 
   // Create file in Drive
@@ -381,11 +386,12 @@ function handleUploadScanningLeadResume(data) {
   var yearFolder = getOrCreateFolderByName(scanningLeadsFolder, year);
   var monthFolder = getOrCreateFolderByName(yearFolder, month);
 
-  // 3. Decode base64 content
+  // 3. Decode base64 content safely
   var cleanBase64 = base64Content;
   if (cleanBase64.indexOf(',') > -1) {
     cleanBase64 = cleanBase64.split(',')[1];
   }
+  cleanBase64 = cleanBase64.replace(/\s+/g, '');
   var decodedBytes = Utilities.base64Decode(cleanBase64);
   var safeFileName = scanReference + '_' + fileName;
   var blob = Utilities.newBlob(decodedBytes, mimeType, safeFileName);
