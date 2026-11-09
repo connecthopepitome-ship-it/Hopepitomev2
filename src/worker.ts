@@ -9,7 +9,6 @@ import { globalAtsEngine } from './lib/ai/engine';
 import { ACTIVE_AI_MODEL } from './lib/ai/models';
 import { transformToPublicAtsAudit } from './lib/ai/scoring';
 import { AtsFailureClassification } from './lib/ai/types';
-import { extractCleanTextFromDocument } from './lib/document-parser';
 
 interface Env {
   ASSETS: {
@@ -133,7 +132,7 @@ async function callGoogleAppsScript(
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: any): Promise<Response> {
     try {
       const url = new URL(request.url);
 
@@ -1195,13 +1194,14 @@ export default {
             const arrayBuf = await fileObj.arrayBuffer();
             const base64Str = Buffer.from(arrayBuf).toString('base64');
             fileBase64 = `data:${fileMimeType};base64,${base64Str}`;
-            try {
-              const parsedTxt = await extractCleanTextFromDocument(arrayBuf, fileName);
-              if (parsedTxt && parsedTxt.trim().length >= 20) {
-                resumeText = parsedTxt.trim();
-              }
-            } catch (txtErr) {
-              console.warn('[Resume Text Extraction from FileObj Warning]:', txtErr);
+            // Fast non-blocking plain ASCII inspection for contact regex (zero decompression overhead)
+            if (!resumeText) {
+              try {
+                const asciiChunk = Buffer.from(arrayBuf.slice(0, 16384)).toString('ascii');
+                if (asciiChunk && asciiChunk.length > 50) {
+                  resumeText = asciiChunk;
+                }
+              } catch {}
             }
           }
           if (formData.get('uploadId')) uploadId = String(formData.get('uploadId'));
@@ -1231,17 +1231,9 @@ export default {
           if (!resumeText && fileBase64) {
             try {
               const rawB64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
-              const bBuf = Buffer.from(rawB64.replace(/\s+/g, ''), 'base64');
-              const parsedTxt = await extractCleanTextFromDocument(
-                bBuf.buffer.slice(bBuf.byteOffset, bBuf.byteOffset + bBuf.byteLength),
-                fileName || 'resume.pdf'
-              );
-              if (parsedTxt && parsedTxt.trim().length >= 20) {
-                resumeText = parsedTxt.trim();
-              }
-            } catch (b64TxtErr) {
-              console.warn('[Resume Text Extraction from Base64 Body Warning]:', b64TxtErr);
-            }
+              const bBuf = Buffer.from(rawB64.slice(0, 16384), 'base64');
+              resumeText = bBuf.toString('ascii');
+            } catch {}
           }
         }
 
@@ -1347,70 +1339,72 @@ export default {
         }
 
         // Store original uploaded resume in dedicated Google Drive hierarchy (Career Studio / Scanning Leads / YYYY / MM)
-        let driveFileId = '';
-        let driveFileUrl = '';
-        let driveFolderId = '';
-        let storageStatus = 'PENDING';
-        let storageError = '';
-
+        // Store original uploaded resume in Google Drive asynchronously without blocking the candidate's scan
         if (hasFile && fileBase64) {
-          try {
-            const nowD = new Date();
-            const yearStr = nowD.getFullYear().toString();
-            const monthStr = ('0' + (nowD.getMonth() + 1)).slice(-2);
+          const driveUploadTask = (async () => {
+            try {
+              const nowD = new Date();
+              const yearStr = nowD.getFullYear().toString();
+              const monthStr = ('0' + (nowD.getMonth() + 1)).slice(-2);
 
-            // Strip data: prefix and any whitespace so Google Apps Script base64Decode succeeds cleanly
-            const rawB64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
-            const pureBase64 = rawB64.replace(/\s+/g, '');
+              // Strip data: prefix and any whitespace so Google Apps Script base64Decode succeeds cleanly
+              const rawB64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
+              const pureBase64 = rawB64.replace(/\s+/g, '');
 
-            let gasResult = await callGoogleAppsScript(env, {
-              action: 'uploadScanningLeadResume',
-              fileName: fileName,
-              mimeType: fileMimeType || 'application/pdf',
-              base64Content: pureBase64,
-              scanReference: scanReference,
-              year: yearStr,
-              month: monthStr,
-            });
-
-            // Resilient fallback to standard uploadFile if GAS app has not been reloaded
-            if (!gasResult || !gasResult.success) {
-              gasResult = await callGoogleAppsScript(env, {
-                action: 'uploadFile',
-                workOrderId: `SCAN_${yearStr}_${monthStr}`,
-                fileName: `${scanReference}_${fileName}`,
+              let gasResult = await callGoogleAppsScript(env, {
+                action: 'uploadScanningLeadResume',
+                fileName: fileName,
                 mimeType: fileMimeType || 'application/pdf',
-                subfolder: 'Original Resume',
                 base64Content: pureBase64,
+                scanReference: scanReference,
+                year: yearStr,
+                month: monthStr,
               });
-            }
 
-            if (gasResult && gasResult.success) {
-              driveFileId = gasResult.fileId || '';
-              driveFileUrl = gasResult.viewUrl || '';
-              driveFolderId = gasResult.driveFolderId || '';
-              storageStatus = 'STORED';
-            } else {
-              storageStatus = 'FAILED';
-              storageError = gasResult?.error || 'Failed to save file in Google Drive.';
-            }
-          } catch (driveErr: any) {
-            storageStatus = 'FAILED';
-            storageError = driveErr?.message || String(driveErr);
-          }
+              // Resilient fallback to standard uploadFile if GAS app has not been reloaded
+              if (!gasResult || !gasResult.success) {
+                gasResult = await callGoogleAppsScript(env, {
+                  action: 'uploadFile',
+                  workOrderId: `SCAN_${yearStr}_${monthStr}`,
+                  fileName: `${scanReference}_${fileName}`,
+                  mimeType: fileMimeType || 'application/pdf',
+                  subfolder: 'Original Resume',
+                  base64Content: pureBase64,
+                });
+              }
 
-          try {
-            await firestore.setDocument('scanning_leads', targetScanningLeadId, {
-              google_drive_file_id: driveFileId,
-              google_drive_file_url: driveFileUrl,
-              google_drive_folder_id: driveFolderId,
-              storage_status: storageStatus,
-              upload_status: storageStatus === 'STORED' ? 'SUCCESS' : 'FAILED',
-              storage_error: storageError || null,
-              last_updated_at: new Date().toISOString(),
-            });
-          } catch (upErr) {
-            console.warn('[Scanning Lead Storage Update Warning]:', upErr);
+              if (gasResult && gasResult.success) {
+                await firestore.setDocument('scanning_leads', targetScanningLeadId, {
+                  google_drive_file_id: gasResult.fileId || '',
+                  google_drive_file_url: gasResult.viewUrl || '',
+                  google_drive_folder_id: gasResult.driveFolderId || '',
+                  storage_status: 'STORED',
+                  upload_status: 'SUCCESS',
+                  storage_error: null,
+                  last_updated_at: new Date().toISOString(),
+                });
+              } else {
+                await firestore.setDocument('scanning_leads', targetScanningLeadId, {
+                  storage_status: 'FAILED',
+                  upload_status: 'FAILED',
+                  storage_error: gasResult?.error || 'Failed to save file in Google Drive.',
+                  last_updated_at: new Date().toISOString(),
+                });
+              }
+            } catch (driveErr: any) {
+              try {
+                await firestore.setDocument('scanning_leads', targetScanningLeadId, {
+                  storage_status: 'FAILED',
+                  upload_status: 'FAILED',
+                  storage_error: driveErr?.message || String(driveErr),
+                  last_updated_at: new Date().toISOString(),
+                });
+              } catch {}
+            }
+          })();
+
+          if (ctx && typeof ctx.waitUntil === 'function') {
+            ctx.waitUntil(driveUploadTask);
           }
         }
 
