@@ -85,6 +85,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Scanning Leads', href: '/career-services/admin/scanning-leads', icon: ScanText, color: 'text-amber-600 bg-amber-50 border-amber-100', badge: 'AUTO' },
     { label: 'ATS Resume Audit', href: '/career-services/admin/ats-checker', icon: Cpu, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'AI' },
     { label: 'Career Customers', href: '/career-services/admin/clients', icon: UsersRound, color: 'text-teal-600 bg-teal-50 border-teal-100' },
+    { label: 'Login Management', href: '/career-services/admin/login-management', icon: KeyRound, color: 'text-indigo-600 bg-indigo-50 border-indigo-100', badge: 'SEC' },
     { label: 'Career Projects', href: '/career-services/admin/projects', icon: FolderKanban, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: Files, color: 'text-amber-600 bg-amber-50 border-amber-100' },
   ], []);

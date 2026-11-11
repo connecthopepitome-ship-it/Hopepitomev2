@@ -42,6 +42,16 @@ export function fromFirestoreDocument(doc: any): Record<string, any> | null {
   for (const [k, v] of Object.entries(doc.fields)) {
     result[k] = fromFirestoreValue(v);
   }
+  if (typeof doc.name === 'string' && doc.name.includes('/')) {
+    const docId = doc.name.split('/').pop();
+    if (docId) {
+      Object.defineProperty(result, '_docId', {
+        value: docId,
+        enumerable: false,
+        configurable: true,
+      });
+    }
+  }
   return result;
 }
 

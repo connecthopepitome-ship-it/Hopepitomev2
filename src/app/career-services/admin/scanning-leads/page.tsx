@@ -134,6 +134,14 @@ function ScanningLeadsContent() {
   const [isRetryingStorage, setIsRetryingStorage] = useState(false);
   const [retryStorageError, setRetryStorageError] = useState<string | null>(null);
 
+  // Resume View / Download State
+  const [fileActionLoading, setFileActionLoading] = useState<'view' | 'download' | null>(null);
+  const [fileActionFeedback, setFileActionFeedback] = useState<{
+    type: 'info' | 'error';
+    message: string;
+    fallbackUrl?: string;
+  } | null>(null);
+
   // Lead Conversion State
   const [isConverting, setIsConverting] = useState(false);
   const [convertResult, setConvertResult] = useState<string | null>(null);
@@ -165,6 +173,7 @@ function ScanningLeadsContent() {
       setSaveSuccessMsg(null);
       setConvertResult(null);
       setRetryStorageError(null);
+      setFileActionFeedback(null);
     }
   }, [activeLead]);
 
@@ -434,9 +443,75 @@ function ScanningLeadsContent() {
     }
   };
 
-  // Secure File Proxy Launcher (Backend authenticated endpoint)
+  // Secure File Proxy Launcher (with Blob stream & Drive fallback)
   const getFileUrl = (leadId: string, action: 'view' | 'download') => {
     return `/api/career/admin/scanning-leads/file?leadId=${encodeURIComponent(leadId)}&action=${action}`;
+  };
+
+  const handleResumeFileAction = async (lead: ScanningLeadRecord, action: 'view' | 'download') => {
+    setFileActionLoading(action);
+    setFileActionFeedback(null);
+
+    try {
+      const res = await fetch(`${getFileUrl(lead.scanning_lead_id, action)}&format=json`);
+      const contentType = res.headers.get('content-type') || '';
+
+      if (res.ok && !contentType.includes('application/json')) {
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        if (action === 'view') {
+          window.open(objectUrl, '_blank', 'noopener,noreferrer');
+          setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+        } else {
+          let fileName = lead.original_file_name || 'candidate_resume.pdf';
+          const disp = res.headers.get('content-disposition') || '';
+          const utfMatch = disp.match(/filename\*=UTF-8''([^;]+)/i);
+          const asciiMatch = disp.match(/filename="([^"]+)"/i);
+          if (utfMatch?.[1]) {
+            try {
+              fileName = decodeURIComponent(utfMatch[1]);
+            } catch {}
+          } else if (asciiMatch?.[1]) {
+            fileName = asciiMatch[1];
+          }
+
+          const a = document.createElement('a');
+          a.href = objectUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(objectUrl), 15_000);
+        }
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+      const fallbackUrl = data?.fallbackUrl || lead.google_drive_file_url || '';
+
+      if (fallbackUrl) {
+        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+        setFileActionFeedback({
+          type: 'info',
+          message:
+            'Opened Google Drive direct link (Apps Script proxy returned legacy unsupported action).',
+          fallbackUrl,
+        });
+      } else {
+        setFileActionFeedback({
+          type: 'error',
+          message: data?.error || 'Unable to download resume file. Please re-upload it below.',
+        });
+      }
+    } catch (err: any) {
+      setFileActionFeedback({
+        type: 'error',
+        message: err?.message || 'Network error while downloading resume file.',
+      });
+    } finally {
+      setFileActionLoading(null);
+    }
   };
 
   return (
@@ -819,16 +894,15 @@ function ScanningLeadsContent() {
                       {/* Action */}
                       <td className="py-3 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
-                          {item.google_drive_file_id && (
-                            <a
-                              href={getFileUrl(item.scanning_lead_id, 'view')}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Securely View Resume"
+                          {(item.google_drive_file_id || item.storage_status === 'STORED') && (
+                            <button
+                              type="button"
+                              onClick={() => handleResumeFileAction(item, 'download')}
+                              title="Download Resume"
                               className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition"
                             >
-                              <Eye className="w-4 h-4" />
-                            </a>
+                              <Download className="w-4 h-4" />
+                            </button>
                           )}
                           <button
                             onClick={() => setActiveLead(item)}
@@ -982,29 +1056,65 @@ function ScanningLeadsContent() {
                     </div>
                   </div>
 
-                  {activeLead.google_drive_file_id ? (
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-slate-400">
-                        Drive ID: {activeLead.google_drive_file_id}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={getFileUrl(activeLead.scanning_lead_id, 'view')}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1 transition"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </a>
-                        <a
-                          href={getFileUrl(activeLead.scanning_lead_id, 'download')}
-                          className="px-3 py-1.5 rounded-lg bg-[#173B8F] hover:bg-[#132c6b] text-white font-semibold text-xs flex items-center gap-1 transition shadow-sm"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download</span>
-                        </a>
+                  {activeLead.google_drive_file_id || activeLead.storage_status === 'STORED' ? (
+                    <div className="pt-2 border-t border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono text-slate-400 truncate">
+                          {activeLead.google_drive_file_id
+                            ? `Drive ID: ${activeLead.google_drive_file_id}`
+                            : 'Stored in secure edge vault'}
+                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            disabled={fileActionLoading !== null}
+                            onClick={() => handleResumeFileAction(activeLead, 'view')}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1 transition disabled:opacity-60"
+                          >
+                            {fileActionLoading === 'view' ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Eye className="w-3.5 h-3.5" />
+                            )}
+                            <span>View</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={fileActionLoading !== null}
+                            onClick={() => handleResumeFileAction(activeLead, 'download')}
+                            className="px-3 py-1.5 rounded-lg bg-[#173B8F] hover:bg-[#132c6b] text-white font-semibold text-xs flex items-center gap-1 transition shadow-sm disabled:opacity-60"
+                          >
+                            {fileActionLoading === 'download' ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Download className="w-3.5 h-3.5" />
+                            )}
+                            <span>{fileActionLoading === 'download' ? 'Downloading...' : 'Download'}</span>
+                          </button>
+                        </div>
                       </div>
+
+                      {fileActionFeedback && (
+                        <div
+                          className={`p-2.5 rounded-lg border text-[11px] flex items-center justify-between gap-2 ${
+                            fileActionFeedback.type === 'error'
+                              ? 'bg-rose-50 border-rose-200 text-rose-700'
+                              : 'bg-amber-50 border-amber-200 text-amber-800'
+                          }`}
+                        >
+                          <span>{fileActionFeedback.message}</span>
+                          {fileActionFeedback.fallbackUrl && (
+                            <a
+                              href={fileActionFeedback.fallbackUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold underline shrink-0"
+                            >
+                              Open Drive File →
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="pt-2 border-t border-slate-100 space-y-2">

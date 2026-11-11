@@ -82,22 +82,44 @@ export async function registerPasswordlessClient(name: string, mobile: string): 
   return data;
 }
 
+export const CANDIDATE_SESSION_KEY = 'hp_candidate_session';
+
+export interface CandidateSessionData {
+  clientId: string;
+  workOrderId: string;
+  name: string;
+  mobile?: string;
+  email?: string;
+  clientCode?: string;
+  loggedInAt: string;
+}
+
 /**
  * Passwordless Client Login API caller
  * Verifies Mobile + Work Order ID on Cloudflare Worker backend,
  * receives Firebase Custom Token, and signs in with Firebase
  */
-export async function loginPasswordlessClient(mobile: string, workOrderId: string): Promise<{
-  user: FirebaseUser;
+export async function loginPasswordlessClient(
+  mobile: string,
+  workOrderId: string,
+  rawMobile?: string,
+  countryCode?: string
+): Promise<{
+  user: FirebaseUser | null;
   clientId: string;
   workOrderId: string;
   name: string;
+  mobile?: string;
+  email?: string;
+  clientCode?: string;
 }> {
   const res = await fetch('/api/career/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       mobile: mobile.trim(),
+      rawMobile: rawMobile?.trim() || mobile.trim(),
+      countryCode: countryCode?.trim(),
       workOrderId: workOrderId.trim().toUpperCase(),
     }),
   });
@@ -107,13 +129,36 @@ export async function loginPasswordlessClient(mobile: string, workOrderId: strin
     throw new Error(data.error || 'Invalid mobile number or work order ID');
   }
 
-  // Sign into Firebase SDK using the custom token returned by backend
-  const user = await loginWithCustomToken(data.customToken);
+  let user: FirebaseUser | null = null;
+  const token = String(data.customToken || '');
+  const isDevFallbackToken = token.startsWith('hp_dev_token_') || token.split('.').length !== 3;
 
-  // Store active work order ID in session storage for immediate UI access
+  if (!isDevFallbackToken && token) {
+    try {
+      user = await loginWithCustomToken(token);
+    } catch (err: any) {
+      if (err?.code === 'auth/user-disabled') {
+        throw new Error(getFriendlyAuthErrorMessage(err));
+      }
+      // If custom token exchange fails in restricted offline/local environments, fall back to worker-verified session
+      console.warn('Firebase custom token exchange fallback active:', err?.code || err?.message);
+    }
+  }
+
+  // Store active work order ID and verified candidate session in session storage
   if (typeof window !== 'undefined') {
+    const sessionPayload: CandidateSessionData = {
+      clientId: data.clientId,
+      workOrderId: data.workOrderId,
+      name: data.name || 'Candidate',
+      mobile: data.mobile || mobile.trim(),
+      email: data.email || '',
+      clientCode: data.clientCode || '',
+      loggedInAt: new Date().toISOString(),
+    };
     sessionStorage.setItem('hp_active_work_order', data.workOrderId);
     sessionStorage.setItem('hp_active_client_id', data.clientId);
+    sessionStorage.setItem(CANDIDATE_SESSION_KEY, JSON.stringify(sessionPayload));
   }
 
   return {
@@ -121,7 +166,48 @@ export async function loginPasswordlessClient(mobile: string, workOrderId: strin
     clientId: data.clientId,
     workOrderId: data.workOrderId,
     name: data.name,
+    mobile: data.mobile,
+    email: data.email,
+    clientCode: data.clientCode,
   };
+}
+
+/**
+ * Forgot Work Order ID API caller
+ * Verifies registered mobile number and generates a fresh active Work Order ID
+ */
+export async function forgotWorkOrderIdClient(
+  mobile: string,
+  rawMobile?: string,
+  countryCode?: string
+): Promise<{
+  success: boolean;
+  clientId: string;
+  workOrderId: string;
+  previousWorkOrderId?: string;
+  name: string;
+  mobile: string;
+  message?: string;
+}> {
+  const res = await fetch('/api/career/auth/forgot-work-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mobile: mobile.trim(),
+      rawMobile: rawMobile?.trim() || mobile.trim(),
+      countryCode: countryCode?.trim(),
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    const err: any = new Error(data.error || 'Could not locate or generate a Work Order ID for this mobile.');
+    err.status = res.status;
+    err.needsRegistration = Boolean(data.needsRegistration || data.notFound || res.status === 404);
+    throw err;
+  }
+
+  return data;
 }
 
 export async function loginWithEmail(email: string, pass: string): Promise<FirebaseUser> {
@@ -161,6 +247,11 @@ export async function sendPasswordReset(email: string): Promise<void> {
 }
 
 export async function logoutUser(): Promise<void> {
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(CANDIDATE_SESSION_KEY);
+    sessionStorage.removeItem('hp_active_work_order');
+    sessionStorage.removeItem('hp_active_client_id');
+  }
   if (!auth) return;
   await signOut(auth);
 }

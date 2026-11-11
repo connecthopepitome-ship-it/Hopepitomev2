@@ -4,7 +4,19 @@ import { mintFirebaseCustomToken, ServiceAccountCredentials } from './lib/fireba
 import { EdgeFirestoreClient } from './lib/firebase/edge-firestore';
 import { EdgeAuthAdminClient, generateTemporaryPassword } from './lib/firebase/edge-auth';
 import { DEFAULT_STAFF_ROLES, DEFAULT_DEPARTMENTS } from './lib/career/permissions';
-import { WorkOrderStatus, StaffUser } from './lib/career/types';
+import {
+  WorkOrderStatus,
+  StaffUser,
+  WorkOrderLoginStatus,
+  CandidateLoginRecord,
+} from './lib/career/types';
+import {
+  normalizeMobile,
+  digitsOnly,
+  buildMobileVariants,
+  mobilesMatch,
+  computeAccountHealth,
+} from './lib/career/login-health';
 import { globalAtsEngine } from './lib/ai/engine';
 import { ACTIVE_AI_MODEL } from './lib/ai/models';
 import { transformToPublicAtsAudit } from './lib/ai/scoring';
@@ -43,19 +55,311 @@ interface Env {
 
 // In-memory fallback stores for edge resiliency and testing before secrets are populated
 const inMemoryRateLimits = new Map<string, { attempts: number; lockedUntil: number }>();
-const inMemoryClients = new Map<string, { clientId: string; name: string; mobile: string; currentWorkOrderId: string; status: string }>();
-const inMemoryWorkOrders = new Map<string, { workOrderId: string; clientId: string; serviceType: string; status: WorkOrderStatus; createdAt: string; updatedAt: string }>();
-
-function normalizeMobile(mobile: string): string {
-  if (!mobile) return '';
-  return mobile.replace(/[\s\-\(\)\.]/g, '');
-}
+const inMemoryClients = new Map<string, Record<string, any>>();
+const inMemoryWorkOrders = new Map<string, Record<string, any>>();
 
 function generateWorkOrderId(): string {
   const year = new Date().getFullYear();
   // 5-digit cryptographically pseudo-random number between 10000 and 99999
   const randomSuffix = Math.floor(10000 + Math.random() * 90000);
   return `HP-${year}-${randomSuffix}`;
+}
+
+async function generateUniqueWorkOrderId(firestore: EdgeFirestoreClient): Promise<string> {
+  for (let i = 0; i < 6; i++) {
+    const candidateId = generateWorkOrderId();
+    const existing = await firestore.getDocument('workOrders', candidateId);
+    if (!existing && !inMemoryWorkOrders.has(candidateId)) {
+      return candidateId;
+    }
+  }
+  return `HP-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
+}
+
+function clearRateLimitsForMobile(mobile: string): void {
+  const norm = normalizeMobile(mobile);
+  const digits = digitsOnly(mobile);
+  for (const key of Array.from(inMemoryRateLimits.keys())) {
+    if (
+      (norm && key.includes(norm)) ||
+      (digits.length >= 7 && key.includes(digits.slice(-10)))
+    ) {
+      inMemoryRateLimits.delete(key);
+    }
+  }
+}
+
+async function findClientByMobile(
+  firestore: EdgeFirestoreClient,
+  inputMobiles: string[],
+  countryCode?: string
+): Promise<Record<string, any> | null> {
+  const variants = new Set<string>();
+  for (const m of inputMobiles) {
+    for (const v of buildMobileVariants(m, countryCode)) {
+      variants.add(v);
+    }
+  }
+
+  // 1. Targeted equality queries on 'clients'
+  for (const variant of Array.from(variants)) {
+    const byMobile = await firestore.queryCollection(
+      'clients',
+      { field: 'mobile', op: 'EQUAL', value: variant },
+      5
+    );
+    if (byMobile.length > 0) return byMobile[0];
+
+    const byPhone = await firestore.queryCollection(
+      'clients',
+      { field: 'phone', op: 'EQUAL', value: variant },
+      5
+    );
+    if (byPhone.length > 0) return byPhone[0];
+  }
+
+  // 2. Scan 'clients' and 'career_clients' with smart mobilesMatch (handles spaces/country-code variance)
+  const allClients = await firestore.listDocuments('clients', 500);
+  for (const c of allClients) {
+    const stored = String(c.mobile || c.phone || '');
+    if (stored && inputMobiles.some((inp) => mobilesMatch(stored, inp))) {
+      return c;
+    }
+  }
+
+  const allCareerClients = await firestore.listDocuments('career_clients', 500);
+  for (const c of allCareerClients) {
+    const stored = String(c.mobile || c.phone || '');
+    if (stored && inputMobiles.some((inp) => mobilesMatch(stored, inp))) {
+      return c;
+    }
+  }
+
+  // 3. In-memory fallback
+  for (const c of Array.from(inMemoryClients.values())) {
+    const stored = String(c.mobile || c.phone || '');
+    if (stored && inputMobiles.some((inp) => mobilesMatch(stored, inp))) {
+      return c;
+    }
+  }
+
+  return null;
+}
+
+async function resolveWorkOrderForLogin(
+  firestore: EdgeFirestoreClient,
+  workOrderId: string
+): Promise<Record<string, any> | null> {
+  // 1. Primary lookup in 'workOrders'
+  let wo = await firestore.getDocument('workOrders', workOrderId);
+  if (wo) return wo;
+
+  wo = inMemoryWorkOrders.get(workOrderId) || null;
+  if (wo) return wo;
+
+  // 2. Fallback lookup across related collections for legacy / converted records
+  const serviceOrders = await firestore.queryCollection(
+    'career_service_orders',
+    { field: 'orderNumber', op: 'EQUAL', value: workOrderId },
+    1
+  );
+  if (serviceOrders.length > 0) {
+    const so = serviceOrders[0];
+    return {
+      workOrderId,
+      clientId: so.clientId,
+      clientName: so.clientName,
+      clientEmail: so.clientEmail,
+      serviceType: so.serviceType || 'RESUME_WRITING',
+      status: so.status || 'Confirmed',
+      loginStatus: 'ACTIVE',
+      createdAt: so.createdAt || new Date().toISOString(),
+      updatedAt: so.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  const projects = await firestore.queryCollection(
+    'projects',
+    { field: 'workOrderId', op: 'EQUAL', value: workOrderId },
+    1
+  );
+  if (projects.length > 0) {
+    const p = projects[0];
+    return {
+      workOrderId,
+      clientId: p.customerId || p.clientId,
+      clientName: p.customerName,
+      clientEmail: p.customerEmail,
+      clientMobile: p.customerMobile,
+      serviceType: p.serviceName || p.serviceId || 'RESUME_WRITING',
+      status: p.status === 'CANCELLED' ? 'Cancelled' : 'In Progress',
+      loginStatus: 'ACTIVE',
+      createdAt: p.createdAt || new Date().toISOString(),
+      updatedAt: p.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  const clientsWithWo = await firestore.queryCollection(
+    'clients',
+    { field: 'currentWorkOrderId', op: 'EQUAL', value: workOrderId },
+    1
+  );
+  if (clientsWithWo.length > 0) {
+    const cl = clientsWithWo[0];
+    return {
+      workOrderId,
+      clientId: cl.clientId || cl.id || (cl as any)._docId,
+      clientName: cl.name || cl.fullName,
+      clientMobile: cl.mobile || cl.phone,
+      clientEmail: cl.email,
+      serviceType: 'RESUME_WRITING',
+      status: 'Registered',
+      loginStatus: 'ACTIVE',
+      createdAt: cl.createdAt || new Date().toISOString(),
+      updatedAt: cl.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  const leadsWithWo = await firestore.queryCollection(
+    'crm_leads',
+    { field: 'convertedWorkOrderId', op: 'EQUAL', value: workOrderId },
+    1
+  );
+  if (leadsWithWo.length > 0) {
+    const ld = leadsWithWo[0];
+    return {
+      workOrderId,
+      clientId: ld.convertedClientId || ld.customerId,
+      clientName: ld.fullName,
+      clientMobile: ld.mobile,
+      clientEmail: ld.email,
+      serviceType: ld.serviceInterestedIn || 'RESUME_WRITING',
+      status: 'Confirmed',
+      loginStatus: 'ACTIVE',
+      createdAt: ld.createdAt || new Date().toISOString(),
+      updatedAt: ld.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  // 3. Support Career Enquiry Reference Codes (e.g. HP-CAR-202611-PDVI)
+  let eqDoc = await firestore.getDocument('career_enquiries', workOrderId);
+  if (!eqDoc) {
+    const eqMatches = await firestore.queryCollection(
+      'career_enquiries',
+      { field: 'referenceCode', op: 'EQUAL', value: workOrderId },
+      1
+    );
+    if (eqMatches.length > 0) eqDoc = eqMatches[0];
+  }
+  if (eqDoc) {
+    return {
+      workOrderId,
+      clientId: eqDoc.customerId || eqDoc.clientId,
+      clientName: eqDoc.customerName,
+      clientMobile: eqDoc.phoneWhatsapp || eqDoc.mobile,
+      clientEmail: eqDoc.email,
+      serviceType: eqDoc.serviceRequired || 'RESUME_WRITING',
+      status: eqDoc.status === 'CANCELLED' ? 'Cancelled' : 'Registered',
+      loginStatus: 'ACTIVE',
+      generatedVia: 'CAREER_ENQUIRY',
+      createdAt: eqDoc.submittedAt || eqDoc.createdAt || new Date().toISOString(),
+      updatedAt: eqDoc.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  // 4. Support Direct Project IDs (e.g. PRJ-CAR-...) or projects linked by enquiryId
+  let projectDoc = await firestore.getDocument('projects', workOrderId);
+  if (!projectDoc) {
+    const byEnquiry = await firestore.queryCollection(
+      'projects',
+      { field: 'enquiryId', op: 'EQUAL', value: workOrderId },
+      1
+    );
+    if (byEnquiry.length > 0) projectDoc = byEnquiry[0];
+  }
+  if (projectDoc) {
+    return {
+      workOrderId,
+      clientId: projectDoc.customerId || projectDoc.clientId,
+      clientName: projectDoc.customerName,
+      clientMobile: projectDoc.customerMobile,
+      clientEmail: projectDoc.customerEmail,
+      serviceType: projectDoc.serviceName || projectDoc.serviceId || 'RESUME_WRITING',
+      status: projectDoc.status === 'CANCELLED' ? 'Cancelled' : 'In Progress',
+      loginStatus: 'ACTIVE',
+      generatedVia: 'PROJECT_RECORD',
+      createdAt: projectDoc.createdAt || new Date().toISOString(),
+      updatedAt: projectDoc.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  // 5. Support CRM Lead referenceCode or Client ID / linkedEnquiries / workOrderIds scan
+  const leadsByRef = await firestore.queryCollection(
+    'crm_leads',
+    { field: 'referenceCode', op: 'EQUAL', value: workOrderId },
+    1
+  );
+  if (leadsByRef.length > 0) {
+    const ld = leadsByRef[0];
+    return {
+      workOrderId,
+      clientId: ld.convertedClientId || ld.customerId,
+      clientName: ld.fullName,
+      clientMobile: ld.mobile,
+      clientEmail: ld.email,
+      serviceType: ld.serviceInterestedIn || 'RESUME_WRITING',
+      status: 'Registered',
+      loginStatus: 'ACTIVE',
+      generatedVia: 'CRM_LEAD_REF',
+      createdAt: ld.createdAt || new Date().toISOString(),
+      updatedAt: ld.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  const directClient = await firestore.getDocument('clients', workOrderId);
+  if (directClient) {
+    return {
+      workOrderId,
+      clientId: directClient.clientId || directClient.id || workOrderId,
+      clientName: directClient.name || directClient.fullName,
+      clientMobile: directClient.mobile || directClient.phone || directClient.phoneWhatsapp,
+      clientEmail: directClient.email,
+      serviceType: 'RESUME_WRITING',
+      status: 'Registered',
+      loginStatus: 'ACTIVE',
+      generatedVia: 'CLIENT_ID',
+      createdAt: directClient.createdAt || new Date().toISOString(),
+      updatedAt: directClient.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  const allClients = await firestore.listDocuments('clients', 500);
+  for (const cl of allClients) {
+    const matchesArray = (arr: any) =>
+      Array.isArray(arr) && arr.some((item) => String(item || '').trim().toUpperCase() === workOrderId);
+    if (
+      String(cl.currentWorkOrderId || '').trim().toUpperCase() === workOrderId ||
+      matchesArray(cl.workOrderIds) ||
+      matchesArray(cl.linkedEnquiries) ||
+      matchesArray(cl.linkedProjects)
+    ) {
+      return {
+        workOrderId,
+        clientId: cl.clientId || cl.id || (cl as any)._docId,
+        clientName: cl.name || cl.fullName,
+        clientMobile: cl.mobile || cl.phone || cl.phoneWhatsapp,
+        clientEmail: cl.email,
+        serviceType: 'RESUME_WRITING',
+        status: 'Registered',
+        loginStatus: 'ACTIVE',
+        generatedVia: 'CLIENT_LINKED_REF',
+        createdAt: cl.createdAt || new Date().toISOString(),
+        updatedAt: cl.updatedAt || new Date().toISOString(),
+      };
+    }
+  }
+
+  return null;
 }
 
 async function getNextEmployeeId(firestore: EdgeFirestoreClient): Promise<string> {
@@ -97,7 +401,30 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Expose-Headers': 'Content-Disposition',
 };
+
+async function saveScanningLeadFileBackup(
+  firestore: EdgeFirestoreClient,
+  leadId: string,
+  fileName: string,
+  mimeType: string,
+  pureBase64: string
+): Promise<void> {
+  // Keep well under Firestore's 1 MiB document size limit (~700 KB base64 ~= 515 KB binary)
+  if (!leadId || !pureBase64 || pureBase64.length > 700_000) return;
+  try {
+    await firestore.setDocument('scanning_lead_files', leadId, {
+      leadId,
+      fileName: fileName || 'candidate_resume.pdf',
+      mimeType: mimeType || 'application/pdf',
+      base64Content: pureBase64,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.warn('[Scanning Lead File Backup Warning]:', err);
+  }
+}
 
 async function callGoogleAppsScript(
   env: Env,
@@ -210,33 +537,64 @@ export default {
 
         const now = new Date().toISOString();
 
-        // 1. Check for existing client by normalized mobile number
-        const existingClients = await firestore.queryCollection('clients', {
-          field: 'mobile',
-          op: 'EQUAL',
-          value: normalizedMobile,
-        });
+        // 1. Check for existing client across normalized/formatted mobile variants
+        const existingClient = await findClientByMobile(firestore, [mobile || '', normalizedMobile]);
 
-        if (existingClients.length > 0) {
-          const client = existingClients[0];
-          const clientId = client.clientId || client.id;
-          let currentWorkOrderId = client.currentWorkOrderId;
+        if (existingClient) {
+          const clientId = existingClient.clientId || existingClient.id || (existingClient as any)._docId;
+          const clientStatus = String(existingClient.status || 'ACTIVE').toUpperCase();
+          if (['SUSPENDED', 'REVOKED', 'DEACTIVATED', 'ARCHIVED'].includes(clientStatus)) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: 'Your candidate account has been deactivated or revoked. Please contact support.',
+              }),
+              { status: 403, headers: CORS_HEADERS }
+            );
+          }
 
-          // If client has existing work order, return it safely without creating duplicate
+          let currentWorkOrderId = existingClient.currentWorkOrderId;
+
+          // If client has no active work order, issue a fresh one cleanly
           if (!currentWorkOrderId) {
-            currentWorkOrderId = generateWorkOrderId();
+            currentWorkOrderId = await generateUniqueWorkOrderId(firestore);
+            const existingIds: string[] = Array.isArray(existingClient.workOrderIds)
+              ? existingClient.workOrderIds
+              : [];
             await firestore.setDocument('clients', clientId, {
               currentWorkOrderId,
+              workOrderIds: Array.from(new Set([...existingIds, currentWorkOrderId])),
               updatedAt: now,
             });
             await firestore.setDocument('workOrders', currentWorkOrderId, {
               workOrderId: currentWorkOrderId,
               clientId,
+              clientName: existingClient.name || existingClient.fullName || name,
+              clientMobile: normalizeMobile(existingClient.mobile || existingClient.phone || normalizedMobile),
               serviceType: 'RESUME_WRITING',
               status: 'Registered',
+              loginStatus: 'ACTIVE' as WorkOrderLoginStatus,
+              generatedVia: 'REGISTRATION',
               createdAt: now,
               updatedAt: now,
             });
+          } else {
+            // Ensure existing Work Order has loginStatus active if missing
+            const existingWo = await firestore.getDocument('workOrders', currentWorkOrderId);
+            if (!existingWo) {
+              await firestore.setDocument('workOrders', currentWorkOrderId, {
+                workOrderId: currentWorkOrderId,
+                clientId,
+                clientName: existingClient.name || existingClient.fullName || name,
+                clientMobile: normalizeMobile(existingClient.mobile || existingClient.phone || normalizedMobile),
+                serviceType: 'RESUME_WRITING',
+                status: 'Registered',
+                loginStatus: 'ACTIVE' as WorkOrderLoginStatus,
+                generatedVia: 'REGISTRATION',
+                createdAt: now,
+                updatedAt: now,
+              });
+            }
           }
 
           return new Response(
@@ -244,7 +602,7 @@ export default {
               success: true,
               isExisting: true,
               clientId,
-              name: client.name || name,
+              name: existingClient.name || existingClient.fullName || name,
               workOrderId: currentWorkOrderId,
               message: 'Welcome back! Your registered work order has been retrieved.',
             }),
@@ -254,14 +612,19 @@ export default {
 
         // 2. New Client Registration
         const clientId = `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        const workOrderId = generateWorkOrderId();
+        const workOrderId = await generateUniqueWorkOrderId(firestore);
 
         const clientRecord = {
           clientId,
+          id: clientId,
           name,
+          fullName: name,
           mobile: normalizedMobile,
           status: 'ACTIVE',
           currentWorkOrderId: workOrderId,
+          workOrderIds: [workOrderId],
+          loginCount: 0,
+          failedLoginAttempts: 0,
           createdAt: now,
           updatedAt: now,
         };
@@ -269,8 +632,14 @@ export default {
         const workOrderRecord = {
           workOrderId,
           clientId,
+          clientName: name,
+          clientMobile: normalizedMobile,
           serviceType: 'RESUME_WRITING',
           status: 'Registered' as WorkOrderStatus,
+          loginStatus: 'ACTIVE' as WorkOrderLoginStatus,
+          generatedVia: 'REGISTRATION',
+          loginCount: 0,
+          failedLoginAttempts: 0,
           createdAt: now,
           updatedAt: now,
         };
@@ -345,24 +714,32 @@ export default {
       try {
         const body = (await request.json().catch(() => null)) as {
           mobile?: string;
+          rawMobile?: string;
+          countryCode?: string;
           workOrderId?: string;
         } | null;
 
-        const mobile = body?.mobile?.trim();
-        const workOrderId = body?.workOrderId?.trim().toUpperCase();
+        const mobile = body?.mobile?.trim() || '';
+        const rawMobile = body?.rawMobile?.trim() || '';
+        const workOrderId = body?.workOrderId?.trim().toUpperCase() || '';
 
-        if (!mobile || !workOrderId) {
+        const inputMobiles = Array.from(new Set([mobile, rawMobile].filter(Boolean)));
+
+        if (inputMobiles.length === 0 || !workOrderId) {
           return new Response(
             JSON.stringify({ success: false, error: 'Mobile number and Work Order ID are required.' }),
             { status: 400, headers: CORS_HEADERS }
           );
         }
 
-        const normalizedMobile = normalizeMobile(mobile);
-        const rateLimitKey = `rl_${normalizedMobile}`;
+        const primaryMobile = mobile || rawMobile;
+        const normalizedMobile = normalizeMobile(primaryMobile);
+        const rlIdentifier = digitsOnly(primaryMobile).slice(-10) || normalizedMobile;
+        const rateLimitKey = `rl_${rlIdentifier}`;
         const nowMs = Date.now();
+        const now = new Date().toISOString();
 
-        // Rate-limiting check
+        // Rate-limiting check (in-memory)
         const rateRecord = inMemoryRateLimits.get(rateLimitKey);
         if (rateRecord && rateRecord.lockedUntil > nowMs) {
           const waitMinutes = Math.ceil((rateRecord.lockedUntil - nowMs) / 60000);
@@ -375,14 +752,10 @@ export default {
           );
         }
 
-        // 1. Look up work order
-        let workOrderDoc = await firestore.getDocument('workOrders', workOrderId);
-        if (!workOrderDoc) {
-          workOrderDoc = inMemoryWorkOrders.get(workOrderId) || null;
-        }
+        // 1. Look up work order (across workOrders + legacy/converted collections)
+        const workOrderDoc = await resolveWorkOrderForLogin(firestore, workOrderId);
 
         if (!workOrderDoc) {
-          // Record failed attempt
           const attempts = (rateRecord?.attempts || 0) + 1;
           const lockedUntil = attempts >= 5 ? nowMs + 15 * 60 * 1000 : 0;
           inMemoryRateLimits.set(rateLimitKey, { attempts, lockedUntil });
@@ -393,46 +766,180 @@ export default {
           );
         }
 
-        // 2. Fetch associated client
-        const clientId = workOrderDoc.clientId;
-        let clientDoc = await firestore.getDocument('clients', clientId);
-        if (!clientDoc) {
-          clientDoc = Array.from(inMemoryClients.values()).find((c) => c.clientId === clientId) || null;
+        // 2. Fetch associated client (clients -> career_clients -> mobile lookup fallback)
+        let clientId = String(workOrderDoc.clientId || '').trim();
+        let clientDoc: Record<string, any> | null = null;
+
+        if (clientId) {
+          clientDoc = await firestore.getDocument('clients', clientId);
+          if (!clientDoc) {
+            clientDoc = await firestore.getDocument('career_clients', clientId);
+          }
+          if (!clientDoc) {
+            clientDoc =
+              Array.from(inMemoryClients.values()).find(
+                (c) => c.clientId === clientId || c.id === clientId
+              ) || null;
+          }
         }
 
         if (!clientDoc) {
+          // Fallback: if workOrderDoc has clientMobile matching input, synthesize client doc from workOrder
+          const woMobile = String(workOrderDoc.clientMobile || '');
+          if (woMobile && inputMobiles.some((inp) => mobilesMatch(woMobile, inp))) {
+            clientId = clientId || `cl_wo_${workOrderId.replace(/[^A-Z0-9]/g, '')}`;
+            clientDoc = {
+              clientId,
+              id: clientId,
+              name: workOrderDoc.clientName || 'Candidate',
+              mobile: normalizeMobile(woMobile),
+              email: workOrderDoc.clientEmail || '',
+              status: 'ACTIVE',
+              currentWorkOrderId: workOrderId,
+              createdAt: workOrderDoc.createdAt || now,
+              updatedAt: now,
+            };
+            await firestore.setDocument('clients', clientId, clientDoc);
+          } else {
+            const matchedByMobile = await findClientByMobile(firestore, inputMobiles, body?.countryCode);
+            if (matchedByMobile && (!workOrderDoc.clientId || matchedByMobile.currentWorkOrderId === workOrderId)) {
+              clientDoc = matchedByMobile;
+              clientId = matchedByMobile.clientId || matchedByMobile.id || (matchedByMobile as any)._docId;
+            }
+          }
+        }
+
+        if (!clientDoc || !clientId) {
           return new Response(
             JSON.stringify({ success: false, error: 'Invalid mobile number or work order ID.' }),
             { status: 401, headers: CORS_HEADERS }
           );
         }
 
-        // 3. Verify mobile matches
-        const clientMobile = normalizeMobile(clientDoc.mobile || '');
-        if (clientMobile !== normalizedMobile) {
+        // Persistent rate-limit check on client record
+        if (clientDoc.lockedUntil) {
+          const lockedMs = new Date(clientDoc.lockedUntil).getTime();
+          if (Number.isFinite(lockedMs) && lockedMs > nowMs) {
+            const waitMinutes = Math.ceil((lockedMs - nowMs) / 60000);
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: `Too many failed attempts. Account temporarily locked for ${waitMinutes} minute(s).`,
+              }),
+              { status: 429, headers: CORS_HEADERS }
+            );
+          }
+        }
+
+        // 3. Verify mobile matches (checks clients.mobile/phone/phoneWhatsapp and workOrders mobile fields)
+        const storedMobiles = [
+          String(clientDoc.mobile || ''),
+          String(clientDoc.phone || ''),
+          String(clientDoc.phoneWhatsapp || ''),
+          String(workOrderDoc.clientMobile || ''),
+          String(workOrderDoc.customerMobile || ''),
+          String(workOrderDoc.phoneWhatsapp || ''),
+        ].filter(Boolean);
+
+        const mobileMatched = storedMobiles.some((stored) =>
+          inputMobiles.some((inp) => mobilesMatch(stored, inp))
+        );
+
+        if (!mobileMatched) {
           const attempts = (rateRecord?.attempts || 0) + 1;
           const lockedUntil = attempts >= 5 ? nowMs + 15 * 60 * 1000 : 0;
           inMemoryRateLimits.set(rateLimitKey, { attempts, lockedUntil });
 
+          const newWoFails = Number(workOrderDoc.failedLoginAttempts || 0) + 1;
+          const newClientFails = Number(clientDoc.failedLoginAttempts || 0) + 1;
+
+          await firestore.setDocument('workOrders', workOrderId, {
+            failedLoginAttempts: newWoFails,
+            lastFailedLoginAt: now,
+            updatedAt: now,
+          });
+          await firestore.setDocument('clients', clientId, {
+            failedLoginAttempts: newClientFails,
+            lastFailedLoginAt: now,
+            ...(lockedUntil ? { lockedUntil: new Date(lockedUntil).toISOString() } : {}),
+            updatedAt: now,
+          });
+
           return new Response(
             JSON.stringify({ success: false, error: 'Invalid mobile number or work order ID.' }),
             { status: 401, headers: CORS_HEADERS }
           );
         }
 
-        // 4. Verify account & work order status
-        if (clientDoc.status === 'SUSPENDED' || workOrderDoc.status === 'Cancelled') {
+        // 4. Verify Work Order ID loginStatus & Client account status
+        const clientStatus = String(clientDoc.status || 'ACTIVE').toUpperCase();
+        const loginStatus = String(workOrderDoc.loginStatus || 'ACTIVE').toUpperCase();
+
+        if (loginStatus === 'SUPERSEDED') {
           return new Response(
             JSON.stringify({
               success: false,
-              error: 'This work order or account has been deactivated. Please contact support.',
+              error:
+                'This Work Order ID has been replaced by a newer Work Order ID. Please sign in with your latest ID or use "Forgot Work Order ID".',
             }),
             { status: 403, headers: CORS_HEADERS }
           );
         }
 
-        // Successful validation: Reset rate limit
-        inMemoryRateLimits.delete(rateLimitKey);
+        if (
+          ['REVOKED', 'SUSPENDED', 'DEACTIVATED'].includes(loginStatus) ||
+          ['SUSPENDED', 'REVOKED', 'DEACTIVATED', 'ARCHIVED'].includes(clientStatus) ||
+          workOrderDoc.status === 'Cancelled'
+        ) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error:
+                workOrderDoc.revokedReason ||
+                clientDoc.revokedReason ||
+                'This Work Order ID or account has been revoked/deactivated. Please contact support.',
+            }),
+            { status: 403, headers: CORS_HEADERS }
+          );
+        }
+
+        // Successful validation: Reset rate limit & update telemetry
+        clearRateLimitsForMobile(primaryMobile);
+        if (storedMobiles[0]) clearRateLimitsForMobile(storedMobiles[0]);
+
+        const nextClientLoginCount = Number(clientDoc.loginCount || 0) + 1;
+        const nextWoLoginCount = Number(workOrderDoc.loginCount || 0) + 1;
+        const canonicalMobile = normalizeMobile(storedMobiles[0] || normalizedMobile);
+
+        await firestore.setDocument('clients', clientId, {
+          clientId,
+          id: clientId,
+          name: clientDoc.name || clientDoc.fullName || workOrderDoc.clientName || 'Candidate',
+          fullName: clientDoc.fullName || clientDoc.name || workOrderDoc.clientName || 'Candidate',
+          mobile: canonicalMobile,
+          status: 'ACTIVE',
+          currentWorkOrderId: clientDoc.currentWorkOrderId || workOrderId,
+          lastLoginAt: now,
+          loginCount: nextClientLoginCount,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: now,
+        });
+
+        await firestore.setDocument('workOrders', workOrderId, {
+          workOrderId,
+          clientId,
+          clientName: clientDoc.name || clientDoc.fullName || workOrderDoc.clientName || 'Candidate',
+          clientMobile: canonicalMobile,
+          serviceType: workOrderDoc.serviceType || 'RESUME_WRITING',
+          status: workOrderDoc.status || 'Registered',
+          loginStatus: 'ACTIVE' as WorkOrderLoginStatus,
+          lastLoginAt: now,
+          loginCount: nextWoLoginCount,
+          failedLoginAttempts: 0,
+          createdAt: workOrderDoc.createdAt || now,
+          updatedAt: now,
+        });
 
         // 5. Generate Firebase Custom Authentication Token
         let customToken = '';
@@ -442,17 +949,16 @@ export default {
             {
               role: 'client',
               workOrderId,
-              mobile: normalizedMobile,
+              mobile: canonicalMobile,
             },
             serviceAccount
           );
         } else {
-          // Fallback signed mock token for development when private key is not yet pasted
+          // Fallback token for local dev without service account secret
           customToken = `hp_dev_token_${clientId}_${Date.now()}`;
         }
 
         // 6. Log successful login
-        const now = new Date().toISOString();
         await firestore.setDocument('activityLogs', `login_${Date.now()}`, {
           activityId: `login_${Date.now()}`,
           clientId,
@@ -463,13 +969,18 @@ export default {
           timestamp: now,
         });
 
+        const displayName = clientDoc.name || clientDoc.fullName || workOrderDoc.clientName || 'Candidate';
+
         return new Response(
           JSON.stringify({
             success: true,
             customToken,
             clientId,
             workOrderId,
-            name: clientDoc.name || 'Client',
+            name: displayName,
+            mobile: canonicalMobile,
+            email: clientDoc.email || workOrderDoc.clientEmail || '',
+            clientCode: clientDoc.clientCode || `CL-${clientId.substring(0, 4).toUpperCase()}`,
           }),
           { status: 200, headers: CORS_HEADERS }
         );
@@ -477,6 +988,265 @@ export default {
         console.error('[API Login Exception]:', err);
         return new Response(
           JSON.stringify({ success: false, error: 'Authentication service error. Please try again.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // FORGOT WORK ORDER ID (Mobile Number -> Generate New Work Order ID)
+    // =========================================================================
+    if (url.pathname === '/api/career/auth/forgot-work-order') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as {
+          mobile?: string;
+          rawMobile?: string;
+          countryCode?: string;
+        } | null;
+
+        const mobile = body?.mobile?.trim() || '';
+        const rawMobile = body?.rawMobile?.trim() || '';
+        const inputMobiles = Array.from(new Set([mobile, rawMobile].filter(Boolean)));
+        const primaryMobile = mobile || rawMobile;
+
+        if (!primaryMobile || digitsOnly(primaryMobile).length < 7) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Please enter a valid registered mobile number with country code.',
+            }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const nowMs = Date.now();
+        const now = new Date().toISOString();
+        const rlKey = `rl_forgot_${digitsOnly(primaryMobile).slice(-10) || normalizeMobile(primaryMobile)}`;
+        const rateRecord = inMemoryRateLimits.get(rlKey);
+
+        if (rateRecord && rateRecord.lockedUntil > nowMs) {
+          const waitMinutes = Math.ceil((rateRecord.lockedUntil - nowMs) / 60000);
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: `Too many recovery requests. Please wait ${waitMinutes} minute(s) before trying again.`,
+            }),
+            { status: 429, headers: CORS_HEADERS }
+          );
+        }
+
+        // 1. Locate existing client by mobile in clients / career_clients
+        let clientDoc = await findClientByMobile(firestore, inputMobiles, body?.countryCode);
+        let clientId = clientDoc ? (clientDoc.clientId || clientDoc.id || (clientDoc as any)._docId) : '';
+
+        // 2. Fallback: Check career_enquiries or crm_leads if client hasn't had a client doc created yet
+        if (!clientDoc) {
+          const enquiries = await firestore.listDocuments('career_enquiries', 300);
+          const matchedEnq = enquiries.find((e) => {
+            const ph = String(e.phoneWhatsapp || e.mobile || '');
+            return ph && inputMobiles.some((inp) => mobilesMatch(ph, inp));
+          });
+
+          if (matchedEnq) {
+            clientId = matchedEnq.customerId || `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            clientDoc = {
+              clientId,
+              id: clientId,
+              name: matchedEnq.customerName || 'Candidate',
+              fullName: matchedEnq.customerName || 'Candidate',
+              mobile: normalizeMobile(matchedEnq.phoneWhatsapp || primaryMobile),
+              email: matchedEnq.email || '',
+              status: 'ACTIVE',
+              createdAt: matchedEnq.submittedAt || now,
+              updatedAt: now,
+            };
+            await firestore.setDocument('clients', clientId, clientDoc);
+          } else {
+            const leads = await firestore.listDocuments('crm_leads', 300);
+            const matchedLead = leads.find((l) => {
+              const ph = String(l.mobile || '');
+              return ph && inputMobiles.some((inp) => mobilesMatch(ph, inp));
+            });
+            if (matchedLead) {
+              clientId =
+                matchedLead.convertedClientId ||
+                `cl_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+              clientDoc = {
+                clientId,
+                id: clientId,
+                name: matchedLead.fullName || 'Candidate',
+                fullName: matchedLead.fullName || 'Candidate',
+                mobile: normalizeMobile(matchedLead.mobile || primaryMobile),
+                email: matchedLead.email || '',
+                status: 'ACTIVE',
+                currentWorkOrderId: matchedLead.convertedWorkOrderId || undefined,
+                createdAt: matchedLead.createdAt || now,
+                updatedAt: now,
+              };
+              await firestore.setDocument('clients', clientId, clientDoc);
+            }
+          }
+        }
+
+        if (!clientDoc || !clientId) {
+          const attempts = (rateRecord?.attempts || 0) + 1;
+          const lockedUntil = attempts >= 5 ? nowMs + 15 * 60 * 1000 : 0;
+          inMemoryRateLimits.set(rlKey, { attempts, lockedUntil });
+
+          return new Response(
+            JSON.stringify({
+              success: false,
+              notFound: true,
+              error:
+                'No registered candidate account was found for this mobile number. Please check the number or register as a new candidate.',
+            }),
+            { status: 404, headers: CORS_HEADERS }
+          );
+        }
+
+        const clientStatus = String(clientDoc.status || 'ACTIVE').toUpperCase();
+        if (['SUSPENDED', 'REVOKED', 'DEACTIVATED', 'ARCHIVED'].includes(clientStatus)) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error:
+                clientDoc.revokedReason ||
+                'This candidate account is currently deactivated or revoked. Please contact support to restore access.',
+            }),
+            { status: 403, headers: CORS_HEADERS }
+          );
+        }
+
+        // Rate-limit successful generations too (max 5 per 15 min)
+        const nextAttempts = (rateRecord?.attempts || 0) + 1;
+        inMemoryRateLimits.set(rlKey, {
+          attempts: nextAttempts,
+          lockedUntil: nextAttempts >= 6 ? nowMs + 15 * 60 * 1000 : 0,
+        });
+
+        const previousWorkOrderId = clientDoc.currentWorkOrderId || null;
+        let previousWoDoc: Record<string, any> | null = null;
+        if (previousWorkOrderId) {
+          previousWoDoc = await firestore.getDocument('workOrders', previousWorkOrderId);
+        }
+
+        // Generate fresh unique Work Order ID
+        const newWorkOrderId = await generateUniqueWorkOrderId(firestore);
+        const canonicalMobile = normalizeMobile(
+          String(clientDoc.mobile || clientDoc.phone || primaryMobile)
+        );
+        const clientName = clientDoc.name || clientDoc.fullName || 'Candidate';
+
+        // Supersede previous active Work Order ID for login security (preserving project/document history)
+        if (previousWorkOrderId && previousWorkOrderId !== newWorkOrderId) {
+          await firestore.setDocument('workOrders', previousWorkOrderId, {
+            workOrderId: previousWorkOrderId,
+            clientId,
+            loginStatus: 'SUPERSEDED' as WorkOrderLoginStatus,
+            revokedAt: now,
+            revokedBy: 'CANDIDATE_SELF_SERVICE',
+            revokedReason: `Superseded by new Work Order ID ${newWorkOrderId} via Forgot Work Order ID`,
+            updatedAt: now,
+          });
+        }
+
+        const inheritedStatus: WorkOrderStatus =
+          previousWoDoc?.status && previousWoDoc.status !== 'Cancelled'
+            ? previousWoDoc.status
+            : 'Registered';
+
+        const newWorkOrderRecord = {
+          workOrderId: newWorkOrderId,
+          clientId,
+          clientName,
+          clientMobile: canonicalMobile,
+          clientEmail: clientDoc.email || '',
+          serviceType: previousWoDoc?.serviceType || 'RESUME_WRITING',
+          status: inheritedStatus,
+          loginStatus: 'ACTIVE' as WorkOrderLoginStatus,
+          generatedVia: 'FORGOT_WORK_ORDER_ID',
+          previousWorkOrderId,
+          loginCount: 0,
+          failedLoginAttempts: 0,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        const existingIds: string[] = Array.isArray(clientDoc.workOrderIds)
+          ? clientDoc.workOrderIds
+          : previousWorkOrderId
+            ? [previousWorkOrderId]
+            : [];
+
+        await firestore.setDocument('workOrders', newWorkOrderId, newWorkOrderRecord);
+        await firestore.setDocument('clients', clientId, {
+          clientId,
+          id: clientId,
+          name: clientName,
+          fullName: clientName,
+          mobile: canonicalMobile,
+          status: 'ACTIVE',
+          currentWorkOrderId: newWorkOrderId,
+          workOrderIds: Array.from(new Set([...existingIds, newWorkOrderId])),
+          lastWorkOrderGeneratedAt: now,
+          workOrderRegenerationCount: Number(clientDoc.workOrderRegenerationCount || 0) + 1,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: now,
+        });
+
+        inMemoryWorkOrders.set(newWorkOrderId, newWorkOrderRecord);
+        inMemoryClients.set(canonicalMobile, {
+          ...clientDoc,
+          clientId,
+          mobile: canonicalMobile,
+          currentWorkOrderId: newWorkOrderId,
+          status: 'ACTIVE',
+        });
+
+        clearRateLimitsForMobile(canonicalMobile);
+        clearRateLimitsForMobile(primaryMobile);
+
+        // Non-blocking GAS folder init for new Work Order ID
+        callGoogleAppsScript(env, {
+          action: 'initWorkOrderFolder',
+          workOrderId: newWorkOrderId,
+        }).catch((e) => console.warn('[GAS Forgot-WO Init Warning]:', e));
+
+        await firestore.setDocument('activityLogs', `wo_regen_${Date.now()}`, {
+          activityId: `wo_regen_${Date.now()}`,
+          clientId,
+          workOrderId: newWorkOrderId,
+          previousWorkOrderId,
+          activityType: 'WORK_ORDER_REGENERATED',
+          description: `Candidate generated new Work Order ID ${newWorkOrderId} via Forgot Work Order ID${previousWorkOrderId ? ` (superseded ${previousWorkOrderId})` : ''}.`,
+          performedBy: 'CLIENT_SELF_SERVICE',
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            workOrderId: newWorkOrderId,
+            previousWorkOrderId,
+            clientId,
+            name: clientName,
+            mobile: canonicalMobile,
+            message: `New Work Order ID ${newWorkOrderId} has been generated for your account.`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[API Forgot Work Order Exception]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unable to generate Work Order ID right now. Please try again.' }),
           { status: 500, headers: CORS_HEADERS }
         );
       }
@@ -1351,6 +2121,15 @@ export default {
               const rawB64 = fileBase64.includes(',') ? fileBase64.split(',')[1] : fileBase64;
               const pureBase64 = rawB64.replace(/\s+/g, '');
 
+              // Persist quick-download backup copy in Firestore when within size limits
+              await saveScanningLeadFileBackup(
+                firestore,
+                targetScanningLeadId,
+                fileName,
+                fileMimeType || 'application/pdf',
+                pureBase64
+              );
+
               let gasResult = await callGoogleAppsScript(env, {
                 action: 'uploadScanningLeadResume',
                 fileName: fileName,
@@ -1847,10 +2626,11 @@ export default {
           });
         }
 
-        const workOrderId = generateWorkOrderId();
+        const workOrderId = await generateUniqueWorkOrderId(firestore);
 
         // Update client with current work order
         await firestore.setDocument('clients', clientId, {
+          ...(normalizedMobile ? { mobile: normalizedMobile } : {}),
           currentWorkOrderId: workOrderId,
           updatedAt: now,
         });
@@ -1864,6 +2644,8 @@ export default {
           clientEmail: leadEmail,
           serviceType: leadService,
           status: 'Confirmed',
+          loginStatus: 'ACTIVE',
+          generatedVia: 'CRM_CONVERSION',
           createdAt: now,
           updatedAt: now,
         });
@@ -2118,6 +2900,7 @@ export default {
     if (url.pathname === '/api/career/admin/scanning-leads/file') {
       const leadId = url.searchParams.get('leadId') || '';
       const action = url.searchParams.get('action') === 'download' ? 'download' : 'view';
+      const wantsJsonFallback = url.searchParams.get('format') === 'json';
 
       if (!leadId) {
         return new Response(JSON.stringify({ success: false, error: 'leadId is required.' }), {
@@ -2135,48 +2918,88 @@ export default {
           });
         }
 
+        const buildBinaryResponse = (base64Str: string, mime: string, name: string) => {
+          const cleanBase64 = base64Str.includes(',') ? base64Str.split(',')[1] : base64Str;
+          const binaryBuffer = Buffer.from(cleanBase64.replace(/\s+/g, ''), 'base64');
+          const safeAsciiName = name.replace(/[^A-Za-z0-9._-]/g, '_');
+          const disposition = action === 'download' ? 'attachment' : 'inline';
+
+          return new Response(binaryBuffer, {
+            status: 200,
+            headers: {
+              ...CORS_HEADERS,
+              'Content-Type': mime || 'application/pdf',
+              'Content-Disposition': `${disposition}; filename="${safeAsciiName}"; filename*=UTF-8''${encodeURIComponent(name)}`,
+              'Content-Length': String(binaryBuffer.length),
+              'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            },
+          });
+        };
+
+        // 1. Fast path: serve from Firestore sidecar vault if present
+        const backupDoc = (await firestore.getDocument('scanning_lead_files', leadId).catch(() => null)) as any;
+        if (backupDoc?.base64Content) {
+          return buildBinaryResponse(
+            backupDoc.base64Content,
+            lead.mime_type || backupDoc.mimeType || 'application/pdf',
+            lead.original_file_name || backupDoc.fileName || 'candidate_resume.pdf'
+          );
+        }
+
         const driveFileId = lead.google_drive_file_id;
         if (!driveFileId) {
-          return new Response(JSON.stringify({ success: false, error: 'Resume file is not stored in Google Drive.' }), {
+          return new Response(JSON.stringify({ success: false, error: 'Resume file is not stored in Google Drive yet.' }), {
             status: 404,
             headers: CORS_HEADERS,
           });
         }
 
-        // Call Google Apps Script to securely retrieve the file base64 content
+        // 2. Try Google Apps Script base64 content fetch
         const gasResult = await callGoogleAppsScript(env, {
           action: 'getFileContent',
           fileId: driveFileId,
         });
 
-        if (!gasResult || !gasResult.success || !gasResult.base64Content) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: gasResult?.error || 'Failed to retrieve file from Google Drive vault.',
-            }),
-            { status: 502, headers: CORS_HEADERS }
-          );
+        if (gasResult && gasResult.success && gasResult.base64Content) {
+          const resolvedMime = lead.mime_type || gasResult.mimeType || 'application/pdf';
+          const resolvedName = lead.original_file_name || gasResult.fileName || 'candidate_resume.pdf';
+          const cleanB64 = gasResult.base64Content.includes(',')
+            ? gasResult.base64Content.split(',')[1]
+            : gasResult.base64Content;
+          await saveScanningLeadFileBackup(firestore, leadId, resolvedName, resolvedMime, cleanB64.replace(/\s+/g, ''));
+          return buildBinaryResponse(cleanB64, resolvedMime, resolvedName);
         }
 
-        const cleanBase64 = gasResult.base64Content.includes(',')
-          ? gasResult.base64Content.split(',')[1]
-          : gasResult.base64Content;
-        const binaryBuffer = Buffer.from(cleanBase64, 'base64');
-        const mimeType = lead.mime_type || gasResult.mimeType || 'application/pdf';
-        const fileName = lead.original_file_name || gasResult.fileName || 'candidate_resume.pdf';
-        const disposition = action === 'download' ? 'attachment' : 'inline';
+        // 3. Fallback when deployed Apps Script web app does not yet expose getFileContent:
+        //    Fetch direct Google Drive view/download URL via getFileMetadata (supported in legacy GAS deployments)
+        const metaResult = await callGoogleAppsScript(env, {
+          action: 'getFileMetadata',
+          fileId: driveFileId,
+        }).catch(() => null);
 
-        return new Response(binaryBuffer, {
-          status: 200,
-          headers: {
-            ...CORS_HEADERS,
-            'Content-Type': mimeType,
-            'Content-Disposition': `${disposition}; filename="${encodeURIComponent(fileName)}"`,
-            'Content-Length': String(binaryBuffer.length),
-            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
-          },
-        });
+        const driveDownloadUrl =
+          metaResult?.downloadUrl || `https://drive.google.com/uc?id=${encodeURIComponent(driveFileId)}&export=download`;
+        const driveViewUrl =
+          metaResult?.viewUrl || lead.google_drive_file_url || `https://drive.google.com/file/d/${encodeURIComponent(driveFileId)}/view`;
+        const preferredFallbackUrl = action === 'download' ? driveDownloadUrl : driveViewUrl;
+
+        if (!wantsJsonFallback && preferredFallbackUrl) {
+          return Response.redirect(preferredFallbackUrl, 302);
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            code: 'GAS_REDEPLOY_REQUIRED',
+            fallbackUrl: preferredFallbackUrl,
+            downloadUrl: driveDownloadUrl,
+            viewUrl: driveViewUrl,
+            error:
+              gasResult?.error ||
+              'Failed to stream file from Google Apps Script. Use the direct Google Drive link or redeploy gas/Code.gs.',
+          }),
+          { status: 502, headers: CORS_HEADERS }
+        );
       } catch (err: any) {
         return new Response(
           JSON.stringify({ success: false, error: err?.message || 'Error streaming file.' }),
@@ -2302,6 +3125,14 @@ export default {
 
         const rawB64 = base64Content.includes(',') ? base64Content.split(',')[1] : base64Content;
         const pureBase64 = rawB64.replace(/\s+/g, '');
+
+        await saveScanningLeadFileBackup(
+          firestore,
+          leadId,
+          lead.original_file_name || 'candidate_resume.pdf',
+          lead.mime_type || 'application/pdf',
+          pureBase64
+        );
 
         const nowD = new Date();
         const yearStr = nowD.getFullYear().toString();
@@ -2980,7 +3811,8 @@ export default {
         const now = new Date().toISOString();
         const projectId = enquiryDoc.projectId || `PRJ-CAR-${enquiryId.replace(/[^A-Z0-9]/g, '')}`;
         const clientId = enquiryDoc.customerId;
-        const workOrderId = `HP-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        const workOrderId = await generateUniqueWorkOrderId(firestore);
+        const enquiryMobile = normalizeMobile(enquiryDoc.mobile || enquiryDoc.phone || '');
 
         // 1. Update Career Enquiry Status to APPROVED
         await firestore.setDocument('career_enquiries', enquiryId, {
@@ -3004,20 +3836,36 @@ export default {
         await firestore.setDocument('workOrders', workOrderId, {
           workOrderId,
           clientId,
+          clientName: enquiryDoc.customerName || '',
+          clientMobile: enquiryMobile,
+          clientEmail: enquiryDoc.email || '',
           projectId,
           enquiryId,
           serviceType: enquiryDoc.serviceRequired || 'Professional Resume Writing',
           status: 'In Progress',
+          loginStatus: 'ACTIVE',
+          generatedVia: 'ENQUIRY_APPROVAL',
           assignedTo: assignedStaffName || adminName,
           assignedToId: assignedStaffId,
           createdAt: now,
           updatedAt: now,
         });
 
-        // 4. Update Client Current Work Order
+        // 4. Update / Ensure Client Current Work Order
         if (clientId) {
+          const existingClient = (await firestore.getDocument('clients', clientId)) as any;
+          const existingIds: string[] = Array.isArray(existingClient?.workOrderIds)
+            ? existingClient.workOrderIds
+            : [];
+          const nextIds = existingIds.includes(workOrderId) ? existingIds : [...existingIds, workOrderId];
           await firestore.setDocument('clients', clientId, {
+            clientId,
+            ...(enquiryDoc.customerName && !existingClient?.name ? { name: enquiryDoc.customerName } : {}),
+            ...(enquiryMobile && !existingClient?.mobile ? { mobile: enquiryMobile } : {}),
+            ...(enquiryDoc.email && !existingClient?.email ? { email: enquiryDoc.email } : {}),
+            status: existingClient?.status || 'ACTIVE',
             currentWorkOrderId: workOrderId,
+            workOrderIds: nextIds,
             updatedAt: now,
           });
         }
@@ -3579,6 +4427,538 @@ export default {
       } catch (err: any) {
         return new Response(
           JSON.stringify({ success: false, error: err?.message || 'Failed to update employee.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    // =========================================================================
+    // ADMIN LOGIN MANAGEMENT (Candidate Work Order IDs & Account Health)
+    // =========================================================================
+    if (url.pathname === '/api/career/admin/login-management/list') {
+      if (request.method !== 'GET' && request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const [rawClients, rawCareerClients, rawWorkOrders, rawActivityLogs] = await Promise.all([
+          firestore.listDocuments('clients', 500),
+          firestore.listDocuments('career_clients', 500),
+          firestore.listDocuments('workOrders', 500),
+          firestore.listDocuments('activityLogs', 300),
+        ]);
+
+        const clientMap = new Map<string, Record<string, any>>();
+        for (const c of rawCareerClients) {
+          const cid = c.clientId || c.id || (c as any)._docId;
+          if (cid) clientMap.set(cid, c);
+        }
+        for (const c of rawClients) {
+          const cid = c.clientId || c.id || (c as any)._docId;
+          if (cid) {
+            clientMap.set(cid, { ...(clientMap.get(cid) || {}), ...c, clientId: cid });
+          }
+        }
+        for (const [cid, c] of Array.from(inMemoryClients.entries())) {
+          if (!clientMap.has(cid)) {
+            clientMap.set(cid, c);
+          }
+        }
+
+        const workOrderMap = new Map<string, Record<string, any>>();
+        for (const wo of rawWorkOrders) {
+          const woId = String(wo.workOrderId || (wo as any)._docId || '').toUpperCase();
+          if (woId) workOrderMap.set(woId, { ...wo, workOrderId: woId });
+        }
+        for (const [woId, wo] of Array.from(inMemoryWorkOrders.entries())) {
+          if (!workOrderMap.has(woId)) {
+            workOrderMap.set(woId, wo);
+          }
+        }
+
+        const nowMs = Date.now();
+        const records: CandidateLoginRecord[] = [];
+
+        for (const wo of Array.from(workOrderMap.values())) {
+          const cid = String(wo.clientId || '');
+          const client = cid ? clientMap.get(cid) : undefined;
+
+          const clientName = client?.name || client?.fullName || wo.clientName || 'Unknown Candidate';
+          const mobile = client?.mobile || client?.phone || wo.clientMobile || '';
+          const clientEmail = client?.email || wo.clientEmail || '';
+          const clientStatus = String(client?.status || 'ACTIVE').toUpperCase() as CandidateLoginRecord['clientStatus'];
+          const workOrderLoginStatus = String(wo.loginStatus || 'ACTIVE').toUpperCase() as WorkOrderLoginStatus;
+          const regenCount = Number(client?.workOrderRegenerationCount || client?.forgotWorkOrderCount || 0);
+          const loginCount = Number(client?.loginCount || wo.loginCount || 0);
+          const failedAttempts = Number(client?.failedLoginAttempts || wo.failedLoginAttempts || 0);
+          const lastLoginAt = client?.lastLoginAt || wo.lastLoginAt || '';
+
+          const health = computeAccountHealth(
+            {
+              clientStatus,
+              loginStatus: workOrderLoginStatus,
+              workOrderStatus: wo.status || 'Confirmed',
+              mobile,
+              loginCount,
+              failedLoginAttempts: failedAttempts,
+              lockedUntil: client?.lockedUntil,
+              regenerationCount: regenCount,
+              lastLoginAt,
+              createdAt: wo.createdAt || client?.createdAt,
+              hasWorkOrder: true,
+            },
+            nowMs
+          );
+
+          records.push({
+            workOrderId: wo.workOrderId,
+            clientId: cid || wo.workOrderId,
+            clientCode: client?.clientCode || '',
+            clientName,
+            clientEmail,
+            mobile,
+            clientStatus,
+            loginStatus: workOrderLoginStatus,
+            workOrderStatus: wo.status || 'Confirmed',
+            isCurrentWorkOrder: client?.currentWorkOrderId === wo.workOrderId,
+            serviceType: wo.serviceType || 'CAREER_SERVICES',
+            generatedVia: wo.generatedVia || 'STANDARD',
+            lastLoginAt,
+            loginCount,
+            failedLoginAttempts: failedAttempts,
+            lastFailedLoginAt: client?.lastFailedLoginAt || wo.lastFailedLoginAt || '',
+            workOrderRegenerationCount: regenCount,
+            lockedUntil: client?.lockedUntil || '',
+            revokedAt: wo.revokedAt || '',
+            revokedBy: wo.revokedBy || '',
+            revokedReason: wo.revokedReason || wo.revocationReason || '',
+            healthStatus: health.healthStatus,
+            healthScore: health.healthScore,
+            healthSignals: health.healthSignals,
+            createdAt: wo.createdAt || client?.createdAt || '',
+            updatedAt: wo.updatedAt || client?.updatedAt || '',
+          });
+        }
+
+        // Also include clients whose currentWorkOrderId/linkedEnquiries aren't in workOrders yet
+        for (const [cid, client] of Array.from(clientMap.entries())) {
+          const currentWoId = String(client.currentWorkOrderId || '').toUpperCase();
+          const fallbackEnquiryId =
+            Array.isArray(client.linkedEnquiries) && client.linkedEnquiries.length > 0
+              ? String(client.linkedEnquiries[client.linkedEnquiries.length - 1] || '').toUpperCase()
+              : '';
+          const effectiveLoginId = currentWoId || fallbackEnquiryId;
+          const alreadyListed = records.some(
+            (r) => r.clientId === cid && (!effectiveLoginId || r.workOrderId === effectiveLoginId)
+          );
+          if (alreadyListed) continue;
+
+          const mobile = client.mobile || client.phone || client.phoneWhatsapp || '';
+          const clientStatus = String(client.status || 'ACTIVE').toUpperCase() as CandidateLoginRecord['clientStatus'];
+          const loginStatus = (['SUSPENDED', 'REVOKED', 'DEACTIVATED'].includes(clientStatus)
+            ? 'REVOKED'
+            : effectiveLoginId
+            ? 'ACTIVE'
+            : 'REVOKED') as WorkOrderLoginStatus;
+          const regenCount = Number(client.workOrderRegenerationCount || client.forgotWorkOrderCount || 0);
+          const loginCount = Number(client.loginCount || 0);
+          const failedAttempts = Number(client.failedLoginAttempts || 0);
+
+          const health = computeAccountHealth(
+            {
+              clientStatus,
+              loginStatus,
+              workOrderStatus: effectiveLoginId ? 'Registered' : 'Missing ID',
+              mobile,
+              loginCount,
+              failedLoginAttempts: failedAttempts,
+              lockedUntil: client.lockedUntil,
+              regenerationCount: regenCount,
+              lastLoginAt: client.lastLoginAt,
+              createdAt: client.createdAt,
+              hasWorkOrder: Boolean(effectiveLoginId),
+            },
+            nowMs
+          );
+
+          records.push({
+            workOrderId: effectiveLoginId || 'UNASSIGNED',
+            clientId: cid,
+            clientCode: client.clientCode || '',
+            clientName: client.name || client.fullName || 'Unknown Candidate',
+            clientEmail: client.email || '',
+            mobile,
+            clientStatus,
+            loginStatus,
+            workOrderStatus: currentWoId ? 'Active' : fallbackEnquiryId ? 'Enquiry Reference' : 'Missing ID',
+            isCurrentWorkOrder: Boolean(effectiveLoginId),
+            serviceType: client.serviceType || 'CAREER_SERVICES',
+            generatedVia: currentWoId ? 'CLIENT_RECORD' : fallbackEnquiryId ? 'CAREER_ENQUIRY' : 'UNASSIGNED',
+            lastLoginAt: client.lastLoginAt || '',
+            loginCount,
+            failedLoginAttempts: failedAttempts,
+            lastFailedLoginAt: client.lastFailedLoginAt || '',
+            workOrderRegenerationCount: regenCount,
+            lockedUntil: client.lockedUntil || '',
+            revokedAt: client.revokedAt || '',
+            revokedBy: client.revokedBy || '',
+            revokedReason: client.revokedReason || '',
+            healthStatus: health.healthStatus,
+            healthScore: health.healthScore,
+            healthSignals: health.healthSignals,
+            createdAt: client.createdAt || '',
+            updatedAt: client.updatedAt || '',
+          });
+        }
+
+        records.sort((a, b) => {
+          const ta = Date.parse(b.updatedAt || b.createdAt || '') || 0;
+          const tb = Date.parse(a.updatedAt || a.createdAt || '') || 0;
+          return ta - tb;
+        });
+
+        const summary = {
+          totalIds: records.length,
+          activeIds: records.filter((r) => r.loginStatus === 'ACTIVE' && !['SUSPENDED', 'REVOKED', 'DEACTIVATED'].includes(r.clientStatus)).length,
+          revokedIds: records.filter((r) => r.loginStatus === 'REVOKED' || r.loginStatus === 'SUSPENDED' || ['SUSPENDED', 'REVOKED', 'DEACTIVATED'].includes(r.clientStatus)).length,
+          supersededIds: records.filter((r) => r.loginStatus === 'SUPERSEDED').length,
+          healthyAccounts: records.filter((r) => r.healthStatus === 'HEALTHY').length,
+          atRiskAccounts: records.filter((r) => r.healthStatus === 'AT_RISK').length,
+          criticalAccounts: records.filter((r) => r.healthStatus === 'CRITICAL').length,
+        };
+
+        const authEvents = new Set([
+          'CLIENT_REGISTERED',
+          'CLIENT_LOGIN',
+          'CLIENT_LOGIN_FAILED',
+          'WORK_ORDER_REGENERATED',
+          'ADMIN_WORK_ORDER_ISSUED',
+          'LOGIN_ID_ACTIVATED',
+          'LOGIN_ID_REVOKED',
+          'LOGIN_ID_SUSPENDED',
+        ]);
+        const recentLogs = rawActivityLogs
+          .filter((l: any) => authEvents.has(String(l.event || l.activityType || '')))
+          .map((l: any) => ({
+            event: l.event || l.activityType,
+            clientId: l.clientId || '',
+            workOrderId: l.workOrderId || '',
+            previousWorkOrderId: l.previousWorkOrderId || '',
+            actorId: l.actorId || '',
+            actorName: l.actorName || l.performedBy || '',
+            reason: l.reason || l.description || '',
+            timestamp: l.timestamp || '',
+          }))
+          .sort((a: any, b: any) => (Date.parse(b.timestamp || '') || 0) - (Date.parse(a.timestamp || '') || 0))
+          .slice(0, 60);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            records,
+            summary,
+            recentLogs,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Admin Login Management List Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to load candidate login directory.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    if (url.pathname === '/api/career/admin/login-management/status') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as {
+          workOrderId?: string;
+          clientId?: string;
+          action?: 'ACTIVATE' | 'REVOKE' | 'SUSPEND';
+          reason?: string;
+          adminId?: string;
+          adminName?: string;
+          alsoUpdateClientStatus?: boolean;
+        } | null;
+
+        const action = String(body?.action || '').toUpperCase();
+        const workOrderId = body?.workOrderId?.trim().toUpperCase();
+        const clientIdInput = body?.clientId?.trim();
+        const adminName = body?.adminName?.trim() || 'Admin';
+        const reason = body?.reason?.trim() || '';
+
+        if (!['ACTIVATE', 'REVOKE', 'SUSPEND'].includes(action)) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Invalid action. Must be ACTIVATE, REVOKE, or SUSPEND.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        if ((!workOrderId || workOrderId === 'UNASSIGNED') && !clientIdInput) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Work Order ID or Client ID is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const nextLoginStatus = action === 'ACTIVATE' ? 'ACTIVE' : action === 'SUSPEND' ? 'SUSPENDED' : 'REVOKED';
+        const nextClientStatus = action === 'ACTIVATE' ? 'ACTIVE' : action === 'SUSPEND' ? 'SUSPENDED' : 'REVOKED';
+
+        let resolvedClientId = clientIdInput || '';
+        let clientMobile = '';
+
+        if (workOrderId && workOrderId !== 'UNASSIGNED') {
+          const woDoc = (await firestore.getDocument('workOrders', workOrderId)) as any;
+          if (woDoc) {
+            resolvedClientId = resolvedClientId || woDoc.clientId || '';
+            clientMobile = woDoc.clientMobile || '';
+            await firestore.setDocument('workOrders', workOrderId, {
+              loginStatus: nextLoginStatus,
+              ...(action === 'ACTIVATE'
+                ? {
+                    activatedAt: now,
+                    activatedBy: adminName,
+                    revokedAt: '',
+                    revokedBy: '',
+                    revokedReason: '',
+                  }
+                : {
+                    revokedAt: now,
+                    revokedBy: adminName,
+                    revokedReason: reason || `Manually ${nextLoginStatus.toLowerCase()} by ${adminName}`,
+                  }),
+              updatedAt: now,
+            });
+          } else {
+            // Create stub workOrder entry if it only came from client.currentWorkOrderId
+            await firestore.setDocument('workOrders', workOrderId, {
+              workOrderId,
+              clientId: resolvedClientId,
+              loginStatus: nextLoginStatus,
+              ...(action !== 'ACTIVATE'
+                ? {
+                    revokedAt: now,
+                    revokedBy: adminName,
+                    revokedReason: reason || `Manually ${nextLoginStatus.toLowerCase()} by ${adminName}`,
+                  }
+                : { activatedAt: now, activatedBy: adminName }),
+              createdAt: now,
+              updatedAt: now,
+            });
+          }
+        }
+
+        if (resolvedClientId) {
+          const clientDoc = (await firestore.getDocument('clients', resolvedClientId)) as any;
+          clientMobile = clientMobile || clientDoc?.mobile || clientDoc?.phone || '';
+
+          const clientPatch: Record<string, any> = {
+            updatedAt: now,
+          };
+
+          if (action === 'ACTIVATE') {
+            clientPatch.status = 'ACTIVE';
+            clientPatch.failedLoginAttempts = 0;
+            clientPatch.lockedUntil = '';
+            clientPatch.revokedAt = '';
+            clientPatch.revokedBy = '';
+            clientPatch.revokedReason = '';
+            if (workOrderId && workOrderId !== 'UNASSIGNED') {
+              clientPatch.currentWorkOrderId = workOrderId;
+            }
+          } else if (body?.alsoUpdateClientStatus !== false) {
+            clientPatch.status = nextClientStatus;
+            clientPatch.revokedAt = now;
+            clientPatch.revokedBy = adminName;
+            clientPatch.revokedReason = reason || `Manually ${nextLoginStatus.toLowerCase()} by ${adminName}`;
+          }
+
+          if (clientDoc) {
+            await firestore.setDocument('clients', resolvedClientId, clientPatch);
+          }
+
+          const careerClientDoc = (await firestore.getDocument('career_clients', resolvedClientId)) as any;
+          if (careerClientDoc) {
+            await firestore.setDocument('career_clients', resolvedClientId, clientPatch);
+          }
+        }
+
+        if (action === 'ACTIVATE' && clientMobile) {
+          clearRateLimitsForMobile(clientMobile);
+        }
+
+        const logId = `log_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        const statusEventName =
+          action === 'ACTIVATE'
+            ? 'LOGIN_ID_ACTIVATED'
+            : action === 'SUSPEND'
+            ? 'LOGIN_ID_SUSPENDED'
+            : 'LOGIN_ID_REVOKED';
+        await firestore.setDocument('activityLogs', logId, {
+          activityId: logId,
+          event: statusEventName,
+          activityType: statusEventName,
+          clientId: resolvedClientId,
+          workOrderId: workOrderId || '',
+          actorId: body?.adminId || 'admin',
+          actorName: adminName,
+          performedBy: adminName,
+          reason,
+          description: reason || `${statusEventName} by ${adminName}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            workOrderId: workOrderId || '',
+            clientId: resolvedClientId,
+            loginStatus: nextLoginStatus,
+            message: `Login ID ${workOrderId || resolvedClientId} has been ${nextLoginStatus.toLowerCase()}.`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Admin Login Management Status Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to update login status.' }),
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    if (url.pathname === '/api/career/admin/login-management/regenerate') {
+      if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'Method Not Allowed' }), {
+          status: 405,
+          headers: CORS_HEADERS,
+        });
+      }
+
+      try {
+        const body = (await request.json().catch(() => null)) as {
+          clientId?: string;
+          reason?: string;
+          adminId?: string;
+          adminName?: string;
+        } | null;
+
+        const clientId = body?.clientId?.trim();
+        const adminName = body?.adminName?.trim() || 'Admin';
+        const reason = body?.reason?.trim() || 'Admin issued fresh Work Order ID';
+
+        if (!clientId) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Client ID is required.' }),
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const clientDoc =
+          ((await firestore.getDocument('clients', clientId)) as any) ||
+          ((await firestore.getDocument('career_clients', clientId)) as any);
+
+        if (!clientDoc) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Candidate client record not found.' }),
+            { status: 404, headers: CORS_HEADERS }
+          );
+        }
+
+        const now = new Date().toISOString();
+        const oldWorkOrderId = clientDoc.currentWorkOrderId;
+        const newWorkOrderId = await generateUniqueWorkOrderId(firestore);
+        const clientMobile = normalizeMobile(clientDoc.mobile || clientDoc.phone || '');
+        const clientName = clientDoc.name || clientDoc.fullName || 'Candidate';
+
+        if (oldWorkOrderId && oldWorkOrderId !== newWorkOrderId) {
+          const oldWo = await firestore.getDocument('workOrders', oldWorkOrderId);
+          if (oldWo) {
+            await firestore.setDocument('workOrders', oldWorkOrderId, {
+              loginStatus: 'SUPERSEDED',
+              revokedAt: now,
+              revokedBy: adminName,
+              revokedReason: `Superseded by ${newWorkOrderId} (${reason})`,
+              updatedAt: now,
+            });
+          }
+        }
+
+        await firestore.setDocument('workOrders', newWorkOrderId, {
+          workOrderId: newWorkOrderId,
+          clientId,
+          clientName,
+          clientMobile,
+          clientEmail: clientDoc.email || '',
+          serviceType: clientDoc.serviceType || 'RESUME_WRITING',
+          status: 'Confirmed',
+          loginStatus: 'ACTIVE',
+          generatedVia: 'ADMIN_ISSUED',
+          activatedAt: now,
+          activatedBy: adminName,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        const existingIds: string[] = Array.isArray(clientDoc.workOrderIds) ? clientDoc.workOrderIds : [];
+        const updatedIds = existingIds.includes(newWorkOrderId) ? existingIds : [...existingIds, newWorkOrderId];
+
+        await firestore.setDocument('clients', clientId, {
+          clientId,
+          currentWorkOrderId: newWorkOrderId,
+          workOrderIds: updatedIds,
+          status: 'ACTIVE',
+          failedLoginAttempts: 0,
+          lockedUntil: '',
+          updatedAt: now,
+        });
+
+        if (clientMobile) {
+          clearRateLimitsForMobile(clientMobile);
+        }
+
+        const issueLogId = `log_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        await firestore.setDocument('activityLogs', issueLogId, {
+          activityId: issueLogId,
+          event: 'ADMIN_WORK_ORDER_ISSUED',
+          activityType: 'ADMIN_WORK_ORDER_ISSUED',
+          clientId,
+          workOrderId: newWorkOrderId,
+          previousWorkOrderId: oldWorkOrderId || '',
+          actorId: body?.adminId || 'admin',
+          actorName: adminName,
+          performedBy: adminName,
+          reason,
+          description: `Admin issued Work Order ID ${newWorkOrderId}: ${reason}`,
+          timestamp: now,
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            clientId,
+            workOrderId: newWorkOrderId,
+            previousWorkOrderId: oldWorkOrderId || '',
+            message: `Issued new Work Order ID ${newWorkOrderId} for ${clientName}.`,
+          }),
+          { status: 200, headers: CORS_HEADERS }
+        );
+      } catch (err: any) {
+        console.error('[Admin Regenerate Work Order Error]:', err);
+        return new Response(
+          JSON.stringify({ success: false, error: err?.message || 'Failed to issue new Work Order ID.' }),
           { status: 500, headers: CORS_HEADERS }
         );
       }

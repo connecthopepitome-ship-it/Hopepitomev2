@@ -398,6 +398,9 @@ export interface CareerActivityLog {
 }
 
 // Phase 5 Exact Collection Models
+export type WorkOrderLoginStatus = 'ACTIVE' | 'REVOKED' | 'SUSPENDED' | 'SUPERSEDED';
+export type AccountHealthStatus = 'HEALTHY' | 'AT_RISK' | 'CRITICAL';
+
 export interface ClientRecord {
   clientId: string;
   name: string;
@@ -405,10 +408,21 @@ export interface ClientRecord {
   email?: string;
   createdAt: string;
   updatedAt: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'DEACTIVATED' | 'ARCHIVED';
   currentWorkOrderId?: string;
+  workOrderIds?: string[];
   fullName?: string;
   clientCode?: string;
+  lastLoginAt?: string;
+  loginCount?: number;
+  failedLoginAttempts?: number;
+  lastFailedLoginAt?: string;
+  lockedUntil?: string | null;
+  lastWorkOrderGeneratedAt?: string;
+  workOrderRegenerationCount?: number;
+  revokedAt?: string | null;
+  revokedBy?: string | null;
+  revokedReason?: string | null;
   careerProfile?: {
     currentDesignation?: string;
     totalExperience?: string;
@@ -426,14 +440,62 @@ export interface ClientRecord {
 export interface WorkOrderRecord {
   workOrderId: string; // e.g. HP-2026-00001
   clientId: string;
+  clientName?: string;
+  clientMobile?: string;
+  clientEmail?: string;
   serviceType: CareerServiceType | string;
   status: WorkOrderStatus;
+  loginStatus?: WorkOrderLoginStatus;
+  generatedVia?:
+    | 'REGISTRATION'
+    | 'FORGOT_WORK_ORDER_ID'
+    | 'ADMIN_ISSUED'
+    | 'LEAD_CONVERSION'
+    | 'ENQUIRY_APPROVAL';
+  previousWorkOrderId?: string | null;
+  lastLoginAt?: string;
+  loginCount?: number;
+  failedLoginAttempts?: number;
+  lastFailedLoginAt?: string;
+  revokedAt?: string | null;
+  revokedBy?: string | null;
+  revokedReason?: string | null;
   createdAt: string;
   updatedAt: string;
   assignedTo?: string;
   driveFolderId?: string;
   driveFolderPath?: string;
   notes?: string;
+}
+
+export interface CandidateLoginRecord {
+  workOrderId: string;
+  clientId: string;
+  clientCode?: string;
+  clientName: string;
+  clientEmail?: string;
+  mobile: string;
+  clientStatus: 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'DEACTIVATED' | 'ARCHIVED';
+  loginStatus: WorkOrderLoginStatus;
+  workOrderStatus: WorkOrderStatus | string;
+  isCurrentWorkOrder: boolean;
+  serviceType: string;
+  generatedVia?: string;
+  lastLoginAt?: string;
+  loginCount: number;
+  failedLoginAttempts: number;
+  lastFailedLoginAt?: string;
+  workOrderRegenerationCount?: number;
+  isRateLimited?: boolean;
+  lockedUntil?: string | null;
+  revokedAt?: string | null;
+  revokedBy?: string | null;
+  revokedReason?: string | null;
+  healthStatus: AccountHealthStatus;
+  healthScore: number;
+  healthSignals: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DocumentRecord {

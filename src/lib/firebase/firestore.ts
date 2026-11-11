@@ -169,11 +169,42 @@ export function subscribeClients(callback: (clients: ClientRecord[]) => void): (
   });
 }
 
+function normalizeCareerClientDoc(
+  clientId: string,
+  primary: Record<string, any> | null,
+  secondary: Record<string, any> | null
+): CareerClient | null {
+  if (!primary && !secondary) return null;
+  const merged = { ...(secondary || {}), ...(primary || {}) };
+  const resolvedId = merged.id || merged.clientId || clientId;
+  const fullName = merged.fullName || merged.name || 'Candidate';
+  const now = new Date().toISOString();
+
+  return {
+    ...(merged as any),
+    id: resolvedId,
+    clientCode: merged.clientCode || `CL-${String(resolvedId).slice(-4).toUpperCase()}`,
+    fullName,
+    email: merged.email || '',
+    phone: merged.phone || merged.mobile || '',
+    onboardingCompleted: Boolean(merged.onboardingCompleted),
+    currentWorkOrderId: merged.currentWorkOrderId || '',
+    createdAt: merged.createdAt || now,
+    updatedAt: merged.updatedAt || now,
+  };
+}
+
 export async function getCareerClient(clientId: string): Promise<CareerClient | null> {
   if (!db) return null;
   try {
-    const snap = await getDoc(doc(db, 'career_clients', clientId));
-    return snap.exists() ? (snap.data() as CareerClient) : null;
+    const [clientsSnap, careerClientsSnap] = await Promise.all([
+      getDoc(doc(db, 'clients', clientId)).catch(() => null),
+      getDoc(doc(db, 'career_clients', clientId)).catch(() => null),
+    ]);
+
+    const clientsData = clientsSnap?.exists() ? (clientsSnap.data() as Record<string, any>) : null;
+    const careerData = careerClientsSnap?.exists() ? (careerClientsSnap.data() as Record<string, any>) : null;
+    return normalizeCareerClientDoc(clientId, clientsData, careerData);
   } catch (e) {
     console.error('Error fetching career client:', e);
     return null;
@@ -181,15 +212,27 @@ export async function getCareerClient(clientId: string): Promise<CareerClient | 
 }
 
 export async function saveCareerClient(client: CareerClient): Promise<void> {
-  await resilientSaveDoc('clients', client.id, client);
-  await resilientSaveDoc('career_clients', client.id, client).catch(() => {});
+  const payload = {
+    ...client,
+    clientId: client.id,
+    name: client.fullName,
+    ...(client.phone ? { mobile: client.phone } : {}),
+  };
+  await resilientSaveDoc('clients', client.id, payload);
+  await resilientSaveDoc('career_clients', client.id, payload).catch(() => {});
 }
 
 export async function getCareerProfile(clientId: string): Promise<CareerProfileData | null> {
   if (!db) return null;
   try {
-    const snap = await getDoc(doc(db, 'career_profiles', clientId));
-    return snap.exists() ? (snap.data() as CareerProfileData) : null;
+    const [snakeSnap, camelSnap] = await Promise.all([
+      getDoc(doc(db, 'career_profiles', clientId)).catch(() => null),
+      getDoc(doc(db, 'careerProfiles', clientId)).catch(() => null),
+    ]);
+    const snakeData = snakeSnap?.exists() ? (snakeSnap.data() as CareerProfileData) : null;
+    const camelData = camelSnap?.exists() ? (camelSnap.data() as CareerProfileData) : null;
+    if (!snakeData && !camelData) return null;
+    return { ...(camelData || {}), ...(snakeData || {}) } as CareerProfileData;
   } catch (e) {
     console.error('Error fetching career profile:', e);
     return null;
@@ -198,6 +241,7 @@ export async function getCareerProfile(clientId: string): Promise<CareerProfileD
 
 export async function saveCareerProfile(profile: Partial<CareerProfileData> & { clientId: string }): Promise<void> {
   await resilientSaveDoc('career_profiles', profile.clientId, profile);
+  await resilientSaveDoc('careerProfiles', profile.clientId, profile).catch(() => {});
 }
 
 // 3. Service Orders

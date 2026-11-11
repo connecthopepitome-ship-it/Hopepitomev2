@@ -1,7 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { subscribeToAuthState, logoutUser, FirebaseUser } from '@/lib/firebase/auth';
+import {
+  subscribeToAuthState,
+  logoutUser,
+  FirebaseUser,
+  CANDIDATE_SESSION_KEY,
+  CandidateSessionData,
+} from '@/lib/firebase/auth';
 import { getCareerClient, getCareerProfile, saveCareerClient, saveCareerProfile } from '@/lib/firebase/firestore';
 import type { CareerClient, CareerProfileData } from '@/lib/career/types';
 
@@ -31,23 +37,46 @@ export function CareerAuthProvider({ children }: { children: React.ReactNode }) 
   const [profile, setProfile] = useState<CareerProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserData = async (currentUser: FirebaseUser) => {
+  const readCachedCandidateSession = (): CandidateSessionData | null => {
+    if (typeof window === 'undefined') return null;
     try {
+      const raw = sessionStorage.getItem(CANDIDATE_SESSION_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as CandidateSessionData;
+      return parsed?.clientId ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchUserData = async (currentUser: FirebaseUser, cachedSession?: CandidateSessionData | null) => {
+    try {
+      const session = cachedSession ?? readCachedCandidateSession();
+      const matchingSession = session && session.clientId === currentUser.uid ? session : null;
+      const activeWorkOrder =
+        (typeof window !== 'undefined' ? sessionStorage.getItem('hp_active_work_order') : null) ||
+        matchingSession?.workOrderId ||
+        '';
+
       let clientRecord = await getCareerClient(currentUser.uid);
       if (!clientRecord) {
-        // Automatically provision client record upon first sign in
+        // Provision client record safely using verified session details when available
         const now = new Date().toISOString();
         const shortCode = currentUser.uid.substring(0, 4).toUpperCase();
         clientRecord = {
           id: currentUser.uid,
-          clientCode: `CL-${shortCode}`,
-          fullName: currentUser.displayName || currentUser.email?.split('@')[0] || 'Client',
-          email: currentUser.email || '',
+          clientCode: matchingSession?.clientCode || `CL-${shortCode}`,
+          fullName: matchingSession?.name || currentUser.displayName || currentUser.email?.split('@')[0] || 'Client',
+          email: matchingSession?.email || currentUser.email || '',
+          phone: matchingSession?.mobile || currentUser.phoneNumber || '',
+          currentWorkOrderId: activeWorkOrder || undefined,
           onboardingCompleted: false,
           createdAt: now,
           updatedAt: now,
         };
         await saveCareerClient(clientRecord);
+      } else if (activeWorkOrder && !clientRecord.currentWorkOrderId) {
+        clientRecord = { ...clientRecord, currentWorkOrderId: activeWorkOrder };
       }
       setClient(clientRecord);
 
@@ -80,12 +109,25 @@ export function CareerAuthProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(async (currentUser) => {
-      setUser(currentUser);
       if (currentUser) {
+        setUser(currentUser);
         await fetchUserData(currentUser);
       } else {
-        setClient(null);
-        setProfile(null);
+        const cachedSession = readCachedCandidateSession();
+        if (cachedSession) {
+          const fallbackUser = {
+            uid: cachedSession.clientId,
+            displayName: cachedSession.name,
+            email: cachedSession.email || '',
+            phoneNumber: cachedSession.mobile || null,
+          } as unknown as FirebaseUser;
+          setUser(fallbackUser);
+          await fetchUserData(fallbackUser, cachedSession);
+        } else {
+          setUser(null);
+          setClient(null);
+          setProfile(null);
+        }
       }
       setLoading(false);
     });
