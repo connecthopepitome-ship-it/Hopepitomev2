@@ -453,7 +453,11 @@ function ScanningLeadsContent() {
     setFileActionFeedback(null);
 
     try {
-      const res = await fetch(`${getFileUrl(lead.scanning_lead_id, action)}&format=json`);
+      const { auth } = await import('@/lib/firebase/config');
+      const token = await auth?.currentUser?.getIdToken().catch(() => '');
+      const res = await fetch(`${getFileUrl(lead.scanning_lead_id, action)}&format=json`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       const contentType = res.headers.get('content-type') || '';
 
       if (res.ok && !contentType.includes('application/json')) {

@@ -119,7 +119,7 @@ export function PortalLayout({ children }: PortalLayoutProps) {
                   {client?.fullName || user.displayName || 'Candidate Client'}
                 </h3>
                 <p className="text-[11px] font-mono text-[#7454F5] font-semibold truncate">
-                  ID: {client?.clientCode || 'PROVISIONAL'}
+                  ID: {client?.currentWorkOrderId || client?.clientCode || 'PROVISIONAL'}
                 </p>
               </div>
             </div>

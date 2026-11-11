@@ -1,11 +1,26 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import { useCareerAuth } from '../career/portal/AuthContext';
-import { fetchJobMatchFeatureEnabled, isJobMatchBuildEnabled } from '@/lib/job-match/client';
+import {
+  fetchJobMatchFeatureEnabled,
+  isJobMatchBuildEnabled,
+  verifyCandidateJobMatchSession,
+} from '@/lib/job-match/client';
+
+interface JobMatchVerifiedSession {
+  candidateId: string;
+  candidateCode: string;
+  candidateName: string;
+  workOrderId: string;
+}
+
+const JobMatchSessionContext = createContext<JobMatchVerifiedSession | null>(null);
+
+export const useJobMatchSession = () => useContext(JobMatchSessionContext);
 
 interface JobMatchFeatureGateProps {
   children: React.ReactNode;
@@ -17,6 +32,8 @@ export function JobMatchFeatureGate({ children }: JobMatchFeatureGateProps) {
   const pathname = usePathname();
   const [checkingFlag, setCheckingFlag] = useState(true);
   const [enabled, setEnabled] = useState(isJobMatchBuildEnabled());
+  const [verifyingSession, setVerifyingSession] = useState(true);
+  const [verifiedSession, setVerifiedSession] = useState<JobMatchVerifiedSession | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -39,15 +56,43 @@ export function JobMatchFeatureGate({ children }: JobMatchFeatureGateProps) {
   }, []);
 
   const targetPath = pathname && pathname.startsWith('/job-match') ? pathname : '/job-match/intake';
-  const loginHref = `/career-services/portal/login?redirect=${encodeURIComponent(targetPath)}&mode=job-match`;
+  const loginHref = `/career-services/portal/login?returnTo=${encodeURIComponent(targetPath)}&redirect=${encodeURIComponent(targetPath)}&mode=job-match`;
 
+  // Server-side verification: requires real Firebase session + ensured HP-YYYY-XXXXX Candidate ID
   useEffect(() => {
-    if (!checkingFlag && enabled && !authLoading && !user) {
+    if (checkingFlag || !enabled || authLoading) return;
+
+    const hasTokenProvider = Boolean(user && typeof (user as any).getIdToken === 'function');
+    if (!user || !hasTokenProvider) {
+      setVerifiedSession(null);
+      setVerifyingSession(false);
       router.replace(loginHref);
+      return;
     }
+
+    let cancelled = false;
+    setVerifyingSession(true);
+    verifyCandidateJobMatchSession(user)
+      .then((session) => {
+        if (!cancelled) {
+          setVerifiedSession(session);
+          setVerifyingSession(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setVerifiedSession(null);
+          setVerifyingSession(false);
+          router.replace(loginHref);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [checkingFlag, enabled, authLoading, user, loginHref, router]);
 
-  if (checkingFlag || (enabled && authLoading)) {
+  if (checkingFlag || (enabled && (authLoading || verifyingSession))) {
     return (
       <div className="min-h-screen bg-[#F8F7FC] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -83,7 +128,7 @@ export function JobMatchFeatureGate({ children }: JobMatchFeatureGateProps) {
     );
   }
 
-  if (!user) {
+  if (!user || !verifiedSession) {
     return (
       <div className="min-h-screen bg-[#F8F7FC] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -102,6 +147,10 @@ export function JobMatchFeatureGate({ children }: JobMatchFeatureGateProps) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <JobMatchSessionContext.Provider value={verifiedSession}>
+      {children}
+    </JobMatchSessionContext.Provider>
+  );
 }
 

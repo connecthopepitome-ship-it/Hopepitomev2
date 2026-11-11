@@ -11,7 +11,8 @@ const {
   resolveFixMyResumeHref,
   JOB_MATCH_MAX_FILE_SIZE_BYTES,
 } = jiti('../src/lib/job-match/constants.ts');
-const { sanitizePlainText, isValidIsoDateString } = jiti('../src/lib/job-match/security.ts');
+const { sanitizePlainText, isValidIsoDateString, verifyFirebaseIdToken } = jiti('../src/lib/job-match/security.ts');
+const { reserveUniqueWorkOrder } = jiti('../src/lib/career/work-order-id.ts');
 
 /**
  * Lightweight in-memory Firestore double matching EdgeFirestoreClient methods
@@ -38,6 +39,13 @@ class MockFirestore {
     const prev = merge ? col.get(documentId) || {} : {};
     col.set(documentId, JSON.parse(JSON.stringify({ ...prev, ...data })));
     return true;
+  }
+
+  async createDocumentIfAbsent(collectionName, documentId, data) {
+    const col = this._col(collectionName);
+    if (col.has(documentId)) return 'conflict';
+    col.set(documentId, JSON.parse(JSON.stringify(data)));
+    return 'created';
   }
 
   async deleteDocument(collectionName, documentId) {
@@ -750,4 +758,141 @@ test('Intake logs to scanning_leads and separate Admin Controls gate intakes', a
     }),
   });
   assert.equal(pausedIntake.status, 403);
+});
+
+test('Auto-provisioning Candidate ID, atomic concurrent ID generation, multipart uploads & storage failure guard', async () => {
+  const db = new MockFirestore();
+  await seedDatabase(db);
+
+  // Older client account with no currentWorkOrderId
+  await db.setDocument('clients', 'cl_legacy', {
+    clientId: 'cl_legacy',
+    id: 'cl_legacy',
+    fullName: 'Legacy User',
+    name: 'Legacy User',
+    mobile: '+919900001122',
+    status: 'ACTIVE',
+  });
+
+  const legacyOverrides = {
+    verifyIdToken: async (token) => {
+      if (token === 'token_legacy') return { uid: 'cl_legacy', claims: { role: 'client' } };
+      return null;
+    },
+  };
+
+  const sessionRes = await handleJobMatchRoutes({
+    request: new Request('https://hopepitome.test/api/job-match/session', {
+      method: 'GET',
+      headers: { Authorization: 'Bearer token_legacy' },
+    }),
+    url: new URL('https://hopepitome.test/api/job-match/session'),
+    env: makeEnv(),
+    projectId: 'hopepitome',
+    firestore: db,
+    callGas: null,
+    securityOverrides: legacyOverrides,
+  });
+  assert.equal(sessionRes.status, 200);
+  const sessionJson = await sessionRes.json();
+  assert.match(sessionJson.candidateCode, /^HP-\d{4}-\d{5,6}$/);
+
+  const updatedLegacy = await db.getDocument('clients', 'cl_legacy');
+  assert.equal(updatedLegacy.currentWorkOrderId, sessionJson.candidateCode);
+
+  // Concurrent ID reservations produce strictly unique IDs
+  const batchReservations = await Promise.all(
+    Array.from({ length: 12 }, (_, idx) =>
+      reserveUniqueWorkOrder({
+        firestore: db,
+        clientId: `cl_race_${idx}`,
+        clientName: `User ${idx}`,
+        clientMobile: `+9198000000${String(idx).padStart(2, '0')}`,
+      })
+    )
+  );
+  const uniqueReservedIds = new Set(batchReservations.map((r) => r.workOrderId));
+  assert.equal(uniqueReservedIds.size, 12);
+
+  // Multipart FormData uploads: PDF, DOCX (application/octet-stream), JPG with special chars in name
+  const uploadCases = [
+    { name: 'My Resume (Final) 2026.pdf', type: 'application/pdf', bytes: '%PDF-1.4\ntest' },
+    { name: 'Senior CV [Updated].docx', type: 'application/octet-stream', bytes: 'PK\x03\x04docx-bytes' },
+    { name: 'scan resume photo.jpg', type: 'image/jpeg', bytes: '\xff\xd8\xffjpeg-bytes' },
+  ];
+  for (const uc of uploadCases) {
+    const fd = new FormData();
+    fd.append('targetRole', 'Cloud Architect');
+    fd.append('preferredLocations', JSON.stringify(['Dubai, UAE']));
+    fd.append('experienceYears', '6 years');
+    fd.append('jobType', 'Full-time');
+    fd.append('consentGiven', 'true');
+    fd.append('resume', new File([uc.bytes], uc.name, { type: uc.type }));
+
+    const upRes = await invoke(db, makeEnv(), '/api/job-match/intakes', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer token_cand_1' },
+      body: fd,
+    });
+    assert.equal(upRes.status, 201);
+    const upJson = await upRes.json();
+    assert.ok(String(upJson.intake.resume_storage_reference).includes('job-match/HP-1023/'));
+  }
+
+  // Verify 9 MB multipart upload and .exe upload rejected with exact friendly errors
+  const bigFd = new FormData();
+  bigFd.append('targetRole', 'Cloud Architect');
+  bigFd.append('preferredLocations', JSON.stringify(['Remote']));
+  bigFd.append('experienceYears', '6 years');
+  bigFd.append('jobType', 'Full-time');
+  bigFd.append('consentGiven', 'true');
+  bigFd.append('resume', new File([new Uint8Array(9 * 1024 * 1024)], 'big.pdf', { type: 'application/pdf' }));
+  const bigRes = await invoke(db, makeEnv(), '/api/job-match/intakes', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer token_cand_1' },
+    body: bigFd,
+  });
+  assert.equal(bigRes.status, 400);
+  assert.equal((await bigRes.json()).error, 'File too large — max 8 MB');
+
+  const exeFd = new FormData();
+  exeFd.append('targetRole', 'Cloud Architect');
+  exeFd.append('preferredLocations', JSON.stringify(['Remote']));
+  exeFd.append('experienceYears', '6 years');
+  exeFd.append('jobType', 'Full-time');
+  exeFd.append('consentGiven', 'true');
+  exeFd.append('resume', new File(['MZ'], 'payload.exe', { type: 'application/x-msdownload' }));
+  const exeRes = await invoke(db, makeEnv(), '/api/job-match/intakes', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer token_cand_1' },
+    body: exeFd,
+  });
+  assert.equal(exeRes.status, 400);
+  assert.equal((await exeRes.json()).error, 'Only PDF, DOCX, JPG, PNG allowed');
+
+  // If private storage fails, intake must NOT be saved
+  const brokenDb = new MockFirestore();
+  await seedDatabase(brokenDb);
+  const origSet = brokenDb.setDocument.bind(brokenDb);
+  brokenDb.setDocument = async (col, id, data, merge) => {
+    if (col === 'job_match_resume_chunks') return false;
+    return origSet(col, id, data, merge);
+  };
+  const failFd = new FormData();
+  failFd.append('targetRole', 'Cloud Architect');
+  failFd.append('preferredLocations', JSON.stringify(['Remote']));
+  failFd.append('experienceYears', '6 years');
+  failFd.append('jobType', 'Full-time');
+  failFd.append('consentGiven', 'true');
+  failFd.append('resume', new File(['%PDF-1.4'], 'good.pdf', { type: 'application/pdf' }));
+  const failRes = await invoke(brokenDb, makeEnv(), '/api/job-match/intakes', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer token_cand_1' },
+    body: failFd,
+  });
+  assert.equal(failRes.status, 500);
+  assert.equal((await brokenDb.listDocuments('job_match_intakes')).length, 0);
+
+  // Sanity check that real verifyFirebaseIdToken exists and accepts real issuer structure check
+  assert.equal(typeof verifyFirebaseIdToken, 'function');
 });

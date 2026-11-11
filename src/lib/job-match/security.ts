@@ -5,6 +5,7 @@
  */
 
 import { DEFAULT_STAFF_ROLES, checkPermission } from '../career/permissions';
+import { ensureCandidateWorkOrderId } from '../career/work-order-id';
 import type { StaffPermissionAction, StaffRolePermissions } from '../career/types';
 import type { EdgeFirestoreClient } from '../firebase/edge-firestore';
 
@@ -99,7 +100,7 @@ export async function verifyFirebaseIdToken(
     const nowSec = Math.floor(Date.now() / 1000);
     if (!payload?.sub || typeof payload.sub !== 'string') return null;
     if (payload.aud !== projectId) return null;
-    if (payload.iss !== `https://securetoken.googleapis.com/${projectId}`) return null;
+    if (payload.iss !== `https://securetoken.google.com/${projectId}`) return null;
     if (typeof payload.exp !== 'number' || payload.exp <= nowSec) return null;
     if (typeof payload.iat === 'number' && payload.iat > nowSec + 300) return null;
 
@@ -197,31 +198,44 @@ export async function authenticateCandidateRequest(
   }
 
   const candidateId = verified.uid;
-  const clientDoc =
+  let clientDoc =
     (await firestore.getDocument('clients', candidateId).catch(() => null)) ||
     (await firestore.getDocument('career_clients', candidateId).catch(() => null));
 
-  if (!clientDoc) {
-    return { ok: false, status: 403, error: 'Candidate account record not found.' };
+  const fallbackName = String(
+    clientDoc?.fullName || clientDoc?.name || verified.claims?.name || verified.email?.split('@')[0] || 'Candidate'
+  );
+  const fallbackEmail = String(clientDoc?.email || verified.email || '');
+  const fallbackMobile = String(clientDoc?.mobile || clientDoc?.phone || verified.phoneNumber || '');
+
+  if (clientDoc) {
+    const accountStatus = String(clientDoc.status || 'ACTIVE').toUpperCase();
+    if (['SUSPENDED', 'REVOKED', 'DEACTIVATED', 'ARCHIVED'].includes(accountStatus)) {
+      return { ok: false, status: 403, error: 'Candidate account is suspended or deactivated.' };
+    }
   }
 
-  const accountStatus = String(clientDoc.status || 'ACTIVE').toUpperCase();
-  if (['SUSPENDED', 'REVOKED', 'DEACTIVATED', 'ARCHIVED'].includes(accountStatus)) {
-    return { ok: false, status: 403, error: 'Candidate account is suspended or deactivated.' };
+  // Automatically issue & persist a canonical Candidate ID (HP-YYYY-XXXXX) on first visit
+  // if the candidate account did not have one yet.
+  let workOrderId = String(clientDoc?.currentWorkOrderId || '').trim().toUpperCase();
+  if (!clientDoc || !workOrderId) {
+    const ensured = await ensureCandidateWorkOrderId(firestore, candidateId, clientDoc, {
+      name: fallbackName,
+      email: fallbackEmail,
+      mobile: fallbackMobile,
+    });
+    workOrderId = ensured.workOrderId;
+    clientDoc = ensured.clientDoc;
   }
 
   return {
     ok: true,
     candidateId,
-    candidateCode: String(
-      clientDoc.currentWorkOrderId ||
-        clientDoc.clientCode ||
-        `CL-${candidateId.slice(-4).toUpperCase()}`
-    ),
-    candidateName: String(clientDoc.fullName || clientDoc.name || verified.claims?.name || 'Candidate'),
-    candidateEmail: String(clientDoc.email || verified.email || ''),
-    candidateMobile: String(clientDoc.mobile || clientDoc.phone || verified.phoneNumber || ''),
-    workOrderId: String(clientDoc.currentWorkOrderId || verified.claims?.workOrderId || ''),
+    candidateCode: workOrderId,
+    candidateName: String(clientDoc?.fullName || clientDoc?.name || fallbackName),
+    candidateEmail: String(clientDoc?.email || fallbackEmail),
+    candidateMobile: String(clientDoc?.mobile || clientDoc?.phone || fallbackMobile),
+    workOrderId,
   };
 }
 

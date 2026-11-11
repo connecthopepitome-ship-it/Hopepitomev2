@@ -23,6 +23,8 @@ import { transformToPublicAtsAudit } from './lib/ai/scoring';
 import { AtsFailureClassification } from './lib/ai/types';
 import { handleJobMatchRoutes } from './lib/job-match/worker-handlers';
 import { readPrivateJobMatchResume } from './lib/job-match/storage';
+import { authenticateStaffRequest } from './lib/job-match/security';
+import { reserveUniqueWorkOrder } from './lib/career/work-order-id';
 
 interface Env {
   ASSETS: {
@@ -62,22 +64,16 @@ const inMemoryRateLimits = new Map<string, { attempts: number; lockedUntil: numb
 const inMemoryClients = new Map<string, Record<string, any>>();
 const inMemoryWorkOrders = new Map<string, Record<string, any>>();
 
-function generateWorkOrderId(): string {
-  const year = new Date().getFullYear();
-  // 5-digit cryptographically pseudo-random number between 10000 and 99999
-  const randomSuffix = Math.floor(10000 + Math.random() * 90000);
-  return `HP-${year}-${randomSuffix}`;
-}
-
 async function generateUniqueWorkOrderId(firestore: EdgeFirestoreClient): Promise<string> {
-  for (let i = 0; i < 6; i++) {
-    const candidateId = generateWorkOrderId();
-    const existing = await firestore.getDocument('workOrders', candidateId);
-    if (!existing && !inMemoryWorkOrders.has(candidateId)) {
-      return candidateId;
-    }
-  }
-  return `HP-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
+  const { workOrderId } = await reserveUniqueWorkOrder({
+    firestore,
+    clientId: 'pending',
+    clientName: 'Pending Registration',
+    clientMobile: '',
+    generatedVia: 'ATOMIC_RESERVATION',
+    inMemoryWorkOrders,
+  });
+  return workOrderId;
 }
 
 function clearRateLimitsForMobile(mobile: string): void {
@@ -3053,8 +3049,21 @@ export default {
           );
         }
 
-        // 1b. AI Job Match private resume vault fallback
+        // 1b. AI Job Match private resume vault fallback (strictly authenticated staff only)
         if (typeof lead.assessment_id === 'string' && lead.assessment_id.startsWith('jmi_')) {
+          const staffAuth = await authenticateStaffRequest(
+            request,
+            firestore,
+            env.FIREBASE_PROJECT_ID || 'hopepitome',
+            'view',
+            env.ADMIN_EMAIL
+          );
+          if (!staffAuth.ok) {
+            return new Response(JSON.stringify({ success: false, error: staffAuth.error }), {
+              status: staffAuth.status,
+              headers: CORS_HEADERS,
+            });
+          }
           const jmResume = await readPrivateJobMatchResume(
             firestore,
             (gasPayload) => callGoogleAppsScript(env, gasPayload),
@@ -3062,17 +3071,28 @@ export default {
             lead.assessment_id
           ).catch(() => null);
           if (jmResume) {
-            const safeAsciiName = (lead.original_file_name || jmResume.fileName || 'candidate_resume.pdf').replace(
-              /[^A-Za-z0-9._-]/g,
-              '_'
-            );
+            const origName = String(lead.original_file_name || jmResume.fileName || 'resume.pdf');
+            const ext = origName.includes('.') ? origName.split('.').pop()!.toLowerCase() : 'pdf';
+            const intakeDoc = await firestore.getDocument('job_match_intakes', lead.assessment_id).catch(() => null);
+            const rawCandCode = String(
+              intakeDoc?.work_order_id ||
+                intakeDoc?.candidate_code ||
+                (String(lead.scan_reference || '').match(/HP-\d{4}-\d{4,6}/i)?.[0]) ||
+                'Candidate'
+            ).replace(/[^A-Za-z0-9_-]/g, '_');
+            const rawCandName =
+              String(lead.candidate_name || intakeDoc?.candidate_name || 'Resume')
+                .trim()
+                .replace(/[^A-Za-z0-9_-]+/g, '_')
+                .replace(/^_+|_+$/g, '') || 'Resume';
+            const downloadName = `${rawCandCode}_${rawCandName}.${ext}`;
             const disposition = action === 'download' ? 'attachment' : 'inline';
             return new Response(jmResume.buffer as unknown as BodyInit, {
               status: 200,
               headers: {
                 ...CORS_HEADERS,
                 'Content-Type': lead.mime_type || jmResume.mimeType || 'application/pdf',
-                'Content-Disposition': `${disposition}; filename="${safeAsciiName}"; filename*=UTF-8''${encodeURIComponent(lead.original_file_name || jmResume.fileName || 'candidate_resume.pdf')}`,
+                'Content-Disposition': `${disposition}; filename="${downloadName}"; filename*=UTF-8''${encodeURIComponent(downloadName)}`,
                 'Content-Length': String(jmResume.buffer.byteLength),
                 'Cache-Control': 'private, no-cache, no-store, must-revalidate',
               },

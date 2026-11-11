@@ -51,6 +51,28 @@ async function getBearerIdToken(userOverride?: { getIdToken?: () => Promise<stri
   throw new Error('Your authenticated session has expired. Please sign in again.');
 }
 
+export async function verifyCandidateJobMatchSession(userOverride?: any): Promise<{
+  candidateId: string;
+  candidateCode: string;
+  candidateName: string;
+  workOrderId: string;
+}> {
+  const token = await getBearerIdToken(userOverride);
+  const res = await fetch('/api/job-match/session', {
+    method: 'GET',
+    credentials: 'include',
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.success) {
+    const err = new Error(data?.error || 'Authentication required. Please sign in to continue.');
+    (err as any).status = res.status;
+    throw err;
+  }
+  return data;
+}
+
 export async function fetchCandidateIntakes(userOverride?: any): Promise<{
   candidateId: string;
   candidateCode: string;
@@ -60,12 +82,15 @@ export async function fetchCandidateIntakes(userOverride?: any): Promise<{
   const token = await getBearerIdToken(userOverride);
   const res = await fetch('/api/job-match/intakes', {
     method: 'GET',
+    credentials: 'include',
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to load job match intakes.');
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.success) {
+    const err = new Error(data?.error || 'Failed to load job match intakes.');
+    (err as any).status = res.status;
+    throw err;
   }
   return data;
 }
@@ -100,12 +125,15 @@ export async function submitCandidateIntake(
 
   const res = await fetch('/api/job-match/intakes', {
     method: 'POST',
+    credentials: 'include',
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    throw new Error(data.error || 'Failed to submit intake request.');
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.success) {
+    const err = new Error(data?.error || 'Upload failed, please try again.');
+    (err as any).status = res.status;
+    throw err;
   }
   return data;
 }

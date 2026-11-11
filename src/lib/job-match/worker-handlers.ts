@@ -10,7 +10,9 @@ import type { EdgeFirestoreClient } from '../firebase/edge-firestore';
 import {
   JOB_MATCH_ALLOWED_EXTENSIONS,
   JOB_MATCH_ALLOWED_MIME_TYPES,
+  JOB_MATCH_BROWSER_GENERIC_MIMES,
   JOB_MATCH_CONSENT_TEXT,
+  JOB_MATCH_DISALLOWED_MIME_TYPES,
   JOB_MATCH_INTAKE_STATUSES,
   JOB_MATCH_JOB_TYPES,
   JOB_MATCH_MAX_FILE_SIZE_BYTES,
@@ -120,11 +122,50 @@ function getFileExtension(fileName: string, mimeType?: string): string {
   if ((JOB_MATCH_ALLOWED_EXTENSIONS as readonly string[]).includes(fromName)) {
     return fromName;
   }
-  if (mimeType === 'application/pdf') return 'pdf';
-  if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'docx';
-  if (mimeType === 'image/png') return 'png';
-  if (mimeType === 'image/jpeg') return 'jpg';
+  const mime = String(mimeType || '').toLowerCase().split(';')[0].trim();
+  if (mime === 'application/pdf') return 'pdf';
+  if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'docx';
+  if (mime === 'application/msword' || mime === 'application/vnd.ms-word') return 'doc';
+  if (mime === 'image/png') return 'png';
+  if (mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/pjpeg') return 'jpg';
   return '';
+}
+
+function isAllowedResumeFile(fileName: string, mimeType?: string): { ok: boolean; ext: string } {
+  const rawExt = fileName.includes('.') ? fileName.split('.').pop()!.toLowerCase() : '';
+  const mime = String(mimeType || '').toLowerCase().split(';')[0].trim();
+
+  // Reject explicitly dangerous MIME types even if extension was spoofed
+  if (mime && (JOB_MATCH_DISALLOWED_MIME_TYPES as readonly string[]).includes(mime)) {
+    return { ok: false, ext: '' };
+  }
+
+  // Must match allowed extension when filename carries an extension (blocks .exe/.bat/.html etc.)
+  if (rawExt && !(JOB_MATCH_ALLOWED_EXTENSIONS as readonly string[]).includes(rawExt)) {
+    return { ok: false, ext: '' };
+  }
+
+  const ext = getFileExtension(fileName, mime);
+  if (!ext) {
+    return { ok: false, ext: '' };
+  }
+
+  const mimeOk =
+    !mime ||
+    (JOB_MATCH_ALLOWED_MIME_TYPES as readonly string[]).includes(mime) ||
+    (JOB_MATCH_BROWSER_GENERIC_MIMES as readonly string[]).includes(mime);
+
+  return { ok: mimeOk, ext: mimeOk ? ext : '' };
+}
+
+function uint8ToBase64(bytes: Uint8Array): string {
+  const chunkSize = 0x8000;
+  const parts: string[] = [];
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const slice = bytes.subarray(i, i + chunkSize);
+    parts.push(String.fromCharCode.apply(null, Array.from(slice)));
+  }
+  return btoa(parts.join(''));
 }
 
 function sanitizeDownloadFilename(candidateId: string, candidateName: string, originalFilename: string): string {
@@ -536,6 +577,26 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
   }
 
   // ===========================================================================
+  // 1B. CANDIDATE SESSION VERIFICATION (GET /api/job-match/session)
+  // ===========================================================================
+  if (pathname === '/api/job-match/session' && request.method === 'GET') {
+    const authResult = await authenticateCandidateRequest(request, firestore, projectId, securityOverrides);
+    if (!authResult.ok) {
+      return jsonResponse({ success: false, error: authResult.error }, authResult.status);
+    }
+    return jsonResponse(
+      {
+        success: true,
+        candidateId: authResult.candidateId,
+        candidateCode: authResult.candidateCode,
+        candidateName: authResult.candidateName,
+        workOrderId: authResult.workOrderId,
+      },
+      200
+    );
+  }
+
+  // ===========================================================================
   // 2. CANDIDATE INTAKES (GET / POST /api/job-match/intakes)
   // ===========================================================================
   if (pathname === '/api/job-match/intakes') {
@@ -631,9 +692,7 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
             mimeType = f.type || '';
             fileSize = f.size;
             const buf = new Uint8Array(await f.arrayBuffer());
-            let bin = '';
-            for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
-            base64Content = btoa(bin);
+            base64Content = uint8ToBase64(buf);
           }
         } else {
           const body = (await request.json().catch(() => null)) as Record<string, any> | null;
@@ -677,16 +736,12 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
           return jsonResponse({ success: false, error: 'Resume file upload is required.' }, 400);
         }
 
-        const ext = getFileExtension(fileName, mimeType);
-        const mimeAllowed =
-          !mimeType ||
-          mimeType === 'application/octet-stream' ||
-          (JOB_MATCH_ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType);
-        if (!ext || !mimeAllowed) {
+        const { ok: formatOk, ext } = isAllowedResumeFile(fileName, mimeType);
+        if (!formatOk || !ext) {
           return jsonResponse(
             {
               success: false,
-              error: 'Unsupported resume format. Please upload PDF, DOCX, JPG, or PNG.',
+              error: 'Only PDF, DOCX, JPG, PNG allowed',
             },
             400
           );
@@ -697,7 +752,7 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
         const actualSize = fileSize > 0 ? fileSize : computedBytes;
         if (actualSize > JOB_MATCH_MAX_FILE_SIZE_BYTES || computedBytes > JOB_MATCH_MAX_FILE_SIZE_BYTES) {
           return jsonResponse(
-            { success: false, error: 'Resume file exceeds the 8 MB maximum limit.' },
+            { success: false, error: 'File too large — max 8 MB' },
             400
           );
         }
@@ -706,25 +761,35 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
         const intakeId = `jmi_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
         const intakeReference = generateIntakeReference();
         const resolvedMime =
-          mimeType && mimeType !== 'application/octet-stream'
+          mimeType &&
+          !(JOB_MATCH_BROWSER_GENERIC_MIMES as readonly string[]).includes(mimeType.toLowerCase())
             ? mimeType
             : ext === 'pdf'
             ? 'application/pdf'
             : ext === 'docx'
             ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            : ext === 'doc'
+            ? 'application/msword'
             : ext === 'png'
             ? 'image/png'
             : 'image/jpeg';
 
-        const stored = await storePrivateJobMatchResume(firestore, callGas, {
-          intakeId,
-          intakeReference,
-          candidateId: authResult.candidateId,
-          fileName,
-          mimeType: resolvedMime,
-          fileSize: actualSize,
-          base64Content: cleanB64,
-        });
+        let stored;
+        try {
+          stored = await storePrivateJobMatchResume(firestore, callGas, {
+            intakeId,
+            intakeReference,
+            candidateId: authResult.candidateId,
+            candidateCode: authResult.candidateCode,
+            fileName,
+            mimeType: resolvedMime,
+            fileSize: actualSize,
+            base64Content: cleanB64,
+          });
+        } catch (uploadErr: any) {
+          console.error('[Job Match Private Upload Error]:', uploadErr);
+          return jsonResponse({ success: false, error: 'Upload failed, please try again.' }, 500);
+        }
 
         const intakeRecord: JobMatchIntake = {
           id: intakeId,
@@ -929,6 +994,8 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
     return jsonResponse(
       {
         success: true,
+        candidateId: authResult.candidateId,
+        candidateCode: authResult.candidateCode,
         jobs: visibleJobs,
         summary: {
           totalJobs,

@@ -157,6 +157,36 @@ export class EdgeFirestoreClient {
     return true;
   }
 
+  /**
+   * Atomically creates a document ONLY if it does not already exist in Firestore
+   * (`currentDocument.exists=false`). Returns 'conflict' when a concurrent writer wins.
+   */
+  async createDocumentIfAbsent(
+    collectionName: string,
+    documentId: string,
+    data: Record<string, any>
+  ): Promise<'created' | 'conflict' | 'error'> {
+    const authHeader = await this.getAuthHeader();
+    const fields = toFirestoreFields(data);
+    const url = `https://firestore.googleapis.com/v1/projects/${this.projectId}/databases/(default)/documents/${collectionName}/${documentId}?currentDocument.exists=false`;
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (authHeader) headers['Authorization'] = authHeader;
+
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ fields }),
+    });
+
+    if (res.ok) return 'created';
+    if (res.status === 409 || res.status === 412) return 'conflict';
+
+    const err = await res.text().catch(() => '');
+    console.error(`[EdgeFirestore] createIfAbsent error (${res.status}):`, err);
+    return 'error';
+  }
+
   async queryCollection(
     collectionName: string,
     fieldFilter?: { field: string; op: 'EQUAL' | 'GREATER_THAN'; value: any },

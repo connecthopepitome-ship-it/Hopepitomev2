@@ -49,7 +49,7 @@ function LoginContent() {
   } | null>(null);
   const [copiedId, setCopiedId] = useState(false);
 
-  const rawRedirect = searchParams.get('redirect') || '';
+  const rawRedirect = searchParams.get('returnTo') || searchParams.get('redirect') || '';
   const safeRedirectTarget =
     rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
       ? rawRedirect
@@ -555,7 +555,11 @@ function LoginContent() {
           <div className="mt-5 pt-4 border-t border-slate-100 space-y-2.5 text-center">
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
               <Link
-                href="/career-services/portal/register"
+                href={
+                  rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+                    ? `/career-services/portal/register?returnTo=${encodeURIComponent(safeRedirectTarget)}`
+                    : '/career-services/portal/register'
+                }
                 className="inline-flex items-center justify-center gap-1.5 font-semibold text-[#173B8F] hover:text-[#112A69] transition"
               >
                 <UserPlus className="w-3.5 h-3.5" strokeWidth={1.9} />

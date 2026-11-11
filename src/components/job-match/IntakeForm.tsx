@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { CareerBadge, CareerButton, CareerCard } from '../career/ui/CareerDesignTokens';
 import { useCareerAuth } from '../career/portal/AuthContext';
+import { useJobMatchSession } from './JobMatchFeatureGate';
 import {
   JOB_MATCH_ALLOWED_EXTENSIONS,
   JOB_MATCH_CONSENT_TEXT,
@@ -44,7 +45,9 @@ function getIntakeStatusBadge(status: JobMatchIntakeStatus) {
 
 export function IntakeForm() {
   const { user, client } = useCareerAuth();
+  const verifiedSession = useJobMatchSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [serverCandidateCode, setServerCandidateCode] = useState<string>('');
 
   // Form state
   const [targetRole, setTargetRole] = useState('');
@@ -78,6 +81,7 @@ export function IntakeForm() {
     setLoadingHistory(true);
     try {
       const data = await fetchCandidateIntakes(user);
+      if (data.candidateCode) setServerCandidateCode(data.candidateCode);
       setIntakes(data.intakes || []);
       setUnreadNotifications(Number(data.unreadNotifications || 0));
     } catch (err) {
@@ -117,11 +121,11 @@ export function IntakeForm() {
 
   const validateFile = (file: File): string | null => {
     if (file.size > JOB_MATCH_MAX_FILE_SIZE_BYTES) {
-      return `Resume size (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the 8 MB maximum limit.`;
+      return 'File too large — max 8 MB';
     }
     const ext = file.name.includes('.') ? file.name.split('.').pop()!.toLowerCase() : '';
     if (!ext || !(JOB_MATCH_ALLOWED_EXTENSIONS as readonly string[]).includes(ext)) {
-      return 'Unsupported file format. Please upload PDF, DOCX, JPG, or PNG.';
+      return 'Only PDF, DOCX, JPG, PNG allowed';
     }
     return null;
   };
@@ -213,11 +217,19 @@ export function IntakeForm() {
 
       await loadHistory();
     } catch (err: any) {
-      setFormError(err?.message || 'Unable to submit intake request. Please try again.');
+      setFormError(err?.message || 'Upload failed, please try again.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const displayCandidateId =
+    verifiedSession?.candidateCode ||
+    serverCandidateCode ||
+    client?.currentWorkOrderId ||
+    client?.clientCode ||
+    client?.id ||
+    '';
 
   const handleDeleteAllData = async () => {
     setDeletingData(true);
@@ -254,6 +266,12 @@ export function IntakeForm() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {displayCandidateId && (
+              <div className="px-3.5 py-2 rounded-xl bg-[#F8F7FC] border border-[#7454F5]/25 text-xs font-bold text-[#17152F]">
+                Your Candidate ID:{' '}
+                <code className="font-mono text-[#7454F5] font-black">{displayCandidateId}</code>
+              </div>
+            )}
             <Link href="/job-match/results">
               <CareerButton variant="secondary" size="md">
                 My Job Matches {unreadNotifications > 0 ? `(${unreadNotifications} New)` : ''}
@@ -469,19 +487,23 @@ export function IntakeForm() {
             <label className="block text-xs font-bold text-[#17152F] mb-1.5">
               Resume Upload <span className="text-rose-500">*</span>
               <span className="text-[11px] font-normal text-[#71778A] ml-1.5">
-                (PDF, DOCX, JPG, PNG • Max 8 MB • Stored privately)
+                (PDF, DOCX, DOC, JPG, PNG • Max 8 MB • Stored privately)
               </span>
             </label>
             <div className="border-2 border-dashed border-slate-200 hover:border-[#7454F5]/50 rounded-2xl p-5 bg-[#F8F7FC]/60 text-center transition">
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.docx,.jpg,.jpeg,.png"
+                accept=".pdf,.docx,.doc,.jpg,.jpeg,.png"
                 onChange={handleFileChange}
+                disabled={submitting}
                 className="hidden"
                 id="job-match-resume-upload"
               />
-              <label htmlFor="job-match-resume-upload" className="cursor-pointer block space-y-2">
+              <label
+                htmlFor="job-match-resume-upload"
+                className={`block space-y-2 ${submitting ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
                 {selectedFile ? (
                   <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#149B75]">
                     <FileCheck2 className="w-5 h-5" />
@@ -496,12 +518,18 @@ export function IntakeForm() {
                       Click to upload your resume
                     </span>
                     <span className="block text-[11px] text-[#71778A]">
-                      Accepted formats: PDF, DOCX, JPG, PNG up to 8 MB
+                      Accepted formats: PDF, DOCX, DOC, JPG, PNG up to 8 MB
                     </span>
                   </>
                 )}
               </label>
             </div>
+            {submitting && (
+              <div className="mt-2.5 p-3 rounded-xl bg-[#7454F5]/10 border border-[#7454F5]/20 flex items-center gap-2.5 text-xs font-semibold text-[#7454F5]">
+                <div className="w-4 h-4 border-2 border-[#7454F5] border-t-transparent rounded-full animate-spin shrink-0" />
+                <span>Uploading your resume securely and saving intake request...</span>
+              </div>
+            )}
           </div>
 
           {/* Consent */}
@@ -510,6 +538,7 @@ export function IntakeForm() {
               type="checkbox"
               checked={consentGiven}
               onChange={(e) => setConsentGiven(e.target.checked)}
+              disabled={submitting}
               className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#7454F5] focus:ring-[#7454F5]"
               required
             />
@@ -518,13 +547,13 @@ export function IntakeForm() {
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <p className="text-[11px] text-[#71778A]">
-              Submitting as Candidate ID:{' '}
+              Your Candidate ID:{' '}
               <span className="font-mono font-bold text-[#17152F]">
-                {client?.currentWorkOrderId || client?.clientCode || client?.id}
+                {displayCandidateId}
               </span>
             </p>
-            <CareerButton type="submit" variant="primary" size="lg" loading={submitting}>
-              {submitting ? 'Submitting Intake...' : 'Submit Job Match Request'}
+            <CareerButton type="submit" variant="primary" size="lg" loading={submitting} disabled={submitting}>
+              {submitting ? 'Uploading Resume & Submitting...' : 'Submit Job Match Request'}
             </CareerButton>
           </div>
         </form>

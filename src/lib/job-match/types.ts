@@ -118,6 +118,8 @@ export interface JobMatchNotification {
 
 export interface JobMatchResultsResponse {
   success: boolean;
+  candidateId?: string;
+  candidateCode?: string;
   jobs: JobMatchRecord[];
   summary: {
     totalJobs: number;

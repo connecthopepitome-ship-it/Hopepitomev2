@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { registerPasswordlessClient } from '@/lib/firebase/auth';
+import { loginPasswordlessClient, registerPasswordlessClient } from '@/lib/firebase/auth';
 import {
   ArrowLeft,
   User,
@@ -24,9 +24,11 @@ export default function ClientRegisterPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [redirectAfterLogin, setRedirectAfterLogin] = useState<string | null>(null);
+  const [continuingToTarget, setContinuingToTarget] = useState(false);
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      const r = new URLSearchParams(window.location.search).get('redirect') || '';
+      const qs = new URLSearchParams(window.location.search);
+      const r = qs.get('returnTo') || qs.get('redirect') || '';
       if (r.startsWith('/') && !r.startsWith('//')) {
         setRedirectAfterLogin(r);
       }
@@ -59,7 +61,11 @@ export default function ClientRegisterPage() {
 
     setLoading(true);
     try {
-      const res = await registerPasswordlessClient(fullName, mobileNumber);
+      const res = await registerPasswordlessClient(
+        fullName,
+        mobileNumber,
+        redirectAfterLogin?.startsWith('/job-match') ? 'AI_JOB_MATCH' : undefined
+      );
       setRegistrationResult({
         workOrderId: res.workOrderId,
         clientId: res.clientId,
@@ -154,15 +160,37 @@ export default function ClientRegisterPage() {
                 <span>Print / Save Receipt</span>
               </button>
 
-              <Link
-                href={`/career-services/portal/login?workOrderId=${encodeURIComponent(registrationResult.workOrderId)}${
-                  redirectAfterLogin ? `&redirect=${encodeURIComponent(redirectAfterLogin)}` : ''
-                }`}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm"
-              >
-                <span>Continue to Sign In</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {redirectAfterLogin ? (
+                <button
+                  type="button"
+                  disabled={continuingToTarget}
+                  onClick={async () => {
+                    setContinuingToTarget(true);
+                    try {
+                      await loginPasswordlessClient(mobileNumber.trim(), registrationResult.workOrderId);
+                      router.push(redirectAfterLogin);
+                    } catch {
+                      router.push(
+                        `/career-services/portal/login?workOrderId=${encodeURIComponent(registrationResult.workOrderId)}&returnTo=${encodeURIComponent(redirectAfterLogin)}`
+                      );
+                    } finally {
+                      setContinuingToTarget(false);
+                    }
+                  }}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm disabled:opacity-50"
+                >
+                  <span>{continuingToTarget ? 'Signing In...' : 'Continue to AI Job Match'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <Link
+                  href={`/career-services/portal/login?workOrderId=${encodeURIComponent(registrationResult.workOrderId)}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm"
+                >
+                  <span>Continue to Sign In</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -17,11 +17,27 @@ export interface GasBridgeCaller {
 
 export interface StoredResumeMetadata {
   storageReference: string;
+  storageKey: string;
   gasFileId?: string;
   fileDocId?: string;
   mimeType: string;
   originalFileName: string;
   fileSize: number;
+}
+
+function buildSafeStorageKey(candidateId: string, originalFileName: string): string {
+  const safeCand = String(candidateId || 'candidate').replace(/[^A-Za-z0-9_-]/g, '_') || 'candidate';
+  const trimmed = String(originalFileName || 'resume.pdf').trim();
+  const dotIdx = trimmed.lastIndexOf('.');
+  const rawBase = dotIdx > 0 ? trimmed.slice(0, dotIdx) : trimmed;
+  const rawExt = dotIdx > 0 ? trimmed.slice(dotIdx + 1) : 'pdf';
+  const safeBase =
+    rawBase
+      .replace(/[^A-Za-z0-9_-]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 64) || 'resume';
+  const safeExt = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'pdf';
+  return `job-match/${safeCand}/${Date.now()}_${safeBase}.${safeExt}`;
 }
 
 export async function storePrivateJobMatchResume(
@@ -31,6 +47,7 @@ export async function storePrivateJobMatchResume(
     intakeId: string;
     intakeReference: string;
     candidateId: string;
+    candidateCode?: string;
     fileName: string;
     mimeType: string;
     fileSize: number;
@@ -43,48 +60,39 @@ export async function storePrivateJobMatchResume(
   ).replace(/\s+/g, '');
 
   const fileDocId = `jmr_${params.intakeId}`;
-  let gasFileId = '';
+  const storageKey = buildSafeStorageKey(params.candidateCode || params.candidateId, params.fileName);
 
-  // 1. Upload to private Drive folder via GAS (never public-shared)
-  if (callGas) {
-    try {
-      const gasRes = await callGas({
-        action: 'uploadPrivateJobMatchResume',
-        candidateId: params.candidateId,
-        intakeReference: params.intakeReference,
-        fileName: params.fileName,
-        mimeType: params.mimeType,
-        base64Content: cleanB64,
-      });
-      if (gasRes?.success && gasRes?.fileId) {
-        gasFileId = String(gasRes.fileId);
-      }
-    } catch (err) {
-      console.warn('[Job Match GAS Private Upload Warning]:', err);
-    }
-  }
-
-  // 2. Store chunked Worker-only binary copy in Firestore for instant, non-public binary streaming
+  // 1. Store chunked Worker-only binary copy in Firestore FIRST with strict error checking
   const chunks: string[] = [];
   for (let i = 0; i < cleanB64.length; i += CHUNK_CHAR_SIZE) {
     chunks.push(cleanB64.slice(i, i + CHUNK_CHAR_SIZE));
   }
 
+  if (chunks.length === 0) {
+    throw new Error('Upload failed, please try again.');
+  }
+
   const now = new Date().toISOString();
-  await firestore.setDocument('job_match_resume_files', fileDocId, {
+  const metaSaved = await firestore.setDocument('job_match_resume_files', fileDocId, {
     fileDocId,
+    storage_key: storageKey,
     intakeId: params.intakeId,
     intakeReference: params.intakeReference,
     candidate_id: params.candidateId,
+    candidate_code: params.candidateCode || params.candidateId,
     original_filename: params.fileName,
     mime_type: params.mimeType,
     file_size: params.fileSize,
     chunk_count: chunks.length,
-    gas_file_id: gasFileId || null,
+    gas_file_id: null,
     created_at: now,
   });
 
-  await Promise.all(
+  if (!metaSaved) {
+    throw new Error('Upload failed, please try again.');
+  }
+
+  const chunkResults = await Promise.all(
     chunks.map((chunkData, idx) =>
       firestore.setDocument('job_match_resume_chunks', `${fileDocId}__${idx}`, {
         fileDocId,
@@ -95,12 +103,45 @@ export async function storePrivateJobMatchResume(
     )
   );
 
+  if (chunkResults.some((ok) => !ok)) {
+    // Roll back partial metadata so incomplete uploads never leave dangling records
+    await firestore.deleteDocument('job_match_resume_files', fileDocId).catch(() => {});
+    throw new Error('Upload failed, please try again.');
+  }
+
+  // 2. Best-effort private Drive backup via GAS (guarded by timeout so large uploads never stall)
+  let gasFileId = '';
+  if (callGas) {
+    try {
+      const gasPromise = callGas({
+        action: 'uploadPrivateJobMatchResume',
+        candidateId: params.candidateCode || params.candidateId,
+        intakeReference: params.intakeReference,
+        storageKey,
+        fileName: params.fileName,
+        mimeType: params.mimeType,
+        base64Content: cleanB64,
+      });
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 4500));
+      const gasRes = await Promise.race([gasPromise, timeoutPromise]);
+      if (gasRes?.success && gasRes?.fileId) {
+        gasFileId = String(gasRes.fileId);
+        await firestore
+          .setDocument('job_match_resume_files', fileDocId, { gas_file_id: gasFileId }, true)
+          .catch(() => {});
+      }
+    } catch (err) {
+      console.warn('[Job Match GAS Private Upload Warning]:', err);
+    }
+  }
+
   const storageReference = gasFileId
-    ? `private:gas:${gasFileId}|vault:${fileDocId}`
-    : `private:vault:${fileDocId}`;
+    ? `private:gas:${gasFileId}|vault:${storageKey}|doc:${fileDocId}`
+    : `private:vault:${storageKey}|doc:${fileDocId}`;
 
   return {
     storageReference,
+    storageKey,
     gasFileId: gasFileId || undefined,
     fileDocId,
     mimeType: params.mimeType,

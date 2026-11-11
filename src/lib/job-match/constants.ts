@@ -5,13 +5,31 @@
 
 export const JOB_MATCH_MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
 
-export const JOB_MATCH_ALLOWED_EXTENSIONS = ['pdf', 'docx', 'jpg', 'jpeg', 'png'] as const;
+export const JOB_MATCH_ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'] as const;
 
 export const JOB_MATCH_ALLOWED_MIME_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'application/vnd.ms-word',
   'image/jpeg',
+  'image/jpg',
+  'image/pjpeg',
   'image/png',
+] as const;
+
+export const JOB_MATCH_BROWSER_GENERIC_MIMES = [
+  'application/octet-stream',
+  'application/zip',
+  'application/x-zip-compressed',
+] as const;
+
+export const JOB_MATCH_DISALLOWED_MIME_TYPES = [
+  'application/x-msdownload',
+  'application/x-dosexec',
+  'application/x-executable',
+  'application/x-sh',
+  'text/html',
 ] as const;
 
 export const JOB_MATCH_CONSENT_TEXT =

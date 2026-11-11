@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { CareerBadge, CareerButton, CareerCard } from '../career/ui/CareerDesignTokens';
 import { useCareerAuth } from '../career/portal/AuthContext';
+import { useJobMatchSession } from './JobMatchFeatureGate';
 import {
   JOB_MATCH_DISCLAIMER,
   JOB_MATCH_EMPTY_STATE_MESSAGE,
@@ -55,6 +56,8 @@ function getScoreStyle(score: number) {
 
 export function MatchResultsView() {
   const { user, client } = useCareerAuth();
+  const verifiedSession = useJobMatchSession();
+  const [serverCandidateCode, setServerCandidateCode] = useState<string>('');
   const [jobs, setJobs] = useState<JobMatchRecord[]>([]);
   const [summary, setSummary] = useState({
     totalJobs: 0,
@@ -85,6 +88,7 @@ export function MatchResultsView() {
     setError(null);
     try {
       const res = await fetchCandidateJobMatches(user);
+      if (res.candidateCode) setServerCandidateCode(res.candidateCode);
       setJobs(res.jobs || []);
       setSummary(res.summary);
       setAvailableLocations(res.filters?.locations || []);
@@ -191,6 +195,14 @@ export function MatchResultsView() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {(verifiedSession?.candidateCode || serverCandidateCode || client?.currentWorkOrderId) && (
+              <div className="px-3.5 py-2 rounded-xl bg-[#F8F7FC] border border-[#7454F5]/25 text-xs font-bold text-[#17152F]">
+                Your Candidate ID:{' '}
+                <code className="font-mono text-[#7454F5] font-black">
+                  {verifiedSession?.candidateCode || serverCandidateCode || client?.currentWorkOrderId}
+                </code>
+              </div>
+            )}
             <Link href="/job-match/intake">
               <CareerButton variant="primary" size="md">
                 New Match Request
