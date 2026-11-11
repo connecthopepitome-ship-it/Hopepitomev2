@@ -1,22 +1,27 @@
 /**
  * HOPEPITOME CAREER SERVICES — STANDALONE AI JOB MATCH GOOGLE SHEET SYNC
  *
- * Use this in a BRAND-NEW, dedicated Google Sheet (leave any existing sheets untouched).
+ * Supports 2-way sync in a single dedicated Google Sheet:
+ *   1. `CandidateIntakes` tab (Portal -> Google Sheet): pulls candidate AI Job Match
+ *      intake submissions automatically without duplicating existing rows.
+ *   2. `MatchedJobs` tab (Google Sheet -> Portal): pushes matched job rows back
+ *      to the Candidate Portal results page.
  *
  * Quick Setup:
  *   1. Open https://sheets.new and name it e.g. "Hopepitome AI Job Match Sync".
  *   2. Open Extensions -> Apps Script, paste this file, and save.
  *   3. Reload the spreadsheet and click:
- *        Hopepitome Job Match -> Setup "MatchedJobs" Sheet
+ *        Hopepitome Job Match -> Setup "MatchedJobs" & "CandidateIntakes" Sheets
  *      (or run `setupJobMatchSheet()` once from the Apps Script editor).
  *   4. In Apps Script -> Project Settings -> Script Properties, add:
  *        HOPEPITOME_IMPORT_URL = "https://hopepitomev2.connect-hopepitome.workers.dev/api/job-matches/import"
- *        JOB_MATCH_API_KEY     = "<value from Hopepitomev2/.env.local>"
+ *        JOB_MATCH_API_KEY     = "<value from Hopepitomev2/.env.local / Cloudflare secret>"
  *   5. In Apps Script -> Triggers, add a Time-driven trigger (Every 15 minutes)
- *      for `syncMatchedJobsToPortal`.
+ *      for `syncMatchedJobsToPortal` (pulls new CandidateIntakes AND pushes pending MatchedJobs).
  */
 
 var JOB_MATCH_SHEET_NAME = 'MatchedJobs';
+var CANDIDATE_INTAKES_SHEET_NAME = 'CandidateIntakes';
 var JOB_MATCH_BATCH_SIZE = 50; // Keeps Cloudflare Worker subrequests & GAS execution well within limits
 
 var JOB_MATCH_HEADERS = [
@@ -41,29 +46,51 @@ var JOB_MATCH_HEADERS = [
   'LastSyncedAt',
 ];
 
+var CANDIDATE_INTAKES_HEADERS = [
+  'intakeReference',
+  'candidateId',
+  'candidateName',
+  'targetRole',
+  'preferredLocations',
+  'experienceYears',
+  'jobType',
+  'currentSalary',
+  'expectedSalary',
+  'noticePeriod',
+  'keySkills',
+  'resumeFilename',
+  'driveFileId',
+  'status',
+  'submittedAt',
+  'LastPulledAt',
+];
+
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Hopepitome Job Match')
-    .addItem('Setup "MatchedJobs" Sheet', 'setupJobMatchSheet')
-    .addItem('Sync Pending Rows Now', 'syncMatchedJobsToPortal')
+    .addItem('Setup "MatchedJobs" & "CandidateIntakes" Sheets', 'setupJobMatchSheet')
+    .addItem('Sync Both Ways Now', 'syncMatchedJobsToPortal')
+    .addItem('Pull Candidate Intakes from Portal', 'pullCandidateIntakesFromPortal')
+    .addItem('Push Pending Matched Jobs to Portal', 'pushMatchedJobsOnly')
     .addToUi();
 }
 
 /**
- * Initializes the dedicated "MatchedJobs" tab in a brand-new Google Sheet
- * without modifying any other spreadsheet.
+ * Initializes both dedicated tabs ("MatchedJobs" and "CandidateIntakes")
+ * in this spreadsheet without modifying any unrelated workbook.
  */
 function setupJobMatchSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(JOB_MATCH_SHEET_NAME);
 
+  // 1. Setup MatchedJobs tab
+  var sheet = ss.getSheetByName(JOB_MATCH_SHEET_NAME);
   if (!sheet) {
     var firstSheet = ss.getSheets()[0];
     if (
       firstSheet &&
       ss.getSheets().length === 1 &&
       firstSheet.getLastRow() === 0 &&
-      firstSheet.getName() === 'Sheet1'
+      (firstSheet.getName() === 'Sheet1' || firstSheet.getName() === 'Machedjob')
     ) {
       firstSheet.setName(JOB_MATCH_SHEET_NAME);
       sheet = firstSheet;
@@ -101,7 +128,6 @@ function setupJobMatchSheet() {
     .build();
   sheet.getRange(2, 16, 500, 1).setDataValidation(serviceRule);
 
-  // Add column hints note if sheet was empty
   if (existingLastRow === 0) {
     sheet.getRange(1, 1).setNote('Required: Existing Candidate Work Order ID (e.g. HP-2026-10234) or UID');
     sheet.getRange(1, 10).setNote('Format: YYYY-MM-DD (e.g. 2026-11-11)');
@@ -112,7 +138,37 @@ function setupJobMatchSheet() {
   }
 
   sheet.autoResizeColumns(1, JOB_MATCH_HEADERS.length);
+
+  // 2. Setup CandidateIntakes tab
+  ensureCandidateIntakesSheet_(ss);
+
   SpreadsheetApp.flush();
+}
+
+function ensureCandidateIntakesSheet_(ss) {
+  var intakeSheet = ss.getSheetByName(CANDIDATE_INTAKES_SHEET_NAME);
+  if (!intakeSheet) {
+    intakeSheet = ss.insertSheet(CANDIDATE_INTAKES_SHEET_NAME);
+  }
+  var intakeHeader = intakeSheet.getRange(1, 1, 1, CANDIDATE_INTAKES_HEADERS.length);
+  intakeHeader.setValues([CANDIDATE_INTAKES_HEADERS]);
+  intakeHeader.setFontWeight('bold');
+  intakeHeader.setBackground('#173B8F');
+  intakeHeader.setFontColor('#ffffff');
+  intakeSheet.setFrozenRows(1);
+  intakeSheet.autoResizeColumns(1, CANDIDATE_INTAKES_HEADERS.length);
+  return intakeSheet;
+}
+
+function resolveIntakesUrl_(props) {
+  var explicit = props.getProperty('HOPEPITOME_INTAKES_URL');
+  if (explicit) return explicit;
+  var importUrl = props.getProperty('HOPEPITOME_IMPORT_URL') || '';
+  if (!importUrl) return '';
+  if (importUrl.indexOf('/api/job-matches/import') !== -1) {
+    return importUrl.replace('/api/job-matches/import', '/api/job-matches/intakes');
+  }
+  return importUrl.replace(/\/+$/, '') + '/api/job-matches/intakes';
 }
 
 function formatSheetDateValue_(val, timeZone) {
@@ -123,6 +179,105 @@ function formatSheetDateValue_(val, timeZone) {
   return String(val).trim();
 }
 
+function pullCandidateIntakesFromPortal() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    Logger.log('Another sync is already running. Skipping.');
+    return;
+  }
+  try {
+    pullCandidateIntakesFromPortalInner_();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function pullCandidateIntakesFromPortalInner_() {
+  var props = PropertiesService.getScriptProperties();
+  var intakesUrl = resolveIntakesUrl_(props);
+  var apiKey = props.getProperty('JOB_MATCH_API_KEY');
+
+  if (!intakesUrl || !apiKey) {
+    throw new Error('Missing HOPEPITOME_IMPORT_URL (or HOPEPITOME_INTAKES_URL) or JOB_MATCH_API_KEY in Script Properties.');
+  }
+
+  var response = UrlFetchApp.fetch(intakesUrl, {
+    method: 'get',
+    headers: {
+      Authorization: 'Bearer ' + apiKey,
+    },
+    muteHttpExceptions: true,
+  });
+
+  var code = response.getResponseCode();
+  if (code < 200 || code >= 300) {
+    throw new Error('Intakes pull API failed with HTTP ' + code + ': ' + response.getContentText());
+  }
+
+  var result = JSON.parse(response.getContentText() || '{}');
+  var intakes = Array.isArray(result.intakes) ? result.intakes : [];
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ensureCandidateIntakesSheet_(ss);
+
+  var existingValues = sheet.getDataRange().getValues();
+  var headers = existingValues[0].map(function (h) {
+    return String(h || '').trim();
+  });
+  var refColIdx = headers.indexOf('intakeReference');
+  if (refColIdx < 0) refColIdx = 0;
+
+  var existingRowByRef = {};
+  for (var r = 1; r < existingValues.length; r++) {
+    var ref = String(existingValues[r][refColIdx] || '').trim();
+    if (ref) existingRowByRef[ref] = r + 1;
+  }
+
+  var nowIso = new Date().toISOString();
+  var appended = 0;
+  var updated = 0;
+
+  intakes.forEach(function (item) {
+    var rowData = [
+      String(item.intakeReference || ''),
+      String(item.candidateId || ''),
+      String(item.candidateName || ''),
+      String(item.targetRole || ''),
+      String(item.preferredLocations || ''),
+      String(item.experienceYears || ''),
+      String(item.jobType || ''),
+      String(item.currentSalary || ''),
+      String(item.expectedSalary || ''),
+      String(item.noticePeriod || ''),
+      String(item.keySkills || ''),
+      String(item.resumeFilename || ''),
+      String(item.driveFileId || ''),
+      String(item.status || ''),
+      String(item.submittedAt || ''),
+      nowIso,
+    ];
+
+    var key = String(item.intakeReference || '').trim();
+    if (!key) return;
+
+    var existingRow = existingRowByRef[key];
+    if (existingRow) {
+      sheet.getRange(existingRow, 1, 1, CANDIDATE_INTAKES_HEADERS.length).setValues([rowData]);
+      updated += 1;
+    } else {
+      sheet.appendRow(rowData);
+      existingRowByRef[key] = sheet.getLastRow();
+      appended += 1;
+    }
+  });
+
+  if (appended > 0) {
+    sheet.autoResizeColumns(1, CANDIDATE_INTAKES_HEADERS.length);
+  }
+  SpreadsheetApp.flush();
+  Logger.log('CandidateIntakes synced — Appended: ' + appended + ', Updated: ' + updated);
+}
+
 // Lock so the 15-min trigger and the manual menu run never send the same rows twice.
 function syncMatchedJobsToPortal() {
   var lock = LockService.getScriptLock();
@@ -131,13 +286,27 @@ function syncMatchedJobsToPortal() {
     return;
   }
   try {
-    syncMatchedJobsToPortalInner_();
+    pullCandidateIntakesFromPortalInner_();
+    pushMatchedJobsToPortalInner_();
   } finally {
     lock.releaseLock();
   }
 }
 
-function syncMatchedJobsToPortalInner_() {
+function pushMatchedJobsOnly() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    Logger.log('Another sync is already running. Skipping.');
+    return;
+  }
+  try {
+    pushMatchedJobsToPortalInner_();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function pushMatchedJobsToPortalInner_() {
   var props = PropertiesService.getScriptProperties();
   var endpointUrl = props.getProperty('HOPEPITOME_IMPORT_URL');
   var apiKey = props.getProperty('JOB_MATCH_API_KEY');
@@ -148,7 +317,9 @@ function syncMatchedJobsToPortalInner_() {
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(JOB_MATCH_SHEET_NAME);
-  if (!sheet) return;
+  if (!sheet) {
+    throw new Error('Sheet tab "' + JOB_MATCH_SHEET_NAME + '" not found. Run "Setup Sheets" from the menu.');
+  }
 
   var rows = sheet.getDataRange().getValues();
   if (rows.length <= 1) return;
@@ -167,7 +338,7 @@ function syncMatchedJobsToPortalInner_() {
     return headers.indexOf(h) < 0;
   });
   if (missing.length) {
-    throw new Error('Missing column(s): ' + missing.join(', ') + '. Run "Setup MatchedJobs Sheet" again.');
+    throw new Error('Missing column(s): ' + missing.join(', ') + '. Run "Setup MatchedJobs & CandidateIntakes Sheets" again.');
   }
 
   var jobs = [];

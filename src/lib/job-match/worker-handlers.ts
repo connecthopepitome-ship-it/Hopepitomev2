@@ -271,6 +271,77 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
   }
 
   // ===========================================================================
+  // 0B. GOOGLE APPS SCRIPT CANDIDATE INTAKES PULL API (GET /api/job-matches/intakes)
+  // ===========================================================================
+  if (pathname === '/api/job-matches/intakes') {
+    if (request.method !== 'GET') {
+      return jsonResponse({ success: false, error: 'Method Not Allowed' }, 405);
+    }
+
+    const configuredKey = String(env.JOB_MATCH_API_KEY || '').trim();
+    const incomingToken = extractBearerToken(request) || '';
+    if (!configuredKey || !constantTimeEqual(incomingToken, configuredKey)) {
+      return jsonResponse({ success: false, error: 'Unauthorized: Invalid or missing API key.' }, 401);
+    }
+
+    const withinLimit = await checkImportRateLimit(request, env);
+    if (!withinLimit) {
+      return jsonResponse({ success: false, error: 'Rate limit exceeded. Retry later.' }, 429);
+    }
+
+    const rawLimit = Number(url.searchParams.get('limit') || '250');
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(Math.trunc(rawLimit), 1), 250) : 250;
+    const statusFilter = String(url.searchParams.get('status') || '').trim().toLowerCase();
+
+    const rawIntakes = await firestore.listDocuments('job_match_intakes', 250).catch(() => []);
+    const filtered = statusFilter
+      ? rawIntakes.filter((i) => String(i.status || '').trim().toLowerCase() === statusFilter)
+      : rawIntakes;
+
+    filtered.sort(
+      (a, b) =>
+        new Date(String(a.created_at || 0)).getTime() - new Date(String(b.created_at || 0)).getTime()
+    );
+
+    const sliced = filtered.slice(-limit).map((intake) => {
+      const storageRef = String(intake.resume_storage_reference || '');
+      const gasMatch = storageRef.match(/private:gas:([^|]+)/);
+      return {
+        intakeId: String(intake.id || ''),
+        intakeReference: String(intake.intake_reference || ''),
+        candidateId: String(intake.candidate_code || intake.work_order_id || intake.candidate_id || ''),
+        candidateName: String(intake.candidate_name || ''),
+        targetRole: String(intake.target_role || ''),
+        preferredLocations: Array.isArray(intake.preferred_locations)
+          ? intake.preferred_locations.map((l: unknown) => String(l)).join(', ')
+          : '',
+        experienceYears: String(intake.experience_years || ''),
+        jobType: String(intake.job_type || ''),
+        currentSalary: String(intake.current_salary || ''),
+        expectedSalary: String(intake.expected_salary || ''),
+        noticePeriod: String(intake.notice_period || ''),
+        keySkills: Array.isArray(intake.key_skills)
+          ? intake.key_skills.map((s: unknown) => String(s)).join(', ')
+          : '',
+        resumeFilename: String(intake.resume_original_filename || ''),
+        driveFileId: gasMatch?.[1] ? String(gasMatch[1]) : '',
+        status: String(intake.status || ''),
+        submittedAt: String(intake.created_at || ''),
+        updatedAt: String(intake.updated_at || intake.created_at || ''),
+      };
+    });
+
+    return jsonResponse(
+      {
+        success: true,
+        count: sliced.length,
+        intakes: sliced,
+      },
+      200
+    );
+  }
+
+  // ===========================================================================
   // 1. GOOGLE APPS SCRIPT JOB IMPORT API (POST /api/job-matches/import)
   // ===========================================================================
   if (pathname === '/api/job-matches/import') {

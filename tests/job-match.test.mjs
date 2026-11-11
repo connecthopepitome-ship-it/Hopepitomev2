@@ -913,3 +913,64 @@ test('Auto-provisioning Candidate ID, atomic concurrent ID generation, multipart
   // Sanity check that real verifyFirebaseIdToken exists and accepts real issuer structure check
   assert.equal(typeof verifyFirebaseIdToken, 'function');
 });
+
+test('GAS CandidateIntakes pull endpoint validates API key and returns intake rows safely', async () => {
+  const db = new MockFirestore();
+  await seedDatabase(db);
+
+  // Create two candidate intakes with private storage references
+  const fd = new FormData();
+  fd.append('targetRole', 'Cloud Architect');
+  fd.append('preferredLocations', JSON.stringify(['Bengaluru, India', 'Dubai, UAE']));
+  fd.append('experienceYears', '7 years');
+  fd.append('jobType', 'Full-time');
+  fd.append('keySkills', JSON.stringify(['AWS', 'Cloudflare']));
+  fd.append('consentGiven', 'true');
+  fd.append('resume', new File(['%PDF-1.4'], 'cloud_arch.pdf', { type: 'application/pdf' }));
+
+  const createRes = await invoke(
+    db,
+    makeEnv(),
+    '/api/job-match/intakes',
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer token_cand_1' },
+      body: fd,
+    },
+    async () => ({ success: true, fileId: 'drive_pull_123', driveFolderId: 'folder_HP-1023' })
+  );
+  assert.equal(createRes.status, 201);
+
+  // Unauthenticated / invalid Bearer token rejected
+  const noAuth = await invoke(db, makeEnv(), '/api/job-matches/intakes', { method: 'GET' });
+  assert.equal(noAuth.status, 401);
+
+  const badAuth = await invoke(db, makeEnv(), '/api/job-matches/intakes', {
+    method: 'GET',
+    headers: { Authorization: 'Bearer wrong_key' },
+  });
+  assert.equal(badAuth.status, 401);
+
+  const wrongMethod = await invoke(db, makeEnv(), '/api/job-matches/intakes', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer super_secret_test_key_999' },
+  });
+  assert.equal(wrongMethod.status, 405);
+
+  // Authorized GAS pull returns sanitized intake rows without leaking private storage references
+  const okRes = await invoke(db, makeEnv(), '/api/job-matches/intakes', {
+    method: 'GET',
+    headers: { Authorization: 'Bearer super_secret_test_key_999' },
+  });
+  assert.equal(okRes.status, 200);
+  const okJson = await okRes.json();
+  assert.equal(okJson.success, true);
+  assert.equal(okJson.count, 1);
+  assert.equal(okJson.intakes[0].candidateId, 'HP-1023');
+  assert.equal(okJson.intakes[0].targetRole, 'Cloud Architect');
+  assert.equal(okJson.intakes[0].preferredLocations, 'Bengaluru, India, Dubai, UAE');
+  assert.equal(okJson.intakes[0].keySkills, 'AWS, Cloudflare');
+  assert.equal(okJson.intakes[0].driveFileId, 'drive_pull_123');
+  assert.equal(okJson.intakes[0].status, 'Resume received');
+  assert.equal(okJson.intakes[0].resume_storage_reference, undefined);
+});
