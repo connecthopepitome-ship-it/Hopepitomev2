@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAdminAuth } from './AdminAuthContext';
 import { AdminHeader } from './AdminHeader';
 import { auth } from '@/lib/firebase/config';
+import { fetchJobMatchFeatureEnabled, isJobMatchBuildEnabled } from '@/lib/job-match/client';
 import { updatePassword } from 'firebase/auth';
 import Link from 'next/link';
 import {
@@ -58,6 +59,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileMore, setShowMobileMore] = useState(false);
   const [drawerSearch, setDrawerSearch] = useState('');
+  const [jobMatchEnabled, setJobMatchEnabled] = useState(isJobMatchBuildEnabled());
+
+  useEffect(() => {
+    let active = true;
+    fetchJobMatchFeatureEnabled().then((val) => {
+      if (active) setJobMatchEnabled(val);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Mandatory first-login password state
   const [newPassword, setNewPassword] = useState('');
@@ -79,6 +91,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [pathname]);
 
   const canManageEmployees = hasPermission('employees', 'view');
+  const canViewJobMatch = jobMatchEnabled && hasPermission('job_match', 'view');
 
   const careerNavItems = useMemo(() => [
     { label: 'Career Enquiries', href: '/career-services/admin/career-enquiries', icon: ClipboardList, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'NEW' },
@@ -88,6 +101,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Login Management', href: '/career-services/admin/login-management', icon: KeyRound, color: 'text-indigo-600 bg-indigo-50 border-indigo-100', badge: 'SEC' },
     { label: 'Career Projects', href: '/career-services/admin/projects', icon: FolderKanban, color: 'text-blue-600 bg-blue-50 border-blue-100' },
     { label: 'Career Documents', href: '/career-services/admin/deliverables', icon: Files, color: 'text-amber-600 bg-amber-50 border-amber-100' },
+  ], []);
+
+  const aiJobMatchNavItems = useMemo(() => [
+    { label: 'Intake Queue', href: '/admin/job-match', icon: BriefcaseBusiness, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', badge: 'QUEUE' },
+    { label: 'Admin Controls', href: '/admin/job-match?tab=controls', icon: ShieldCheck, color: 'text-violet-600 bg-violet-50 border-violet-100', badge: 'CTRL' },
   ], []);
 
   const projectDeliveryNavItems = useMemo(() => [
@@ -124,10 +142,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   // Filtered items for mobile drawer search
   const allNavItems = useMemo(() => [
     ...careerNavItems.map((i) => ({ ...i, category: 'Career Services' })),
+    ...(canViewJobMatch ? aiJobMatchNavItems.map((i) => ({ ...i, category: 'AI Job Match' })) : []),
     ...projectDeliveryNavItems.map((i) => ({ ...i, category: 'Project Delivery' })),
     ...crmNavItems.map((i) => ({ ...i, category: 'CRM & Sales' })),
     ...(canManageEmployees ? empNavItems.map((i) => ({ ...i, category: 'Team' })) : []),
-  ], [careerNavItems, projectDeliveryNavItems, crmNavItems, empNavItems, canManageEmployees]);
+  ], [careerNavItems, aiJobMatchNavItems, projectDeliveryNavItems, crmNavItems, empNavItems, canManageEmployees, canViewJobMatch]);
 
   const searchResults = useMemo(() => {
     if (!drawerSearch.trim()) return null;
@@ -356,6 +375,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 shrink-0 space-y-4">
           {renderNavSection('CAREER SERVICES', 'STUDIO', careerNavItems)}
+          {canViewJobMatch && renderNavSection('AI JOB MATCH', 'CONTROLS', aiJobMatchNavItems)}
           {renderNavSection('PROJECT DELIVERY', 'EXEC', projectDeliveryNavItems)}
           {renderNavSection('CRM & SALES', 'ACQ', crmNavItems)}
           {canManageEmployees && renderNavSection('TEAM & RBAC', 'STAFF', empNavItems)}
@@ -456,6 +476,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               ) : (
                 <>
                   {renderNavSection('CAREER SERVICES', 'STUDIO', careerNavItems)}
+                  {canViewJobMatch && renderNavSection('AI JOB MATCH', 'CONTROLS', aiJobMatchNavItems)}
                   {renderNavSection('PROJECT DELIVERY', 'EXEC', projectDeliveryNavItems)}
                   {renderNavSection('CRM & SALES', 'ACQ', crmNavItems)}
                   {canManageEmployees && renderNavSection('TEAM', 'STAFF', empNavItems)}

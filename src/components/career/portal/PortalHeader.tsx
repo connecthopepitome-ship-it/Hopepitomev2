@@ -1,12 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCareerAuth } from './AuthContext';
 import { Bell, LogOut, User, FileText, Compass, MessageSquare } from 'lucide-react';
+import { fetchJobMatchFeatureEnabled, isJobMatchBuildEnabled } from '@/lib/job-match/client';
 
 export function PortalHeader() {
   const { user, client, signOut } = useCareerAuth();
+  const [jobMatchEnabled, setJobMatchEnabled] = useState(isJobMatchBuildEnabled());
+
+  useEffect(() => {
+    let active = true;
+    fetchJobMatchFeatureEnabled().then((val) => {
+      if (active) setJobMatchEnabled(val);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 bg-[#FFFFFF] border-b border-[#E6E2DC]/80 shadow-[0_1px_3px_rgba(23,36,59,0.03)]">
@@ -58,6 +70,14 @@ export function PortalHeader() {
             >
               Messages
             </Link>
+            {jobMatchEnabled && (
+              <Link
+                href="/job-match/results"
+                className="px-3 py-1.5 rounded-md text-xs font-semibold text-[#7454F5] hover:bg-[#F7F5F0] transition"
+              >
+                AI Job Match
+              </Link>
+            )}
           </nav>
         </div>
 

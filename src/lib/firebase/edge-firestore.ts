@@ -211,5 +211,26 @@ export class EdgeFirestoreClient {
   async listDocuments(collectionName: string, limit = 100): Promise<Record<string, any>[]> {
     return this.queryCollection(collectionName, undefined, limit);
   }
+
+  async deleteDocument(collectionName: string, documentId: string): Promise<boolean> {
+    const authHeader = await this.getAuthHeader();
+    const url = `https://firestore.googleapis.com/v1/projects/${this.projectId}/databases/(default)/documents/${collectionName}/${documentId}`;
+
+    const headers: Record<string, string> = {};
+    if (authHeader) headers['Authorization'] = authHeader;
+
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (res.status === 404) return true;
+    if (!res.ok) {
+      const err = await res.text();
+      console.error(`[EdgeFirestore] deleteDoc error (${res.status}):`, err);
+      return false;
+    }
+    return true;
+  }
 }
 

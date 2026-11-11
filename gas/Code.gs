@@ -80,6 +80,14 @@ function doPost(e) {
         output = handleGetFileContent(data.fileId);
         break;
 
+      case 'uploadPrivateJobMatchResume':
+        output = handleUploadPrivateJobMatchResume(data);
+        break;
+
+      case 'sendJobMatchEmail':
+        output = handleSendJobMatchEmail(data);
+        break;
+
       default:
         output = { success: false, error: 'Unsupported action: ' + action };
         break;
@@ -430,6 +438,86 @@ function handleGetFileContent(fileId) {
       fileSize: file.getSize(),
       base64Content: base64,
     };
+  } catch (err) {
+    return { success: false, error: err.message || String(err) };
+  }
+}
+
+/**
+ * Stores AI Job Match resumes in a strictly private Drive folder (no public sharing).
+ */
+function handleUploadPrivateJobMatchResume(data) {
+  var candidateId = data.candidateId;
+  var intakeReference = data.intakeReference || ('JMI_' + Date.now());
+  var fileName = data.fileName;
+  var mimeType = data.mimeType || 'application/pdf';
+  var base64Content = data.base64Content;
+
+  if (!candidateId || !fileName || !base64Content) {
+    return { success: false, error: 'Missing candidateId, fileName, or base64Content' };
+  }
+
+  var scriptProps = PropertiesService.getScriptProperties();
+  var rootId = scriptProps.getProperty('ROOT_FOLDER_ID');
+  var rootFolder;
+  if (rootId) {
+    try {
+      rootFolder = DriveApp.getFolderById(rootId);
+    } catch (e) {}
+  }
+  if (!rootFolder) {
+    var rootFolders = DriveApp.getFoldersByName('Hopepitome Career Services');
+    rootFolder = rootFolders.hasNext()
+      ? rootFolders.next()
+      : DriveApp.createFolder('Hopepitome Career Services');
+    scriptProps.setProperty('ROOT_FOLDER_ID', rootFolder.getId());
+  }
+
+  var careerStudioFolder = getOrCreateFolderByName(rootFolder, 'Career Studio');
+  var jobMatchRoot = getOrCreateFolderByName(careerStudioFolder, 'AI Job Match Private Resumes');
+  var candidateFolder = getOrCreateFolderByName(jobMatchRoot, String(candidateId));
+
+  var cleanBase64 = String(base64Content);
+  if (cleanBase64.indexOf(',') > -1) {
+    cleanBase64 = cleanBase64.split(',')[1];
+  }
+  cleanBase64 = cleanBase64.replace(/\s+/g, '');
+  var decodedBytes = Utilities.base64Decode(cleanBase64);
+  var blob = Utilities.newBlob(decodedBytes, mimeType, intakeReference + '_' + fileName);
+  var file = candidateFolder.createFile(blob);
+
+  // Enforce private sharing only
+  try {
+    file.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
+  } catch (e) {}
+
+  return {
+    success: true,
+    fileId: file.getId(),
+    fileName: file.getName(),
+    mimeType: file.getMimeType(),
+    fileSize: file.getSize(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Optional email notification trigger via Google Apps Script MailApp
+ */
+function handleSendJobMatchEmail(data) {
+  var recipient = data.to;
+  var subject = data.subject;
+  var body = data.body;
+  if (!recipient || !subject || !body) {
+    return { success: false, error: 'Missing email parameters' };
+  }
+  try {
+    MailApp.sendEmail({
+      to: String(recipient),
+      subject: String(subject),
+      body: String(body),
+    });
+    return { success: true };
   } catch (err) {
     return { success: false, error: err.message || String(err) };
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ScanSearch,
@@ -10,13 +10,28 @@ import {
   Award,
   LockKeyhole,
   FileText,
+  Sparkles,
+  Target,
 } from 'lucide-react';
+import { fetchJobMatchFeatureEnabled, isJobMatchBuildEnabled } from '@/lib/job-match/client';
 
 interface CareerStudioHeroProps {
   onScanClick?: () => void;
 }
 
 export function CareerStudioHero({ onScanClick }: CareerStudioHeroProps) {
+  const [jobMatchEnabled, setJobMatchEnabled] = useState(isJobMatchBuildEnabled());
+
+  useEffect(() => {
+    let active = true;
+    fetchJobMatchFeatureEnabled().then((val) => {
+      if (active) setJobMatchEnabled(val);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleScrollToScanner = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onScanClick) {
@@ -31,7 +46,7 @@ export function CareerStudioHero({ onScanClick }: CareerStudioHeroProps) {
 
   return (
     <section className="pt-20 pb-8 sm:pt-24 sm:pb-12 bg-gradient-to-b from-[#F8F7FC] via-white to-[#F8F7FC] border-b border-slate-200/60">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`${jobMatchEnabled ? 'max-w-6xl' : 'max-w-5xl'} mx-auto px-4 sm:px-6 lg:px-8`}>
         
         {/* =========================================================================
             1. STUDIO IDENTIFICATION & WELCOME HEADLINE
@@ -57,9 +72,13 @@ export function CareerStudioHero({ onScanClick }: CareerStudioHeroProps) {
         </div>
 
         {/* =========================================================================
-            2. TWO PRIMARY ACTION CARDS (Scan My Resume & Resume Writing)
+            2. PRIMARY ACTION CARDS (Scan My Resume, Resume Writing & AI Job Matching)
            ========================================================================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5 mb-6 sm:mb-8 items-stretch">
+        <div
+          className={`grid grid-cols-1 ${
+            jobMatchEnabled ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'
+          } gap-3.5 sm:gap-5 mb-6 sm:mb-8 items-stretch`}
+        >
           
           {/* PRIMARY ACTION 1 — SCAN MY RESUME (FREE) */}
           <div className="relative group bg-white rounded-2xl sm:rounded-3xl border-2 border-[#7454F5]/30 hover:border-[#7454F5] p-5 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
@@ -155,6 +174,55 @@ export function CareerStudioHero({ onScanClick }: CareerStudioHeroProps) {
               </Link>
             </div>
           </div>
+
+          {jobMatchEnabled && (
+            /* PRIMARY ACTION 3 — AI JOB MATCHING */
+            <div className="relative group bg-white rounded-2xl sm:rounded-3xl border border-[#149B75]/35 hover:border-[#149B75] p-5 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+              <div className="space-y-3.5">
+                {/* Header row: Icon & Smart Match badge */}
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#149B75]/10 text-[#149B75] flex items-center justify-center shrink-0">
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.9} />
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#7454F5]/10 text-[#7454F5] border border-[#7454F5]/20">
+                    AI Job Match
+                  </span>
+                </div>
+
+                {/* Title & Description */}
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#17152F] tracking-tight group-hover:text-[#149B75] transition-colors">
+                    AI Job Matching
+                  </h2>
+                  <p className="mt-1.5 text-xs sm:text-sm text-[#71778A] leading-relaxed">
+                    Discover job opportunities matched to your experience, skills and career goals.
+                  </p>
+                </div>
+
+                {/* Features hint */}
+                <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2 text-[11px] text-[#71778A]">
+                  <span className="inline-flex items-center gap-1">
+                    <Target className="w-3.5 h-3.5 text-[#149B75]" strokeWidth={1.9} /> Matched Roles
+                  </span>
+                  <span>•</span>
+                  <span>Gap Insights</span>
+                  <span>•</span>
+                  <span>India, UAE &amp; Remote</span>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="pt-5 mt-auto">
+                <Link
+                  href="/job-match/intake"
+                  className="w-full min-h-[46px] sm:min-h-[48px] px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#17152F] hover:bg-[#241F47] active:bg-[#100E24] flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.98]"
+                >
+                  <span>Find Matching Jobs</span>
+                  <ArrowRight className="w-4 h-4" strokeWidth={1.9} />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* =========================================================================

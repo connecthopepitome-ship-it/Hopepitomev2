@@ -9,6 +9,7 @@
     "directory": "./out"
   },
   "vars": {
+    "FEATURE_JOB_MATCH": "true",
     "GAS_WEB_APP_URL": "https://script.google.com/macros/s/AKfycbz61tNOR6lBBmsImKdEHiPdVEk2kZ5dYL0-T-qRCmtg3NEzBDwMZ9Pl3dGqBPzNKg/exec",
     "GAS_SHARED_SECRET": "hp_gas_sec_8f94e2a1b7c3d05e6fa982c417e",
     "FIREBASE_PROJECT_ID": "hopepitome",

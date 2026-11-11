@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   FilePenLine,
@@ -41,6 +41,21 @@ export default function CareerServicesCataloguePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const svc = new URLSearchParams(window.location.search).get('service');
+    if (!svc) return;
+    const upper = svc.trim().toUpperCase();
+    const matched = SECONDARY_SERVICES.find(
+      (s) => s.code.toUpperCase() === upper || s.id.toUpperCase() === upper || s.name.toUpperCase() === upper
+    );
+    if (matched) {
+      setSelectedService(matched);
+      setMultiSelected([matched.name]);
+      setQuoteModalOpen(true);
+    }
+  }, []);
 
   const toggleMultiSelect = (serviceName: string) => {
     setMultiSelected((prev) =>

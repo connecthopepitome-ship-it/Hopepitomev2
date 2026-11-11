@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PortalLayout } from '@/components/career/portal/PortalLayout';
 import { useCareerAuth } from '@/components/career/portal/AuthContext';
@@ -23,6 +23,23 @@ export default function NewServiceOrderPage() {
   const { client, user } = useCareerAuth();
 
   const [serviceType, setServiceType] = useState<CareerServiceType>('RESUME_WRITING');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const svc = new URLSearchParams(window.location.search).get('service');
+    if (!svc) return;
+    const upper = svc.trim().toUpperCase();
+    const validTypes: CareerServiceType[] = [
+      'RESUME_WRITING',
+      'ATS_OPTIMISATION',
+      'LINKEDIN_MAKEOVER',
+      'PORTFOLIO_WEBSITE',
+      'MANAGED_JOB_SEARCH',
+    ];
+    if (validTypes.includes(upper as CareerServiceType)) {
+      setServiceType(upper as CareerServiceType);
+    }
+  }, []);
   const [packageTier, setPackageTier] = useState<'ESSENTIAL' | 'PROFESSIONAL' | 'EXECUTIVE' | 'CUSTOM'>('PROFESSIONAL');
   const [targetCompletionDate, setTargetCompletionDate] = useState('');
   const [requirements, setRequirements] = useState<Record<string, any>>({});

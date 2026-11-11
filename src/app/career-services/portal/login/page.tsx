@@ -3,9 +3,10 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { loginPasswordlessClient, forgotWorkOrderIdClient } from '@/lib/firebase/auth';
+import { loginPasswordlessClient, forgotWorkOrderIdClient, registerPasswordlessClient } from '@/lib/firebase/auth';
 import {
   ArrowLeft,
+  ArrowRight,
   Phone,
   Hash,
   CircleX,
@@ -18,6 +19,7 @@ import {
   Check,
   CheckCircle2,
   UserPlus,
+  User,
   X,
 } from 'lucide-react';
 import { CareerButton, CareerCard } from '@/components/career/ui/CareerDesignTokens';
@@ -47,12 +49,95 @@ function LoginContent() {
   } | null>(null);
   const [copiedId, setCopiedId] = useState(false);
 
+  const rawRedirect = searchParams.get('redirect') || '';
+  const safeRedirectTarget =
+    rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+      ? rawRedirect
+      : '/career-services/portal/dashboard';
+  const modeParam = searchParams.get('mode') || '';
+  const prefillWorkOrder = searchParams.get('workOrderId') || '';
+  const isJobMatchFlow = modeParam === 'job-match' || safeRedirectTarget.startsWith('/job-match');
+
+  const [authTab, setAuthTab] = useState<'login' | 'new'>(
+    isJobMatchFlow && !prefillWorkOrder ? 'new' : 'login'
+  );
+  const [regName, setRegName] = useState('');
+  const [regCountryCode, setRegCountryCode] = useState('+91');
+  const [regPhone, setRegPhone] = useState('');
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [newCandidateResult, setNewCandidateResult] = useState<{
+    workOrderId: string;
+    name: string;
+    mobile: string;
+    isExisting?: boolean;
+  } | null>(null);
+  const [copiedNewId, setCopiedNewId] = useState(false);
+  const [continuingToMatch, setContinuingToMatch] = useState(false);
+
   useEffect(() => {
-    const prefillWorkOrder = searchParams.get('workOrderId');
     if (prefillWorkOrder) {
       setWorkOrderId(prefillWorkOrder.toUpperCase());
+      setAuthTab('login');
     }
-  }, [searchParams]);
+  }, [prefillWorkOrder]);
+
+  const handleGenerateCandidateId = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError(null);
+
+    const trimmedPhone = regPhone.trim();
+    if (!trimmedPhone || trimmedPhone.replace(/\D/g, '').length < 7) {
+      setRegError('Please enter a valid mobile number (with country code).');
+      return;
+    }
+    if (!isJobMatchFlow && (!regName.trim() || regName.trim().length < 2)) {
+      setRegError('Please enter your full name.');
+      return;
+    }
+
+    setRegLoading(true);
+    try {
+      const fullMobile = trimmedPhone.startsWith('+') ? trimmedPhone : `${regCountryCode} ${trimmedPhone}`;
+      const res = await registerPasswordlessClient(
+        regName.trim(),
+        fullMobile,
+        isJobMatchFlow ? 'AI_JOB_MATCH' : undefined
+      );
+      setNewCandidateResult({
+        workOrderId: res.workOrderId,
+        name: res.name || regName.trim() || 'Candidate',
+        mobile: fullMobile,
+        isExisting: res.isExisting,
+      });
+      setCountryCode(regCountryCode);
+      setPhoneNumber(trimmedPhone);
+      setWorkOrderId(res.workOrderId);
+    } catch (err: any) {
+      setRegError(err?.message || 'Unable to generate Candidate ID right now. Please try again.');
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  const handleContinueAfterNewId = async () => {
+    if (!newCandidateResult) return;
+    setRegError(null);
+    setContinuingToMatch(true);
+    try {
+      const trimmed = regPhone.trim();
+      await loginPasswordlessClient(
+        newCandidateResult.mobile,
+        newCandidateResult.workOrderId,
+        trimmed,
+        regCountryCode
+      );
+      router.push(safeRedirectTarget);
+    } catch (err: any) {
+      setRegError(err?.message || 'Unable to sign in automatically. Use Returning Sign In with your new Candidate ID.');
+      setContinuingToMatch(false);
+    }
+  };
 
   const openForgotModal = () => {
     setForgotCountryCode(countryCode);
@@ -105,7 +190,7 @@ function LoginContent() {
       const trimmed = forgotPhone.trim();
       const fullMobile = trimmed.startsWith('+') ? trimmed : `${forgotCountryCode} ${trimmed}`;
       await loginPasswordlessClient(fullMobile, generatedResult.workOrderId, trimmed, forgotCountryCode);
-      router.push('/career-services/portal/dashboard');
+      router.push(safeRedirectTarget);
     } catch (err: any) {
       setError(err?.message || 'Unable to complete sign in with generated Work Order ID.');
     } finally {
@@ -133,7 +218,7 @@ function LoginContent() {
     try {
       const fullMobile = trimmedPhone.startsWith('+') ? trimmedPhone : `${countryCode} ${trimmedPhone}`;
       await loginPasswordlessClient(fullMobile, workOrderId.trim(), trimmedPhone, countryCode);
-      router.push('/career-services/portal/dashboard');
+      router.push(safeRedirectTarget);
     } catch (err: any) {
       setError(err?.message || 'Invalid mobile number or Work Order ID. Please check and retry.');
     } finally {
@@ -168,111 +253,303 @@ function LoginContent() {
 
       <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
         <CareerCard variant="elevated" padding="md" className="p-5 sm:p-7 bg-white rounded-3xl">
-          <div className="mb-4 pb-3 border-b border-slate-100">
-            <h2 className="text-sm sm:text-base font-bold text-[#201D36]">
-              Sign In to Candidate Portal
-            </h2>
-            <p className="mt-0.5 text-xs text-[#71778A] leading-relaxed">
-              Access your resume drafting progress, deliverables, and active career services.
-            </p>
+          {/* Quick Mode Switcher: New Candidate (Get Free ID) vs Returning Candidate Sign In */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#F8F7FC] border border-slate-200/80 mb-4">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthTab('new');
+                setError(null);
+              }}
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                authTab === 'new'
+                  ? 'bg-[#7454F5] text-white shadow-xs'
+                  : 'text-[#71778A] hover:text-[#17152F]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Get Free ID</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthTab('login');
+                setRegError(null);
+              }}
+              className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                authTab === 'login'
+                  ? 'bg-[#17152F] text-white shadow-xs'
+                  : 'text-[#71778A] hover:text-[#17152F]'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>Sign In with ID</span>
+            </button>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700 leading-relaxed">
-              <CircleX className="w-4 h-4 shrink-0 mt-0.5 text-red-600" strokeWidth={1.9} />
-              <span>{error}</span>
-            </div>
-          )}
+          {authTab === 'new' ? (
+            <div className="space-y-4">
+              <div className="pb-3 border-b border-slate-100">
+                <h2 className="text-sm sm:text-base font-bold text-[#201D36]">
+                  {isJobMatchFlow ? 'Start Free AI Job Match' : 'Generate Candidate ID'}
+                </h2>
+                <p className="mt-0.5 text-xs text-[#71778A] leading-relaxed">
+                  Enter your mobile number to get your permanent Candidate ID instantly—no password needed.
+                </p>
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
-            {/* Input 1: Mobile Number with Country Code */}
-            <div>
-              <label className="block text-xs font-bold text-[#201D36] mb-1">
-                Registered Mobile Number
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-24 h-11 px-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#7454F5] bg-slate-50 shrink-0"
-                >
-                  <option value="+91">+91 (IN)</option>
-                  <option value="+971">+971 (UAE)</option>
-                  <option value="+1">+1 (US/CA)</option>
-                  <option value="+44">+44 (UK)</option>
-                  <option value="+65">+65 (SG)</option>
-                  <option value="+61">+61 (AU)</option>
-                  <option value="+49">+49 (DE)</option>
-                  <option value="+966">+966 (SA)</option>
-                  <option value="+974">+974 (QA)</option>
-                </select>
+              {regError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700 leading-relaxed">
+                  <CircleX className="w-4 h-4 shrink-0 mt-0.5 text-red-600" strokeWidth={1.9} />
+                  <span>{regError}</span>
+                </div>
+              )}
 
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <Phone className="w-4 h-4" />
+              {!newCandidateResult ? (
+                <form onSubmit={handleGenerateCandidateId} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#201D36] mb-1">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        value={regCountryCode}
+                        onChange={(e) => setRegCountryCode(e.target.value)}
+                        className="w-24 h-11 px-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#7454F5] bg-slate-50 shrink-0"
+                      >
+                        <option value="+91">+91 (IN)</option>
+                        <option value="+971">+971 (UAE)</option>
+                        <option value="+1">+1 (US/CA)</option>
+                        <option value="+44">+44 (UK)</option>
+                        <option value="+65">+65 (SG)</option>
+                        <option value="+61">+61 (AU)</option>
+                        <option value="+49">+49 (DE)</option>
+                        <option value="+966">+966 (SA)</option>
+                        <option value="+974">+974 (QA)</option>
+                      </select>
+
+                      <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                          <Phone className="w-4 h-4" />
+                        </div>
+                        <input
+                          type="tel"
+                          required
+                          autoComplete="tel"
+                          value={regPhone}
+                          onChange={(e) => setRegPhone(e.target.value)}
+                          placeholder="98765 43210"
+                          className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-[#201D36] placeholder-slate-400 focus:outline-none focus:border-[#7454F5] font-mono"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <input
-                    type="tel"
-                    required
-                    autoComplete="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="98765 43210"
-                    className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-[#201D36] placeholder-slate-400 focus:outline-none focus:border-[#7454F5] font-mono"
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* Input 2: Work Order ID or Reference Code */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-[#201D36]">
-                  Work Order ID or Reference Code
-                </label>
-                <button
-                  type="button"
-                  onClick={openForgotModal}
-                  className="text-[11px] text-[#7454F5] hover:text-[#5B3CE0] font-bold underline underline-offset-2 transition"
-                >
-                  Forgot Work Order ID?
-                </button>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Hash className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  autoCapitalize="characters"
-                  autoCorrect="off"
-                  value={workOrderId}
-                  onChange={(e) => setWorkOrderId(e.target.value.toUpperCase())}
-                  placeholder="HP-2026-XXXXX"
-                  className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-[#201D36] placeholder-slate-400 focus:outline-none focus:border-[#7454F5] uppercase font-mono tracking-wider font-bold"
-                />
-              </div>
-              <p className="mt-1 text-[10px] text-[#71778A]">
-                Example format: <span className="font-mono font-semibold text-[#201D36]">HP-2026-00001</span>
-              </p>
-            </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#201D36] mb-1">
+                      Full Name {isJobMatchFlow ? <span className="text-[#71778A] font-normal">(Optional)</span> : <span className="text-red-500">*</span>}
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required={!isJobMatchFlow}
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        placeholder="e.g. Rahul Kumar"
+                        className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-[#201D36] placeholder-slate-400 focus:outline-none focus:border-[#7454F5]"
+                      />
+                    </div>
+                  </div>
 
-            {/* Submit Button */}
-            <div className="pt-1">
-              <CareerButton
-                type="submit"
-                variant="primary"
-                size="md"
-                fullWidth
-                loading={loading}
-                icon={<KeyRound className="w-4 h-4" />}
-                className="min-h-[48px]"
-              >
-                Sign In to Candidate Portal
-              </CareerButton>
+                  <div className="pt-1">
+                    <CareerButton
+                      type="submit"
+                      variant="primary"
+                      size="md"
+                      fullWidth
+                      loading={regLoading}
+                      icon={<Sparkles className="w-4 h-4" />}
+                      className="min-h-[48px]"
+                    >
+                      Generate Candidate ID &amp; Continue
+                    </CareerButton>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="text-xs font-bold text-emerald-900">
+                        {newCandidateResult.isExisting
+                          ? 'Existing Candidate ID Retrieved'
+                          : 'Candidate ID Generated'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white border border-emerald-200">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                          Your Candidate ID
+                        </span>
+                        <code className="text-lg font-mono font-black tracking-wider text-[#17152F]">
+                          {newCandidateResult.workOrderId}
+                        </code>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(newCandidateResult.workOrderId);
+                          setCopiedNewId(true);
+                          setTimeout(() => setCopiedNewId(false), 2500);
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#17152F] text-white hover:bg-[#241F47] inline-flex items-center gap-1.5 shrink-0"
+                      >
+                        {copiedNewId ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                        <span>{copiedNewId ? 'Copied' : 'Copy ID'}</span>
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-emerald-900 leading-relaxed">
+                      <strong>Important — Save this ID:</strong> Please save{' '}
+                      <span className="font-mono font-bold">{newCandidateResult.workOrderId}</span>. You will need
+                      your mobile number and this Candidate ID for future logins to track or view your AI job matches.
+                    </p>
+                  </div>
+
+                  <CareerButton
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    loading={continuingToMatch}
+                    onClick={handleContinueAfterNewId}
+                    icon={<ArrowRight className="w-4 h-4" />}
+                    className="min-h-[48px]"
+                  >
+                    {isJobMatchFlow
+                      ? 'I Saved My ID — Continue to AI Job Match'
+                      : 'Sign In to Dashboard'}
+                  </CareerButton>
+                </div>
+              )}
             </div>
-          </form>
+          ) : (
+            <>
+              <div className="mb-4 pb-3 border-b border-slate-100">
+                <h2 className="text-sm sm:text-base font-bold text-[#201D36]">
+                  Sign In to Candidate Portal
+                </h2>
+                <p className="mt-0.5 text-xs text-[#71778A] leading-relaxed">
+                  Access your resume drafting progress, AI job matches, and active career services.
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700 leading-relaxed">
+                  <CircleX className="w-4 h-4 shrink-0 mt-0.5 text-red-600" strokeWidth={1.9} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                {/* Input 1: Mobile Number with Country Code */}
+                <div>
+                  <label className="block text-xs font-bold text-[#201D36] mb-1">
+                    Registered Mobile Number
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-24 h-11 px-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#7454F5] bg-slate-50 shrink-0"
+                    >
+                      <option value="+91">+91 (IN)</option>
+                      <option value="+971">+971 (UAE)</option>
+                      <option value="+1">+1 (US/CA)</option>
+                      <option value="+44">+44 (UK)</option>
+                      <option value="+65">+65 (SG)</option>
+                      <option value="+61">+61 (AU)</option>
+                      <option value="+49">+49 (DE)</option>
+                      <option value="+966">+966 (SA)</option>
+                      <option value="+974">+974 (QA)</option>
+                    </select>
+
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <Phone className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="tel"
+                        required
+                        autoComplete="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="98765 43210"
+                        className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-[#201D36] placeholder-slate-400 focus:outline-none focus:border-[#7454F5] font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Input 2: Candidate / Work Order ID */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#201D36]">
+                      Candidate ID / Work Order ID
+                    </label>
+                    <button
+                      type="button"
+                      onClick={openForgotModal}
+                      className="text-[11px] text-[#7454F5] hover:text-[#5B3CE0] font-bold underline underline-offset-2 transition"
+                    >
+                      Forgot Candidate ID?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Hash className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      autoCapitalize="characters"
+                      autoCorrect="off"
+                      value={workOrderId}
+                      onChange={(e) => setWorkOrderId(e.target.value.toUpperCase())}
+                      placeholder="HP-2026-XXXXX"
+                      className="w-full h-11 pl-9 pr-3.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-[#201D36] placeholder-slate-400 focus:outline-none focus:border-[#7454F5] uppercase font-mono tracking-wider font-bold"
+                    />
+                  </div>
+                  <p className="mt-1 text-[10px] text-[#71778A]">
+                    Example format: <span className="font-mono font-semibold text-[#201D36]">HP-2026-00001</span>
+                  </p>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-1">
+                  <CareerButton
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    loading={loading}
+                    icon={<KeyRound className="w-4 h-4" />}
+                    className="min-h-[48px]"
+                  >
+                    Sign In to Candidate Portal
+                  </CareerButton>
+                </div>
+              </form>
+            </>
+          )}
 
           {/* Quick Access & Registration Links */}
           <div className="mt-5 pt-4 border-t border-slate-100 space-y-2.5 text-center">

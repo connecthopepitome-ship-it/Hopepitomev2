@@ -29,6 +29,7 @@ import {
   CareerBadge,
   CareerButton,
 } from '@/components/career/ui/CareerDesignTokens';
+import { JobMatchDashboardCard } from '@/components/job-match/JobMatchDashboardCard';
 
 interface CachedAssessment {
   assessmentId: string;
@@ -158,8 +159,8 @@ export default function ClientDashboardPage() {
         {/* TAB 1: HOME & SHORTCUTS */}
         {activeTab === 'home' && (
           <div className="space-y-5">
-            {/* Two Primary Action Cards (App Style) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            {/* Primary Action Cards (App Style) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
               {/* Action 1: Scan My Resume */}
               <div className="bg-white rounded-2xl border-2 border-[#7454F5]/30 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
                 <div>
@@ -213,6 +214,9 @@ export default function ClientDashboardPage() {
                   </Link>
                 </div>
               </div>
+
+              {/* Additive Action 3: AI Job Match (Feature-flagged) */}
+              <JobMatchDashboardCard />
             </div>
 
             {/* Quick Metrics */}

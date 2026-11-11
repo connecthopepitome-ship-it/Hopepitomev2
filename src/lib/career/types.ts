@@ -763,6 +763,7 @@ export type StaffPermissionModule =
   | 'reports'
   | 'finance'
   | 'employees'
+  | 'job_match'
   | 'settings';
 
 export type StaffPermissionAction =

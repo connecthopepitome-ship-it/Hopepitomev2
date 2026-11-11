@@ -238,6 +238,53 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // =========================================================================
+    // AI JOB MATCH MODULE (ADDITIVE COLLECTIONS — WORKER-ENFORCED PRIVACY)
+    // =========================================================================
+
+    match /job_match_intakes/{intakeId} {
+      allow read: if isStaff() || isOwner(resource.data.candidate_id);
+      allow write: if false;
+    }
+
+    match /job_matches/{matchId} {
+      allow read: if isStaff() || isOwner(resource.data.candidate_id);
+      allow write: if false;
+    }
+
+    match /job_match_candidate_actions/{actionId} {
+      allow read: if isOwner(resource.data.candidate_id) || isStaff();
+      allow write: if false;
+    }
+
+    match /job_match_notifications/{notifId} {
+      allow read: if isOwner(resource.data.candidate_id) || isStaff();
+      allow write: if false;
+    }
+
+    match /job_match_candidate_state/{candidateId} {
+      allow read: if isOwner(candidateId) || isStaff();
+      allow write: if false;
+    }
+
+    match /job_match_import_logs/{logId} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
+    match /job_match_resume_files/{fileId} {
+      allow read, write: if false; // Worker Service Account only — never direct client access
+    }
+
+    match /job_match_resume_chunks/{chunkId} {
+      allow read, write: if false; // Worker Service Account only — never direct client access
+    }
+
+    match /job_match_deletion_logs/{logId} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

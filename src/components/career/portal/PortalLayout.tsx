@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCareerAuth } from './AuthContext';
 import { PortalHeader } from './PortalHeader';
@@ -15,8 +15,11 @@ import {
   ShieldCheck,
   ChevronRight,
   Award,
+  Sparkles,
+  Target,
 } from 'lucide-react';
 import { CareerCard, CareerBadge, CareerBottomNav } from '../ui/CareerDesignTokens';
+import { fetchJobMatchFeatureEnabled, isJobMatchBuildEnabled } from '@/lib/job-match/client';
 
 interface PortalLayoutProps {
   children: React.ReactNode;
@@ -26,12 +29,27 @@ export function PortalLayout({ children }: PortalLayoutProps) {
   const { user, loading, client, profile } = useCareerAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [jobMatchEnabled, setJobMatchEnabled] = useState(isJobMatchBuildEnabled());
+
+  useEffect(() => {
+    let active = true;
+    fetchJobMatchFeatureEnabled().then((val) => {
+      if (active) setJobMatchEnabled(val);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/career-services/portal/login');
+      const target =
+        pathname && pathname !== '/career-services/portal/dashboard'
+          ? `/career-services/portal/login?redirect=${encodeURIComponent(pathname)}`
+          : '/career-services/portal/login';
+      router.push(target);
     }
-  }, [user, loading, router]);
+  }, [user, loading, pathname, router]);
 
   if (loading) {
     return (
@@ -52,6 +70,12 @@ export function PortalLayout({ children }: PortalLayoutProps) {
 
   const navLinks = [
     { id: 'dashboard', label: 'Overview', href: '/career-services/portal/dashboard', icon: LayoutDashboard },
+    ...(jobMatchEnabled
+      ? [
+          { id: 'job-match-intake', label: 'AI Job Match', href: '/job-match/intake', icon: Sparkles },
+          { id: 'job-match-results', label: 'My Job Matches', href: '/job-match/results', icon: Target },
+        ]
+      : []),
     { id: 'onboarding', label: 'Career Profile Intake', href: '/career-services/portal/onboarding', icon: UserRound },
     { id: 'orders', label: 'Active Orders & Work', href: '/career-services/portal/orders', icon: BriefcaseBusiness },
     { id: 'documents', label: 'Document Vault', href: '/career-services/portal/documents', icon: Files },
@@ -69,6 +93,8 @@ export function PortalLayout({ children }: PortalLayoutProps) {
   ];
 
   const currentActiveId =
+    pathname.includes('/job-match/intake') ? 'job-match-intake' :
+    pathname.includes('/job-match/results') ? 'job-match-results' :
     pathname.includes('/orders') ? 'orders' :
     pathname.includes('/documents') ? 'documents' :
     pathname.includes('/messages') ? 'messages' :

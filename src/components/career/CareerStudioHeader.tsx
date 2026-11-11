@@ -14,7 +14,9 @@ import {
   ChevronRight,
   ShieldCheck,
   House,
+  Sparkles,
 } from 'lucide-react';
+import { fetchJobMatchFeatureEnabled, isJobMatchBuildEnabled } from '@/lib/job-match/client';
 
 interface CareerStudioHeaderProps {
   activeSection?: string;
@@ -23,7 +25,18 @@ interface CareerStudioHeaderProps {
 export function CareerStudioHeader({ activeSection }: CareerStudioHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [jobMatchEnabled, setJobMatchEnabled] = useState(isJobMatchBuildEnabled());
   const pathname = usePathname();
+
+  useEffect(() => {
+    let active = true;
+    fetchJobMatchFeatureEnabled().then((val) => {
+      if (active) setJobMatchEnabled(val);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,6 +62,7 @@ export function CareerStudioHeader({ activeSection }: CareerStudioHeaderProps) {
     { label: 'Home', href: '/career-services', exact: true },
     { label: 'Scan Resume', href: '/career-services#resume-checker', isScan: true },
     { label: 'Resume Writing', href: '/career-services/resume-writing' },
+    ...(jobMatchEnabled ? [{ label: 'AI Job Match', href: '/job-match/intake' }] : []),
     { label: 'Services', href: '/career-services/services' },
   ];
 
@@ -209,8 +223,8 @@ export function CareerStudioHeader({ activeSection }: CareerStudioHeaderProps) {
               </button>
             </div>
 
-            {/* Two Primary Action Shortcuts */}
-            <div className="py-3 grid grid-cols-2 gap-2 border-b border-slate-200">
+            {/* Primary Action Shortcuts */}
+            <div className={`py-3 grid ${jobMatchEnabled ? 'grid-cols-3' : 'grid-cols-2'} gap-2 border-b border-slate-200`}>
               <Link
                 href="/career-services#resume-checker"
                 onClick={handleScanClick}
@@ -238,6 +252,22 @@ export function CareerStudioHeader({ activeSection }: CareerStudioHeaderProps) {
                   <span className="text-xs font-bold text-[#17152F]">Resume Writing</span>
                 </div>
               </Link>
+
+              {jobMatchEnabled && (
+                <Link
+                  href="/job-match/intake"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3 rounded-xl bg-white border border-[#149B75]/35 shadow-xs flex flex-col justify-between"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-[#149B75]/10 text-[#149B75] flex items-center justify-center mb-1">
+                    <Sparkles className="w-4 h-4" strokeWidth={1.9} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-[#149B75] uppercase tracking-wider block">Smart Match</span>
+                    <span className="text-xs font-bold text-[#17152F]">AI Job Match</span>
+                  </div>
+                </Link>
+              )}
             </div>
 
             {/* Navigation Links */}

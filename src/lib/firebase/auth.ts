@@ -61,7 +61,11 @@ export async function loginWithCustomToken(customToken: string): Promise<Firebas
  * Passwordless Client Registration API caller
  * Calls Cloudflare Worker backend to register client with Name & Mobile
  */
-export async function registerPasswordlessClient(name: string, mobile: string): Promise<{
+export async function registerPasswordlessClient(
+  name: string,
+  mobile: string,
+  source?: string
+): Promise<{
   success: boolean;
   clientId: string;
   workOrderId: string;
@@ -72,7 +76,11 @@ export async function registerPasswordlessClient(name: string, mobile: string): 
   const res = await fetch('/api/career/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: name.trim(), mobile: mobile.trim() }),
+    body: JSON.stringify({
+      name: name.trim(),
+      mobile: mobile.trim(),
+      ...(source ? { source } : {}),
+    }),
   });
 
   const data = await res.json();

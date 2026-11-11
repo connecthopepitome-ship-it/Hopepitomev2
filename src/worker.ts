@@ -21,11 +21,15 @@ import { globalAtsEngine } from './lib/ai/engine';
 import { ACTIVE_AI_MODEL } from './lib/ai/models';
 import { transformToPublicAtsAudit } from './lib/ai/scoring';
 import { AtsFailureClassification } from './lib/ai/types';
+import { handleJobMatchRoutes } from './lib/job-match/worker-handlers';
+import { readPrivateJobMatchResume } from './lib/job-match/storage';
 
 interface Env {
   ASSETS: {
     fetch: (request: Request) => Promise<Response>;
   };
+  FEATURE_JOB_MATCH?: string;
+  JOB_MATCH_API_KEY?: string;
   DB?: {
     prepare: (query: string) => {
       bind: (...args: any[]) => {
@@ -465,6 +469,15 @@ export default {
 
     // Handle CORS preflight for all /api/ routes
     if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
+      if (url.pathname.startsWith('/api/job-match')) {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            ...CORS_HEADERS,
+            'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+          },
+        });
+      }
       return new Response(null, {
         status: 204,
         headers: CORS_HEADERS,
@@ -505,6 +518,21 @@ export default {
     const edgeAuth = new EdgeAuthAdminClient(projectId, serviceAccount);
 
     // =========================================================================
+    // AI JOB MATCH MODULE (Additive Feature behind FEATURE_JOB_MATCH)
+    // =========================================================================
+    if (url.pathname.startsWith('/api/job-match')) {
+      const jmResponse = await handleJobMatchRoutes({
+        request,
+        url,
+        env,
+        projectId,
+        firestore,
+        callGas: (gasPayload) => callGoogleAppsScript(env, gasPayload),
+      });
+      if (jmResponse) return jmResponse;
+    }
+
+    // =========================================================================
     // PHASE 2: CLIENT REGISTRATION (Name & Mobile only)
     // =========================================================================
     if (url.pathname === '/api/career/auth/register') {
@@ -516,8 +544,16 @@ export default {
       }
 
       try {
-        const body = (await request.json().catch(() => null)) as { name?: string; mobile?: string } | null;
-        const name = body?.name?.trim();
+        const body = (await request.json().catch(() => null)) as { name?: string; mobile?: string; source?: string } | null;
+        const source = String(body?.source || '').trim();
+        const normalizedMobile = normalizeMobile(body?.mobile?.trim() || '');
+        const rawName = body?.name?.trim() || '';
+        const name =
+          rawName.length >= 2
+            ? rawName
+            : source === 'AI_JOB_MATCH' && normalizedMobile.length >= 7
+            ? `Candidate ${normalizedMobile.slice(-4)}`
+            : rawName;
         const mobile = body?.mobile?.trim();
 
         if (!name || name.length < 2) {
@@ -527,7 +563,6 @@ export default {
           );
         }
 
-        const normalizedMobile = normalizeMobile(mobile || '');
         if (!normalizedMobile || normalizedMobile.length < 7) {
           return new Response(
             JSON.stringify({ success: false, error: 'Please enter a valid mobile number with country code.' }),
@@ -594,6 +629,43 @@ export default {
                 createdAt: now,
                 updatedAt: now,
               });
+            }
+          }
+
+          if (source === 'AI_JOB_MATCH' && currentWorkOrderId) {
+            const regLeadId = `jm_reg_${currentWorkOrderId}`;
+            const existingLead = await firestore.getDocument('scanning_leads', regLeadId).catch(() => null);
+            if (!existingLead) {
+              await firestore
+                .setDocument('scanning_leads', regLeadId, {
+                  scanning_lead_id: regLeadId,
+                  scan_reference: currentWorkOrderId,
+                  lead_type: 'SCANNING_LEAD',
+                  source: 'CAREER_STUDIO_AI_JOB_MATCH',
+                  created_at: now,
+                  last_updated_at: now,
+                  scan_status: 'INITIATED',
+                  candidate_name: existingClient.name || existingClient.fullName || name,
+                  email: existingClient.email || '',
+                  mobile_number: normalizeMobile(existingClient.mobile || existingClient.phone || normalizedMobile),
+                  location: '',
+                  original_file_name: 'Awaiting Resume Upload',
+                  file_extension: '',
+                  file_size: 0,
+                  mime_type: '',
+                  google_drive_file_id: '',
+                  google_drive_file_url: '',
+                  upload_status: 'PENDING',
+                  storage_status: 'PENDING',
+                  assessment_id: '',
+                  overall_score: null,
+                  assessment_status: 'PENDING',
+                  scan_completed_at: null,
+                  lead_status: 'NEW',
+                  assigned_to: '',
+                  admin_notes: `AI Job Match Candidate ID: ${currentWorkOrderId} (Returning candidate retrieved ID)`,
+                })
+                .catch(() => {});
             }
           }
 
@@ -679,6 +751,41 @@ export default {
           performedBy: 'SYSTEM',
           timestamp: now,
         });
+
+        // F. If registered via AI Job Match onboarding, also log into Scanning Leads
+        if (source === 'AI_JOB_MATCH') {
+          const regLeadId = `jm_reg_${workOrderId}`;
+          await firestore
+            .setDocument('scanning_leads', regLeadId, {
+              scanning_lead_id: regLeadId,
+              scan_reference: workOrderId,
+              lead_type: 'SCANNING_LEAD',
+              source: 'CAREER_STUDIO_AI_JOB_MATCH',
+              created_at: now,
+              last_updated_at: now,
+              scan_status: 'INITIATED',
+              candidate_name: name,
+              email: '',
+              mobile_number: normalizedMobile,
+              location: '',
+              original_file_name: 'Awaiting Resume Upload',
+              file_extension: '',
+              file_size: 0,
+              mime_type: '',
+              google_drive_file_id: '',
+              google_drive_file_url: '',
+              upload_status: 'PENDING',
+              storage_status: 'PENDING',
+              assessment_id: '',
+              overall_score: null,
+              assessment_status: 'PENDING',
+              scan_completed_at: null,
+              lead_status: 'NEW',
+              assigned_to: '',
+              admin_notes: `Registered via Career Studio -> AI Job Match. Candidate ID: ${workOrderId}`,
+            })
+            .catch(() => {});
+        }
 
         return new Response(
           JSON.stringify({
@@ -2944,6 +3051,33 @@ export default {
             lead.mime_type || backupDoc.mimeType || 'application/pdf',
             lead.original_file_name || backupDoc.fileName || 'candidate_resume.pdf'
           );
+        }
+
+        // 1b. AI Job Match private resume vault fallback
+        if (typeof lead.assessment_id === 'string' && lead.assessment_id.startsWith('jmi_')) {
+          const jmResume = await readPrivateJobMatchResume(
+            firestore,
+            (gasPayload) => callGoogleAppsScript(env, gasPayload),
+            '',
+            lead.assessment_id
+          ).catch(() => null);
+          if (jmResume) {
+            const safeAsciiName = (lead.original_file_name || jmResume.fileName || 'candidate_resume.pdf').replace(
+              /[^A-Za-z0-9._-]/g,
+              '_'
+            );
+            const disposition = action === 'download' ? 'attachment' : 'inline';
+            return new Response(jmResume.buffer as unknown as BodyInit, {
+              status: 200,
+              headers: {
+                ...CORS_HEADERS,
+                'Content-Type': lead.mime_type || jmResume.mimeType || 'application/pdf',
+                'Content-Disposition': `${disposition}; filename="${safeAsciiName}"; filename*=UTF-8''${encodeURIComponent(lead.original_file_name || jmResume.fileName || 'candidate_resume.pdf')}`,
+                'Content-Length': String(jmResume.buffer.byteLength),
+                'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+              },
+            });
+          }
         }
 
         const driveFileId = lead.google_drive_file_id;

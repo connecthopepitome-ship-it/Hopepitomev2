@@ -28,6 +28,7 @@ export const PERMISSION_MODULES: { id: StaffPermissionModule; label: string; des
   { id: 'reports', label: 'Reports & Analytics', description: 'Business intelligence and performance stats' },
   { id: 'finance', label: 'Finance & Invoices', description: 'Invoices, payments, and billing records' },
   { id: 'employees', label: 'Employee Management', description: 'Staff directory, accounts, roles, access' },
+  { id: 'job_match', label: 'AI Job Match', description: 'Candidate job-match intake queue, resumes & imported matches' },
   { id: 'settings', label: 'System Settings', description: 'Global company and portal configurations' },
 ];
 
@@ -127,6 +128,7 @@ export const DEFAULT_STAFF_ROLES: Omit<StaffRole, 'createdAt' | 'updatedAt'>[] =
       reports: ALL_ACTIONS,
       finance: ALL_ACTIONS,
       employees: ALL_ACTIONS,
+      job_match: ALL_ACTIONS,
       settings: ALL_ACTIONS,
     },
   },
@@ -189,6 +191,7 @@ export const DEFAULT_STAFF_ROLES: Omit<StaffRole, 'createdAt' | 'updatedAt'>[] =
       documents: ['view', 'create'],
       work_orders: ['view', 'edit'],
       messages: ['view', 'create'],
+      job_match: ['view', 'edit', 'export'],
     },
   },
   {
@@ -203,6 +206,7 @@ export const DEFAULT_STAFF_ROLES: Omit<StaffRole, 'createdAt' | 'updatedAt'>[] =
       documents: ['view', 'create', 'edit'],
       work_orders: ['view', 'edit'],
       messages: ['view', 'create'],
+      job_match: ['view'],
     },
   },
   {
@@ -218,6 +222,7 @@ export const DEFAULT_STAFF_ROLES: Omit<StaffRole, 'createdAt' | 'updatedAt'>[] =
       documents: ['view', 'create'],
       messages: ['view', 'create'],
       reports: ['view'],
+      job_match: ['view', 'create', 'edit', 'export'],
     },
   },
   {

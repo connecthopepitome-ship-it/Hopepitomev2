@@ -23,6 +23,16 @@ export default function ClientRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [redirectAfterLogin, setRedirectAfterLogin] = useState<string | null>(null);
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const r = new URLSearchParams(window.location.search).get('redirect') || '';
+      if (r.startsWith('/') && !r.startsWith('//')) {
+        setRedirectAfterLogin(r);
+      }
+    }
+  }, []);
+
   // Success Confirmation State
   const [registrationResult, setRegistrationResult] = useState<{
     workOrderId: string;
@@ -145,7 +155,9 @@ export default function ClientRegisterPage() {
               </button>
 
               <Link
-                href={`/career-services/portal/login?workOrderId=${encodeURIComponent(registrationResult.workOrderId)}`}
+                href={`/career-services/portal/login?workOrderId=${encodeURIComponent(registrationResult.workOrderId)}${
+                  redirectAfterLogin ? `&redirect=${encodeURIComponent(redirectAfterLogin)}` : ''
+                }`}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#17243B] text-white text-xs font-semibold hover:bg-[#292D36] transition shadow-sm"
               >
                 <span>Continue to Sign In</span>
