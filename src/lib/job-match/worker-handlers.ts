@@ -857,6 +857,7 @@ export async function handleJobMatchRoutes(ctx: JobMatchHandlerContext): Promise
             file_size: actualSize,
             mime_type: resolvedMime,
             google_drive_file_id: stored.gasFileId || '',
+            google_drive_folder_id: stored.driveFolderId || '',
             google_drive_file_url: '',
             upload_status: stored.gasFileId ? 'UPLOADED' : 'VAULT_STORED',
             storage_status: stored.gasFileId ? 'STORED' : 'PENDING',

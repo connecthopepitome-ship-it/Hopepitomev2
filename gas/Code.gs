@@ -444,7 +444,8 @@ function handleGetFileContent(fileId) {
 }
 
 /**
- * Stores AI Job Match resumes in a strictly private Drive folder (no public sharing).
+ * Stores AI Job Match resumes in the configured client Drive folder
+ * (Hopepitome Career Services / Clients / <HP-YYYY-XXXXX> / Original Resume) with private sharing.
  */
 function handleUploadPrivateJobMatchResume(data) {
   var candidateId = data.candidateId;
@@ -457,48 +458,21 @@ function handleUploadPrivateJobMatchResume(data) {
     return { success: false, error: 'Missing candidateId, fileName, or base64Content' };
   }
 
-  var scriptProps = PropertiesService.getScriptProperties();
-  var rootId = scriptProps.getProperty('ROOT_FOLDER_ID');
-  var rootFolder;
-  if (rootId) {
+  var uploadRes = handleUploadFile({
+    workOrderId: String(candidateId),
+    fileName: intakeReference + '_' + fileName,
+    mimeType: mimeType,
+    base64Content: base64Content,
+    subfolder: 'Original Resume',
+  });
+
+  if (uploadRes && uploadRes.success && uploadRes.fileId) {
     try {
-      rootFolder = DriveApp.getFolderById(rootId);
+      DriveApp.getFileById(uploadRes.fileId).setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
     } catch (e) {}
   }
-  if (!rootFolder) {
-    var rootFolders = DriveApp.getFoldersByName('Hopepitome Career Services');
-    rootFolder = rootFolders.hasNext()
-      ? rootFolders.next()
-      : DriveApp.createFolder('Hopepitome Career Services');
-    scriptProps.setProperty('ROOT_FOLDER_ID', rootFolder.getId());
-  }
 
-  var careerStudioFolder = getOrCreateFolderByName(rootFolder, 'Career Studio');
-  var jobMatchRoot = getOrCreateFolderByName(careerStudioFolder, 'AI Job Match Private Resumes');
-  var candidateFolder = getOrCreateFolderByName(jobMatchRoot, String(candidateId));
-
-  var cleanBase64 = String(base64Content);
-  if (cleanBase64.indexOf(',') > -1) {
-    cleanBase64 = cleanBase64.split(',')[1];
-  }
-  cleanBase64 = cleanBase64.replace(/\s+/g, '');
-  var decodedBytes = Utilities.base64Decode(cleanBase64);
-  var blob = Utilities.newBlob(decodedBytes, mimeType, intakeReference + '_' + fileName);
-  var file = candidateFolder.createFile(blob);
-
-  // Enforce private sharing only
-  try {
-    file.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
-  } catch (e) {}
-
-  return {
-    success: true,
-    fileId: file.getId(),
-    fileName: file.getName(),
-    mimeType: file.getMimeType(),
-    fileSize: file.getSize(),
-    createdAt: new Date().toISOString(),
-  };
+  return uploadRes;
 }
 
 /**

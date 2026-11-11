@@ -195,6 +195,13 @@ test('Scenario 7-13: Intake validation, 8MB limit, session ID extraction, privac
   const gasCalls = [];
   const mockGas = async (payload) => {
     gasCalls.push(payload);
+    if (payload.action === 'uploadFile') {
+      return {
+        success: true,
+        fileId: `drive_file_${gasCalls.length}`,
+        driveFolderId: `folder_${payload.workOrderId}`,
+      };
+    }
     if (payload.action === 'uploadPrivateJobMatchResume') {
       return { success: true, fileId: `drive_priv_${gasCalls.length}` };
     }
@@ -289,6 +296,16 @@ test('Scenario 7-13: Intake validation, 8MB limit, session ID extraction, privac
   assert.equal(intake1Json.intake.candidate_id, 'cl_1023');
   assert.equal(intake1Json.intake.status, 'Resume received');
   assert.ok(!String(intake1Json.intake.resume_storage_reference).includes('https://drive.google.com'));
+  assert.ok(String(intake1Json.intake.resume_storage_reference).startsWith('private:gas:drive_file_'));
+  const driveUploadCall = gasCalls.find((c) => c.action === 'uploadFile');
+  assert.ok(driveUploadCall, 'Expected GAS uploadFile action to be invoked');
+  assert.equal(driveUploadCall.workOrderId, 'HP-1023');
+  assert.equal(driveUploadCall.subfolder, 'Original Resume');
+  const syncedLead = await db.getDocument('scanning_leads', `jm_lead_${intake1Json.intake.id}`);
+  assert.ok(syncedLead, 'Expected synced scanning_leads document');
+  assert.ok(String(syncedLead.google_drive_file_id || '').startsWith('drive_file_'));
+  assert.equal(syncedLead.google_drive_folder_id, 'folder_HP-1023');
+  assert.equal(syncedLead.upload_status, 'UPLOADED');
 
   // Valid Intake #2 for same candidate (different role & location, history preserved)
   const intake2 = await invoke(

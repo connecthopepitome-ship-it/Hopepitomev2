@@ -19,6 +19,7 @@ export interface StoredResumeMetadata {
   storageReference: string;
   storageKey: string;
   gasFileId?: string;
+  driveFolderId?: string;
   fileDocId?: string;
   mimeType: string;
   originalFileName: string;
@@ -109,25 +110,60 @@ export async function storePrivateJobMatchResume(
     throw new Error('Upload failed, please try again.');
   }
 
-  // 2. Best-effort private Drive backup via GAS (guarded by timeout so large uploads never stall)
+  // 2. Store private copy in the already-configured Google Drive folder hierarchy
+  //    (ROOT_FOLDER_ID / Clients / <HP-YYYY-XXXXX> / Original Resume) via live GAS `uploadFile`,
+  //    falling back to `uploadPrivateJobMatchResume` if needed.
   let gasFileId = '';
+  let driveFolderId = '';
   if (callGas) {
-    try {
-      const gasPromise = callGas({
-        action: 'uploadPrivateJobMatchResume',
-        candidateId: params.candidateCode || params.candidateId,
-        intakeReference: params.intakeReference,
-        storageKey,
-        fileName: params.fileName,
+    const candidateWorkOrderId = params.candidateCode || params.candidateId;
+    const safeBaseDriveName =
+      String(params.fileName || 'resume.pdf')
+        .replace(/[\\/:*?"<>|]+/g, '_')
+        .trim() || 'resume.pdf';
+    const driveFileName = `${params.intakeReference}_${safeBaseDriveName}`;
+
+    const uploadToConfiguredDrive = async () => {
+      let gasRes = await callGas({
+        action: 'uploadFile',
+        workOrderId: candidateWorkOrderId,
+        fileName: driveFileName,
         mimeType: params.mimeType,
+        subfolder: 'Original Resume',
         base64Content: cleanB64,
       });
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 4500));
-      const gasRes = await Promise.race([gasPromise, timeoutPromise]);
+
+      if (!gasRes?.success || !gasRes?.fileId) {
+        gasRes = await callGas({
+          action: 'uploadPrivateJobMatchResume',
+          candidateId: candidateWorkOrderId,
+          intakeReference: params.intakeReference,
+          storageKey,
+          fileName: params.fileName,
+          mimeType: params.mimeType,
+          base64Content: cleanB64,
+        });
+      }
+
+      return gasRes;
+    };
+
+    try {
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000));
+      const gasRes = await Promise.race([uploadToConfiguredDrive(), timeoutPromise]);
       if (gasRes?.success && gasRes?.fileId) {
         gasFileId = String(gasRes.fileId);
+        driveFolderId = gasRes.driveFolderId ? String(gasRes.driveFolderId) : '';
         await firestore
-          .setDocument('job_match_resume_files', fileDocId, { gas_file_id: gasFileId }, true)
+          .setDocument(
+            'job_match_resume_files',
+            fileDocId,
+            {
+              gas_file_id: gasFileId,
+              ...(driveFolderId ? { drive_folder_id: driveFolderId } : {}),
+            },
+            true
+          )
           .catch(() => {});
       }
     } catch (err) {
@@ -143,6 +179,7 @@ export async function storePrivateJobMatchResume(
     storageReference,
     storageKey,
     gasFileId: gasFileId || undefined,
+    driveFolderId: driveFolderId || undefined,
     fileDocId,
     mimeType: params.mimeType,
     originalFileName: params.fileName,
