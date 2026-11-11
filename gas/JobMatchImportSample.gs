@@ -23,6 +23,7 @@
 var JOB_MATCH_SHEET_NAME = 'MatchedJobs';
 var CANDIDATE_INTAKES_SHEET_NAME = 'CandidateIntakes';
 var JOB_MATCH_BATCH_SIZE = 50; // Keeps Cloudflare Worker subrequests & GAS execution well within limits
+var DEFAULT_HOPEPITOME_IMPORT_URL = 'https://hopepitomev2.connect-hopepitome.workers.dev/api/job-matches/import';
 
 var JOB_MATCH_HEADERS = [
   'candidateId',
@@ -69,10 +70,43 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Hopepitome Job Match')
     .addItem('Setup "MatchedJobs" & "CandidateIntakes" Sheets', 'setupJobMatchSheet')
+    .addItem('Configure API Key & URL', 'configureJobMatchConnection')
     .addItem('Sync Both Ways Now', 'syncMatchedJobsToPortal')
     .addItem('Pull Candidate Intakes from Portal', 'pullCandidateIntakesFromPortal')
     .addItem('Push Pending Matched Jobs to Portal', 'pushMatchedJobsOnly')
     .addToUi();
+}
+
+function configureJobMatchConnection() {
+  var ui = SpreadsheetApp.getUi();
+  var props = PropertiesService.getScriptProperties();
+
+  var currentUrl = props.getProperty('HOPEPITOME_IMPORT_URL') || DEFAULT_HOPEPITOME_IMPORT_URL;
+  var urlResp = ui.prompt(
+    'Hopepitome Import URL',
+    'Confirm or enter HOPEPITOME_IMPORT_URL (leave as default for production):',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (urlResp.getSelectedButton() !== ui.Button.OK) return;
+  var chosenUrl = String(urlResp.getResponseText() || '').trim() || currentUrl;
+
+  var keyResp = ui.prompt(
+    'Hopepitome Job Match API Key',
+    'Paste JOB_MATCH_API_KEY (from Hopepitomev2/.env.local line 23):',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (keyResp.getSelectedButton() !== ui.Button.OK) return;
+  var chosenKey = String(keyResp.getResponseText() || '').trim();
+  if (!chosenKey) {
+    ui.alert('JOB_MATCH_API_KEY cannot be blank.');
+    return;
+  }
+
+  props.setProperties({
+    HOPEPITOME_IMPORT_URL: chosenUrl,
+    JOB_MATCH_API_KEY: chosenKey,
+  });
+  ui.alert('Saved! Now click Hopepitome Job Match -> Sync Both Ways Now.');
 }
 
 /**
@@ -160,11 +194,14 @@ function ensureCandidateIntakesSheet_(ss) {
   return intakeSheet;
 }
 
+function resolveImportUrl_(props) {
+  return String(props.getProperty('HOPEPITOME_IMPORT_URL') || DEFAULT_HOPEPITOME_IMPORT_URL).trim();
+}
+
 function resolveIntakesUrl_(props) {
   var explicit = props.getProperty('HOPEPITOME_INTAKES_URL');
   if (explicit) return explicit;
-  var importUrl = props.getProperty('HOPEPITOME_IMPORT_URL') || '';
-  if (!importUrl) return '';
+  var importUrl = resolveImportUrl_(props);
   if (importUrl.indexOf('/api/job-matches/import') !== -1) {
     return importUrl.replace('/api/job-matches/import', '/api/job-matches/intakes');
   }
@@ -195,10 +232,10 @@ function pullCandidateIntakesFromPortal() {
 function pullCandidateIntakesFromPortalInner_() {
   var props = PropertiesService.getScriptProperties();
   var intakesUrl = resolveIntakesUrl_(props);
-  var apiKey = props.getProperty('JOB_MATCH_API_KEY');
+  var apiKey = String(props.getProperty('JOB_MATCH_API_KEY') || '').trim();
 
-  if (!intakesUrl || !apiKey) {
-    throw new Error('Missing HOPEPITOME_IMPORT_URL (or HOPEPITOME_INTAKES_URL) or JOB_MATCH_API_KEY in Script Properties.');
+  if (!apiKey) {
+    throw new Error('Missing JOB_MATCH_API_KEY in Script Properties (or run Hopepitome Job Match -> Configure API Key & URL).');
   }
 
   var response = UrlFetchApp.fetch(intakesUrl, {
@@ -308,11 +345,11 @@ function pushMatchedJobsOnly() {
 
 function pushMatchedJobsToPortalInner_() {
   var props = PropertiesService.getScriptProperties();
-  var endpointUrl = props.getProperty('HOPEPITOME_IMPORT_URL');
-  var apiKey = props.getProperty('JOB_MATCH_API_KEY');
+  var endpointUrl = resolveImportUrl_(props);
+  var apiKey = String(props.getProperty('JOB_MATCH_API_KEY') || '').trim();
 
-  if (!endpointUrl || !apiKey) {
-    throw new Error('Missing HOPEPITOME_IMPORT_URL or JOB_MATCH_API_KEY in Script Properties.');
+  if (!apiKey) {
+    throw new Error('Missing JOB_MATCH_API_KEY in Script Properties (or run Hopepitome Job Match -> Configure API Key & URL).');
   }
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
