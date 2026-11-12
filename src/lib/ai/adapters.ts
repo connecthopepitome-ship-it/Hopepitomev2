@@ -82,9 +82,10 @@ export class OpenAiAdapter {
 
     const { systemPrompt, userPrompt } = buildAtsPrompt(input);
     const endpoint = ACTIVE_AI_MODEL.apiEndpoint;
+    const TIMEOUT_MS = 110_000; // 110s timeout to accommodate multi-page PDF/DOCX extraction
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s hard timeout
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
       const userContent: any[] = [];
@@ -130,18 +131,19 @@ export class OpenAiAdapter {
         text: userPrompt,
       });
 
-      const payload = {
+      const payload: Record<string, any> = {
         model: this.modelName,
         input: [
           { role: 'system', content: `${systemPrompt}\nOutput valid JSON only.` },
           { role: 'user', content: userContent },
         ],
+        reasoning: { effort: 'low' },
         text: {
           format: { type: 'json_object' },
         },
       };
 
-      const res = await fetch(endpoint, {
+      let res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,6 +152,23 @@ export class OpenAiAdapter {
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
+
+      // Fallback cleanly if model rejects the `reasoning` parameter
+      if (res.status === 400) {
+        const probeBody = await res.clone().text().catch(() => '');
+        if (/reasoning|unsupported/i.test(probeBody)) {
+          delete payload.reasoning;
+          res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey.trim()}`,
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+        }
+      }
 
       clearTimeout(timeoutId);
       const durationMs = Date.now() - startTime;
@@ -302,7 +321,7 @@ export class OpenAiAdapter {
         durationMs,
         errorCode: isAbort ? 504 : 500,
         errorReason: isAbort
-          ? 'The resume review timed out after 45 seconds. Please try again.'
+          ? 'The resume review timed out after 110 seconds. Please try again.'
           : 'Failed to connect to the resume review service. Please verify your connection and try again.',
       };
     }
